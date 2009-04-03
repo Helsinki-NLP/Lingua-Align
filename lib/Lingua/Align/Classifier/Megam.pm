@@ -103,7 +103,6 @@ sub train{
 sub classify{
     my $self=shift;
     my $model = shift || '__megam.'.$$;
-#    my $classfile = shift || '__class.'.$$;
 
 #    $self->store_features_used($model);
     my $testfile = $self->{TESTFILE};
@@ -114,7 +113,6 @@ sub classify{
 #    }
 
     my $arguments="-fvals -predict $model binary";
-#    my $command = "$self->{MEGAM} $arguments $testfile > $classfile";
     my $command = "$self->{MEGAM} $arguments $testfile";
     print STDERR "classify with:\n$command\n" if ($self->{-verbose});
     my $results = `$command`;
@@ -125,8 +123,11 @@ sub classify{
     my $correct1=0;   # nr of correctly with 1 labeled instances
     my $wrong1=0;     # nr of incorrectly with 1 labeled instances
     my $missed1=0;    # nr of instances missed by the system (that should be 1)
+    
+    my @scores=();
     foreach (@lines){
 	my ($label,$score)=split(/\s+/);
+	push (@scores,$score);
 	if ($label == 1){
 	    if ($self->{CORRECT_LABELS}->[$nr] == 1){
 		$correct1++;
@@ -145,10 +146,11 @@ sub classify{
                   $precision*100,$correct1,$correct1+$wrong1;
     printf STDERR "recall = %5.2f (%d/%d)\n",
                   $recall*100,$correct1,$correct1+$missed1;
-    printf STDERR "balanced F = %5f.2\n",
-    2*$precision*$recall/($precision+$recall);
+    printf STDERR "balanced F = %5.2f\n",
+    200*$precision*$recall/($precision+$recall);
     print STDERR "=======================================\n";
 
+    return @scores;
 
 }
 

@@ -13,6 +13,8 @@ use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Classifier;
 
 
+my $DEFAULTFEATURES = 'inside:outside';
+
 sub new{
     my $class=shift;
     my %attr=@_;
@@ -35,7 +37,8 @@ sub new{
 
 sub train{
     my $self=shift;
-    my ($corpus,$features,$model)=@_;
+    my ($corpus,$model,$max,$skip)=@_;
+    my $features = $_[4] || $self->{-features};
 
     # $corpus is a pointer to hash with all parameters necessary 
     # to access the training corpus
@@ -44,7 +47,7 @@ sub train{
     #
     # $model is the name of the model-file
 
-    $self->extract_training_data($corpus,$features);
+    $self->extract_training_data($corpus,$features,$max,$skip);
     $self->{CLASSIFIER}->train($model);
 
 }
@@ -52,77 +55,31 @@ sub train{
 
 sub align{
     my $self=shift;
-    my ($corpus,$features,$model,$skip,$max)=@_;
-    $self->extract_classification_data($corpus,$features,$skip,$max);
-    $self->{CLASSIFIER}->classify($model);
+    my ($corpus,$model,$max,$skip)=@_;
+    my $features = $_[4] || $self->{-features};
 
-}
+    $self->extract_classification_data($corpus,$features,$max,$skip);
+    my @scores = $self->{CLASSIFIER}->classify($model);
 
-
-sub __need_lex{
-    my $features=shift;
-    return 1 if (defined $features->{inside1});
-    return 1 if (defined $features->{outside1});
-    return 1 if (defined $features->{inside2});
-    return 1 if (defined $features->{outside2});
-    return 1 if (defined $features->{insideST1});
-    return 1 if (defined $features->{outsideST1});
-    return 1 if (defined $features->{insideST2});
-    return 1 if (defined $features->{outsideST2});
-    return 1 if (defined $features->{insideTS1});
-    return 1 if (defined $features->{outsideTS1});
-    return 1 if (defined $features->{insideTS2});
-    return 1 if (defined $features->{outsideTS2});
-    return 0;
-}
-
-sub initialize_features{
-    my $self=shift;
-    my $features=shift;
-    if (__need_lex($features)){
-	$self->load_moses_lex();
-    }
-}
-
-sub load_moses_lex{
-    my $self=shift;
-    return 1 if (exists $self->{LEXE2F});
-
-    my $lexe2f = $self->{-lexe2f} || 'moses/model/lex.0-0.e2f';
-    my $encoding = $self->{-lexe2f_encoding} || 'utf8';
-
-    if (-e $lexe2f){
-	print STDERR "load $lexe2f ....";
-	open F,"<$lexe2f" || die "cannot open lexe2f file $lexe2f\n";
-	binmode(F,":encoding($encoding)");
-	while (<F>){
-	    chomp;
-	    my ($src,$trg,$score)=split(/\s+/);
-	    $self->{LEXE2F}->{$src}->{$trg}=$score;
+    for (0..$#scores){
+	if ($scores[$_]>0.5){
+#	    print $self->{INSTANCES}->[$_],"\n";
+	    my ($sid,$tid,$snid,$tnid)=split(/\:/,$self->{INSTANCES}->[$_]);
+	    print "<align comment=\"$scores[$_]\" type=\"automatical\">\n";
+	    print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
+	    print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
+	    print "<align/>\n";
 	}
-	close F;
-	print STDERR " done!\n";
     }
 
-    my $lexf2e = $self->{-lexf2e} || 'moses/model/lex.0-0.f2e';
-    if (-e $lexf2e){
-	print STDERR "load $lexe2f ....";
-	open F,"<$lexf2e" || die "cannot open lexf2e file $lexf2e\n";
-	binmode(F,":encoding($encoding)");
-	while (<F>){
-	    chomp;
-	    my ($trg,$src,$score)=split(/\s+/);
-	    $self->{LEXF2E}->{$trg}->{$src}=$score;
-	}
-	close F;
-	print STDERR " done!\n";
-    }
 }
+
 
 
 sub extract_training_data{
     my $self=shift;
-    my ($corpus,$features)=@_;
+    my ($corpus,$features,$max,$skip)=@_;
+    if (not $features){$features = $self->{-features};}
 
     print STDERR "extract features for training!\n";
 
@@ -170,8 +127,9 @@ sub extract_training_data{
 	if (not($count % 100)){
 	    print STDERR " $count aligments\n";
 	}
-	if (exists $self->{-max_training_sentences}){
-	    if ($count>$self->{-max_training_sentences}){
+
+	if (defined $max){
+	    if ($count>$max){
 		$corpus->close();
 		last;
 	    }
@@ -188,16 +146,14 @@ sub extract_training_data{
 
 		    if ($$links{$sn}{$tn}=~/(good|S)/){
 			if ($weightSure){
-			    my %values = $self->get_features(
-				\%src,\%trg,$sn,$tn,$features);
+			    my %values = $self->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightSure);
 			}
 		    }
 		    elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
 			if ($weightPossible){
-			    my %values = $self->get_features(
-				\%src,\%trg,$sn,$tn,$features);
+			    my %values = $self->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightPossible);
 			}
@@ -207,8 +163,7 @@ sub extract_training_data{
 		# negative training events
 
 		elsif ($weightNegative){
-		    my %values = $self->get_features(
-			\%src,\%trg,$sn,$tn,$features);
+		    my %values = $self->features(\%src,\%trg,$sn,$tn);
 		    $self->{CLASSIFIER}->add_train_instance(
 			'0',\%values,$weightNegative);
 		}
@@ -220,7 +175,8 @@ sub extract_training_data{
 
 sub extract_classification_data{
     my $self=shift;
-    my ($corpus,$features,$skip,$max)=@_;
+    my ($corpus,$features,$max,$skip)=@_;
+    if (not $features){$features = $self->{-features};}
 
     print STDERR "extract features for classification!\n";
 
@@ -228,10 +184,6 @@ sub extract_classification_data{
 
     if (ref($corpus) ne 'HASH'){
 	die "please specify a corpus!";
-    }
-    if (ref($features) ne 'HASH'){
-	$features = { inside => 1,
-		      outside => 1};
     }
 
     my $corpus = new Lingua::Align::Corpus::Parallel(%{$corpus});
@@ -245,6 +197,8 @@ sub extract_classification_data{
 
     my $count=0;
     my $skipped=0;
+
+    $self->{INSTANCES}=[];
 
     while ($corpus->next_alignment(\%src,\%trg,\$links)){
 
@@ -285,14 +239,202 @@ sub extract_classification_data{
 		    }
 		    else{$label=1;}
 		}
-		my %values = $self->get_features(
-		    \%src,\%trg,$sn,$tn,$features);
+		my %values = $self->features(\%src,\%trg,$sn,$tn);
 		$self->{CLASSIFIER}->add_test_instance(\%values,$label);
+
+		push(@{$self->{INSTANCES}},"$src{ID}:$trg{ID}:$sn:$tn");
 
 	    }
 	}
     }
 }
+
+
+#########################################################################
+#
+# sub routines for extracting features .......
+#
+# should I divide this a bit more into smaller sub's?
+# maybe a separate module?
+#
+
+
+sub __need_lex{
+    my $features=shift;
+    foreach (keys %{$features}){
+	return 1 if (/(inside|outside)/);
+    }
+    return 0;
+}
+
+sub initialize_features{
+    my $self=shift;
+    my $features=shift;
+
+    # check if features is a pointer to a hash
+    # or a string based feature specification
+
+    if (ref($features) ne 'HASH'){
+	if (not defined $features){
+	    $features = $self->{-features} || $DEFAULTFEATURES;
+	}
+	my @feat=split(/\:/,$features);          # split feature string
+	$self->{FEATURES}={};
+	foreach (@feat){
+	    my ($name,$val)=split(/\=/);
+	    $self->{FEATURES}->{$name}=$val;
+	}
+    }
+    %{$self->{FEATURE_TYPES}} = $self->feature_types();
+
+    if (__need_lex($self->{FEATURE_TYPES})){    # load lexicon if necessary
+	$self->load_moses_lex();
+    }
+}
+
+
+
+
+# return feature types used in all features used (simple or complex ones)
+
+sub feature_types{
+    my $self=shift;
+
+    if (ref($self->{FEATURES}) ne 'HASH'){
+	$self->initialize_features();
+    }
+
+    my %feattypes=();
+
+    foreach my $f (keys %{$self->{FEATURES}}){
+	if ($f=~/\*/){
+	    my @fact = split(/\*/,$f);
+	    foreach (@fact){
+		$feattypes{$_}=$self->{FEATURES}->{$f};
+	    }
+	}
+
+	## average
+	elsif ($f=~/\+/){
+	    my @fact = split(/\+/,$f);
+	    foreach (@fact){
+		$feattypes{$_}=$self->{FEATURES}->{$f};
+	    }
+	}
+
+	## standard single type features
+	else{
+	    $feattypes{$f}=$self->{FEATURES}->{$f};
+	}
+    }
+
+    return %feattypes;
+
+}
+
+
+sub features{
+    my $self=shift;
+    my ($srctree,$trgtree,$srcnode,$trgnode)=@_;
+    my %feat = $self->get_features($srctree,$trgtree,$srcnode,$trgnode);
+
+    ## combine features if necessary
+    my %retfeat=();
+    foreach my $f (keys %{$self->{FEATURES}}){
+	if ($f=~/\*/){                       # multiply factors
+	    my @fact = split(/\*/,$f);
+	    my $score=1;
+	    foreach (@fact){
+		if (exists $feat{$_}){
+		    $score*=$feat{$_};
+		}
+		else{              # factor doesn't exist!
+		    $score=0;      # --> score = 0 & stop!
+		    last;
+		}
+	    }
+	    $retfeat{$f}=$score;
+	}
+
+	elsif ($f=~/\+/){                    # average of factors
+	    my @fact = split(/\+/,$f);
+	    my $score=0;
+	    foreach (@fact){
+		if (exists $feat{$_}){
+		    $score+=$feat{$_};
+		}
+	    }
+	    $score/=($#fact+1);
+	    $retfeat{$f}=$score;
+	}
+
+	else{                                # standard single type features
+	    $retfeat{$f}=$feat{$f};
+	}
+
+	if ($retfeat{$f} == 0){
+	    delete $retfeat{$f};
+	}
+    }
+
+
+    foreach (keys %feat){
+	if (not exists $retfeat{$_}){
+	    if (/\_/){                   # feature template like 'pos'
+		my @part = split(/\_/);
+		if (exists $self->{FEATURES}->{$part[0]}){
+		    $retfeat{$_}=$feat{$_};
+		}
+	    }
+	}
+    }
+
+    return %retfeat;
+}
+
+
+
+
+
+
+
+
+sub load_moses_lex{
+    my $self=shift;
+
+    return 1 if ((exists $self->{LEXE2F}) && (exists $self->{LEXF2E}));
+
+    my $lexe2f = $self->{-lexe2f} || 'moses/model/lex.0-0.e2f';
+    my $encoding = $self->{-lexe2f_encoding} || 'utf8';
+
+    if (-e $lexe2f){
+	print STDERR "load $lexe2f ....";
+	open F,"<$lexe2f" || die "cannot open lexe2f file $lexe2f\n";
+	binmode(F,":encoding($encoding)");
+	while (<F>){
+	    chomp;
+	    my ($src,$trg,$score)=split(/\s+/);
+	    $self->{LEXE2F}->{$src}->{$trg}=$score;
+	}
+	close F;
+	print STDERR " done!\n";
+    }
+
+    my $lexf2e = $self->{-lexf2e} || 'moses/model/lex.0-0.f2e';
+    if (-e $lexf2e){
+	print STDERR "load $lexe2f ....";
+	open F,"<$lexf2e" || die "cannot open lexf2e file $lexf2e\n";
+	binmode(F,":encoding($encoding)");
+	while (<F>){
+	    chomp;
+	    my ($trg,$src,$score)=split(/\s+/);
+	    $self->{LEXF2E}->{$trg}->{$src}=$score;
+	}
+	close F;
+	print STDERR " done!\n";
+    }
+}
+
 
 sub clear_cache{
     my $self=shift;
@@ -302,7 +444,8 @@ sub clear_cache{
 
 sub get_features{
     my $self=shift;
-    my ($srctree,$trgtree,$srcnode,$trgnode,$features)=@_;
+    my ($srctree,$trgtree,$srcnode,$trgnode)=@_;
+    my $features = $_[4] || $self->{FEATURE_TYPES};
 
     my %values=();
 
@@ -408,6 +551,15 @@ sub get_features{
 		$self->zhechev_scoreXY(\@trgleafs,\@srcleafs,$self->{LEXF2E},0);
 	}
 	$values{inside1}=$insideST1*$insideTS1;
+
+#	if ($values{inside1} == 0){
+#	    print STDERR "0: '";
+#	    print STDERR join('-',@srcleafs);
+#	    print STDERR "' & '";
+#	    print STDERR join('-',@trgleafs);
+#	    print STDERR "'\n";
+#	}
+
     }
 
     ## inside scores a la Dublin Tree Aligner
