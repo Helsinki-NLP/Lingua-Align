@@ -38,7 +38,6 @@ sub initialize_classification{
     $self->{TEST_FH} = new FileHandle;
     $self->{TEST_FH}->open(">$self->{TESTFILE}") || 
 	die "cannot open data file $self->{TESTFILE}\n";
-    $self->{CORRECT_LABELS}=[];
 }
 
 sub add_test_instance{
@@ -51,7 +50,6 @@ sub add_test_instance{
     print $fh $label.' ';
     print $fh join(' ',%{$feat});
     print $fh "\n";
-    push (@{$self->{CORRECT_LABELS}},$label);
 }
 
 sub initialize_training{
@@ -106,6 +104,8 @@ sub classify{
 
 #    $self->store_features_used($model);
     my $testfile = $self->{TESTFILE};
+    $self->{TEST_FH}->close();
+    delete $self->{TEST_FH};
 
 #    ## (better not ... just die ....)
 #    if ($self->features_used($model) ne $self->features_used($testfile)){
@@ -116,39 +116,15 @@ sub classify{
     my $command = "$self->{MEGAM} $arguments $testfile";
     print STDERR "classify with:\n$command\n" if ($self->{-verbose});
     my $results = `$command`;
-    unlink $testfile unless $self->{-keep_test_data};
+    unlink $testfile;
 
     my @lines = split(/\n/,$results);
-    my $nr = 0;       # nr of data instances
-    my $correct1=0;   # nr of correctly with 1 labeled instances
-    my $wrong1=0;     # nr of incorrectly with 1 labeled instances
-    my $missed1=0;    # nr of instances missed by the system (that should be 1)
-    
+
     my @scores=();
     foreach (@lines){
 	my ($label,$score)=split(/\s+/);
 	push (@scores,$score);
-	if ($label == 1){
-	    if ($self->{CORRECT_LABELS}->[$nr] == 1){
-		$correct1++;
-	    }
-	    else{$wrong1++;}
-	}
-	elsif ($self->{CORRECT_LABELS}->[$nr] == 1){
-	    $missed1++;
-	}
-	$nr++;
     }
-    my $precision = $correct1/($correct1+$wrong1);
-    my $recall = $correct1/($correct1+$missed1);
-
-    printf STDERR "precision = %5.2f (%d/%d)\n",
-                  $precision*100,$correct1,$correct1+$wrong1;
-    printf STDERR "recall = %5.2f (%d/%d)\n",
-                  $recall*100,$correct1,$correct1+$missed1;
-    printf STDERR "balanced F = %5.2f\n",
-    200*$precision*$recall/($precision+$recall);
-    print STDERR "=======================================\n";
 
     return @scores;
 

@@ -11,6 +11,7 @@ use FileHandle;
 use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Classifier;
+use Lingua::Align::Trees::Greedy;
 
 
 my $DEFAULTFEATURES = 'inside:outside';
@@ -57,14 +58,114 @@ sub align{
     my $self=shift;
     my ($corpus,$model,$max,$skip)=@_;
     my $features = $_[4] || $self->{-features};
+    my $max_score = $self{-max_score} || 0.2;
 
-    $self->extract_classification_data($corpus,$features,$max,$skip);
+
+    $self->initialize_features($features);
+    if (ref($corpus) ne 'HASH'){die "please specify a corpus!";}
+
+    # make a corpus object
+    my $corpus = new Lingua::Align::Corpus::Parallel(%{$corpus});
+    # make a Treebank object for processing trees
+    $self->{TREES} = new Lingua::Align::Corpus::Treebank();
+    # make a search object
+    my $searcher = new Lingua::Align::Trees::Greedy;
+
+    my %src=();my %trg=();my $links;
+
+    my $count=0;
+    my $skipped=0;
+
+    my ($correct,$wrong,$missed)=(0,0);
+
+    while ($corpus->next_alignment(\%src,\%trg,\$links)){
+
+	# this is useful to skip sentences that have been used for training
+	if (defined $skip){
+	    if ($skipped<$skip){
+		$skipped++;
+		next;
+	    }
+	}
+
+	$count++;
+	if (not($count % 10)){print STDERR '.';}
+	if (not($count % 100)){
+	    print STDERR " $count aligments\n";
+	}
+	if (defined $max){
+	    if ($count>$max){
+		$corpus->close();
+		last;
+	    }
+	}
+
+	$self->{INSTANCES}=[];
+	$self->extract_classification_data(\%src,\%trg,$links);
+	my @scores = $self->{CLASSIFIER}->classify($model);
+
+	my %links=();
+	my ($c,$w,$m)=$searcher->search(\%links,\@scores,$max_score,
+					$self->{INSTANCES},
+					$self->{LABELS});
+
+	$correct+=$c;
+	$wrong+=$w;
+	$missed+=$m;
+
+	foreach my $snid (keys %links){
+	    foreach my $tnid (keys %{$links{$snid}}){
+		print "<align comment=\"$links{$snid}{$tnid}\" type=\"auto\">\n";
+		print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
+		print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
+		print "<align/>\n";
+	    }
+	}
+		
+# 	for (0..$#scores){
+# 	    if ($scores[$_]>0.5){
+# #		print $self->{INSTANCES}->[$_],"\n";
+# 		my ($sid,$tid,$snid,$tnid)=
+# 		    split(/\:/,$self->{INSTANCES}->[$_]);
+# 		print "<align comment=\"$scores[$_]\" type=\"automatical\">\n";
+# 		print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
+# 		print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
+# 		print "<align/>\n";
+# 	    }
+# 	}
+
+    }
+
+    ## if there were any lables
+    if ($correct || $missed){
+	my $precision = $correct/($correct+$wrong);
+	my $recall = $correct/($correct+$missed);
+
+	printf STDERR "precision = %5.2f (%d/%d)\n",
+	$precision*100,$correct,$correct+$wrong;
+	printf STDERR "recall = %5.2f (%d/%d)\n",
+	$recall*100,$correct,$correct+$missed;
+	printf STDERR "balanced F = %5.2f\n",
+	200*$precision*$recall/($precision+$recall);
+	print STDERR "=======================================\n";
+
+    }
+}
+
+sub align_old{
+    my $self=shift;
+    my ($corpus,$model,$max,$skip)=@_;
+    my $features = $_[4] || $self->{-features};
+    $self->initialize_features($features);
+    $self->extract_classification_data_old($corpus,$features,$max,$skip);
+#    $self->{CLASSIFIER}->classify($model);
     my @scores = $self->{CLASSIFIER}->classify($model);
 
     for (0..$#scores){
 	if ($scores[$_]>0.5){
-#	    print $self->{INSTANCES}->[$_],"\n";
-	    my ($sid,$tid,$snid,$tnid)=split(/\:/,$self->{INSTANCES}->[$_]);
+#		print $self->{INSTANCES}->[$_],"\n";
+	    my ($sid,$tid,$snid,$tnid)=
+		split(/\:/,$self->{INSTANCES}->[$_]);
 	    print "<align comment=\"$scores[$_]\" type=\"automatical\">\n";
 	    print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
 	    print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
@@ -73,7 +174,6 @@ sub align{
     }
 
 }
-
 
 
 sub extract_training_data{
@@ -175,11 +275,37 @@ sub extract_training_data{
 
 sub extract_classification_data{
     my $self=shift;
+    my ($src,$trg,$links)=@_;
+    $self->{LABELS}=[];
+    foreach my $sn (keys %{$$src{NODES}}){
+	foreach my $tn (keys %{$$trg{NODES}}){
+	    my $label=0;
+	    if ((ref($$links{$sn}) eq 'HASH') && 
+		(exists $$links{$sn}{$tn})){
+		if ($self->{-count_good_only}){           # discard fuzzy
+		    if ($$links{$sn}{$tn}=~/(good|S)/){
+			$label=1;
+		    }
+		}
+		else{$label=1;}
+	    }
+	    push(@{$self->{LABELS}},$label);
+	    my %values = $self->features($src,$trg,$sn,$tn);
+	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+
+	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
+
+	}
+    }
+}
+
+
+sub extract_classification_data_old{
+    my $self=shift;
     my ($corpus,$features,$max,$skip)=@_;
     if (not $features){$features = $self->{-features};}
 
     print STDERR "extract features for classification!\n";
-
     $self->initialize_features($features);
 
     if (ref($corpus) ne 'HASH'){
@@ -248,6 +374,7 @@ sub extract_classification_data{
 	}
     }
 }
+
 
 
 #########################################################################
