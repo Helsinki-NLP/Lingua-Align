@@ -1,4 +1,4 @@
-package Lingua::Align::Trees::Greedy;
+package Lingua::Align::LinkSearch::Greedy;
 
 use 5.005;
 use strict;
@@ -23,7 +23,7 @@ sub new{
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$max_score,$instances,$labels)=@_;
+    my ($linksST,$scores,$max_score,$src,$trg,$labels)=@_;
 
     my $correct=0;
     my $wrong=0;
@@ -31,16 +31,16 @@ sub search{
 
     my %value=();
     my %label=();
-    foreach (0..$#{$instances}){
-	$value{$$instances[$_]}=$$scores[$_];
-	$label{$$instances[$_]}=$$labels[$_];
+    foreach (0..$#{$scores}){
+	$value{$$src[$_].':'.$$trg[$_]}=$$scores[$_];
+	$label{$$src[$_].':'.$$trg[$_]}=$$labels[$_];
 	if ($$labels[$_]){$total++;}
     }
 
     my %linksTS=();
     foreach my $k (sort {$value{$b} <=> $value{$a}} keys %value){
 	last if ($value{$k}<$max_score);
-	my ($sid,$tid,$snid,$tnid)=split(/\:/,$k);
+	my ($snid,$tnid)=split(/\:/,$k);
 	next if (exists $$linksST{$snid});
 	next if (exists $linksTS{$tnid});
 	$$linksST{$snid}{$tnid}=$value{$k};

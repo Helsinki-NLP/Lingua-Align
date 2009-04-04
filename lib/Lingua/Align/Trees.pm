@@ -11,7 +11,7 @@ use FileHandle;
 use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Classifier;
-use Lingua::Align::Trees::Greedy;
+use Lingua::Align::LinkSearch;
 
 
 my $DEFAULTFEATURES = 'inside:outside';
@@ -58,7 +58,7 @@ sub align{
     my $self=shift;
     my ($corpus,$model,$max,$skip)=@_;
     my $features = $_[4] || $self->{-features};
-    my $max_score = $self{-max_score} || 0.2;
+    my $max_score = $self->{-max_score} || 0.2;
 
 
     $self->initialize_features($features);
@@ -69,7 +69,7 @@ sub align{
     # make a Treebank object for processing trees
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
     # make a search object
-    my $searcher = new Lingua::Align::Trees::Greedy;
+    my $searcher = new Lingua::Align::LinkSearch;
 
     my %src=();my %trg=();my $links;
 
@@ -101,12 +101,16 @@ sub align{
 	}
 
 	$self->{INSTANCES}=[];
+	$self->{INSTANCES_SRC}=[];
+	$self->{INSTANCES_TRG}=[];
+
 	$self->extract_classification_data(\%src,\%trg,$links);
 	my @scores = $self->{CLASSIFIER}->classify($model);
 
 	my %links=();
 	my ($c,$w,$m)=$searcher->search(\%links,\@scores,$max_score,
-					$self->{INSTANCES},
+					$self->{INSTANCES_SRC},
+					$self->{INSTANCES_TRG},
 					$self->{LABELS});
 
 	$correct+=$c;
@@ -294,6 +298,8 @@ sub extract_classification_data{
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
 
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
+	    push(@{$self->{INSTANCES_SRC}},$sn);
+	    push(@{$self->{INSTANCES_TRG}},$tn);
 
 	}
     }
