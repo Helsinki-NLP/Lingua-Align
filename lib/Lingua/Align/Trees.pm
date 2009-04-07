@@ -4,10 +4,11 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw();
+@ISA = qw(Lingua::Align);
 $VERSION = '0.01';
 
 use FileHandle;
+use Lingua::Align;
 use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Classifier;
@@ -49,15 +50,17 @@ sub train{
     # $model is the name of the model-file
 
     $self->extract_training_data($corpus,$features,$max,$skip);
-    $self->{CLASSIFIER}->train($model);
-
+    $model = $self->{CLASSIFIER}->train($model);
+    $self->store_features_used($model,$features);
 }
 
 
 sub align{
     my $self=shift;
     my ($corpus,$model,$type,$max,$skip)=@_;
-    my $features = $_[5] || $self->{-features};
+
+    my $features = $self->get_features_used($model);
+#    my $features = $_[5] || $self->{-features};
 #    my $min_score = $self->{-min_score} || 0.2;
     my $min_score = $self->{-min_score} || 0;
 
@@ -159,29 +162,6 @@ sub align{
 	print STDERR "=======================================\n";
 
     }
-}
-
-sub align_old{
-    my $self=shift;
-    my ($corpus,$model,$max,$skip)=@_;
-    my $features = $_[4] || $self->{-features};
-    $self->initialize_features($features);
-    $self->extract_classification_data_old($corpus,$features,$max,$skip);
-#    $self->{CLASSIFIER}->classify($model);
-    my @scores = $self->{CLASSIFIER}->classify($model);
-
-    for (0..$#scores){
-	if ($scores[$_]>0.5){
-#		print $self->{INSTANCES}->[$_],"\n";
-	    my ($sid,$tid,$snid,$tnid)=
-		split(/\:/,$self->{INSTANCES}->[$_]);
-	    print "<align comment=\"P=$scores[$_]\" type=\"automatical\">\n";
-	    print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
-	    print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
-	    print "<align/>\n";
-	}
-    }
-
 }
 
 
@@ -310,81 +290,6 @@ sub extract_classification_data{
     }
 }
 
-
-sub extract_classification_data_old{
-    my $self=shift;
-    my ($corpus,$features,$max,$skip)=@_;
-    if (not $features){$features = $self->{-features};}
-
-    print STDERR "extract features for classification!\n";
-    $self->initialize_features($features);
-
-    if (ref($corpus) ne 'HASH'){
-	die "please specify a corpus!";
-    }
-
-    my $corpus = new Lingua::Align::Corpus::Parallel(%{$corpus});
-
-    # make a Treebank object for processing trees
-    $self->{TREES} = new Lingua::Align::Corpus::Treebank();
-
-    my %src=();
-    my %trg=();
-    my $links;
-
-    my $count=0;
-    my $skipped=0;
-
-    $self->{INSTANCES}=[];
-
-    while ($corpus->next_alignment(\%src,\%trg,\$links)){
-
-	# this is useful to skip sentences that have been used for training
-	if (defined $skip){
-	    if ($skipped<$skip){
-		$skipped++;
-		next;
-	    }
-	}
-
-	# clear the feature value cache
-	$self->clear_cache();
-
-	$count++;
-	if (not($count % 10)){
-	    print STDERR '.';
-	}
-	if (not($count % 100)){
-	    print STDERR " $count aligments\n";
-	}
-	if (defined $max){
-	    if ($count>$max){
-		$corpus->close();
-		last;
-	    }
-	}
-
-	foreach my $sn (keys %{$src{NODES}}){
-	    foreach my $tn (keys %{$trg{NODES}}){
-		my $label=0;
-		if ((ref($$links{$sn}) eq 'HASH') && 
-		    (exists $$links{$sn}{$tn})){
-		    if ($self->{-count_good_only}){           # discard fuzzy
-			if ($$links{$sn}{$tn}=~/(good|S)/){
-			    $label=1;
-			}
-		    }
-		    else{$label=1;}
-		}
-		my %values = $self->features(\%src,\%trg,$sn,$tn);
-		$self->{CLASSIFIER}->add_test_instance(\%values,$label);
-
-		push(@{$self->{INSTANCES}},"$src{ID}:$trg{ID}:$sn:$tn");
-
-	    }
-	}
-    }
-}
 
 
 
@@ -580,6 +485,15 @@ sub clear_cache{
 }
 
 
+
+#
+# TODO
+# - split into lex_features, label_features, tree_features ...
+# - catpos current+parent?
+# - catpos sisters? inside-sisters?
+#
+
+
 sub get_features{
     my $self=shift;
     my ($srctree,$trgtree,$srcnode,$trgnode)=@_;
@@ -598,6 +512,15 @@ sub get_features{
 	    $values{$_}=$self->{CACHE}->{$key}->{$_};
 	    delete $todo{$_};
 	}
+    }
+
+    if (exists $todo{tree_level_sim}){
+	my $dist1=$self->{TREES}->distance_to_root($srctree,$srcnode);
+	my $size1=$self->{TREES}->tree_size($srctree);
+	my $dist2=$self->{TREES}->distance_to_root($trgtree,$trgnode);
+	my $size2=$self->{TREES}->tree_size($trgtree);
+	my $diff=abs($dist1/$size1-$dist2/$size2);
+	$values{tree_level_sim}=1-$diff;
     }
 
     ## category or POS pair

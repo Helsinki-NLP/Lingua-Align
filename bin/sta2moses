@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+# USAGE: sta2moses.pl sta-align-file.xml
+#
+# simple script to get the aligned sentences from Stockholm Treealigner files
+#
+
+use strict;
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
+use Lingua::Align::Corpus::Parallel::STA;
+use File::Basename;
+
+my $algfile = shift(@ARGV);
+my $corpus=new Lingua::Align::Corpus::Parallel::STA(-alignfile => $algfile);
+my $base=basename($algfile);
+$base=~s/\.xml//;
+
+my $srcfile=$base.'.src';
+my $trgfile=$base.'.trg';
+
+open SRC,">$srcfile" || die "cannot open $srcfile\n";
+open TRG,">$trgfile" || die "cannot open $trgfile\n";
+binmode(SRC,":encoding(utf8)");
+binmode(TRG,":encoding(utf8)");
+
+my %srctree=();
+my %trgtree=();
+my $links;
+
+while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
+    print SRC lc(join(' ',$corpus->{SRC}->get_all_leafs(\%srctree)));
+    print SRC "\n";
+    print TRG lc(join(' ',$corpus->{TRG}->get_all_leafs(\%trgtree)));
+    print TRG "\n";
+}
+
+close SRC;
+close TRG;

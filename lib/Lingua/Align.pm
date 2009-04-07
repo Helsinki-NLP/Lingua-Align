@@ -22,8 +22,30 @@ sub new{
 }
 
 
-sub align{
+sub align{}
+
+
+sub store_features_used{
     my $self=shift;
+    my ($model,$features)=@_;
+    my $file=$model.'.feat';
+    if (open F,">$file"){
+	print F $features,"\n";
+	close F;
+    }
+}
+
+sub get_features_used{
+    my $self=shift;
+    my ($model)=@_;
+    my $file=$model.'.feat';
+    if (open F,"<$file"){
+	my $features = <F>;
+	chomp $features;
+	close F;
+	return $features;
+    }
+    return undef;
 }
 
 

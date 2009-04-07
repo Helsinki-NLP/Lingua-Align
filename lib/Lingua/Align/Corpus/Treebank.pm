@@ -28,6 +28,34 @@ sub new{
 # (here: only virtual function ....)
 sub next_sentence{}
 
+sub distance_to_root{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}->{$node}->{TREELEVEL}){
+	return $tree->{NODES}->{$node}->{TREELEVEL};
+    }
+    my $this=$node;
+    my $count=0;
+    while (exists $tree->{NODES}->{$this}->{PARENTS}){
+	$count++;
+	$this=$tree->{NODES}->{$this}->{PARENTS}->[0];
+	last if (not exists $tree->{NODES}->{$this});
+    }
+    $tree->{NODES}->{$node}->{TREELEVEL}=$count;
+    return $count;
+}
+
+sub tree_size{
+    my $self=shift;
+    my $tree=shift;
+    my $size=0;
+    foreach my $n (keys %{$tree->{NODES}}){
+	my $level=$self->distance_to_root($tree,$n);
+	if ($level>$size){$size=$level;}
+    }
+    return $size;
+}
+
 sub get_all_leafs{
     my $self=shift;
     my ($tree,$attr)=@_;

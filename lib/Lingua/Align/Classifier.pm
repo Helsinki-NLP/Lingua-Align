@@ -47,8 +47,6 @@ sub new{
 sub train{}
 sub initialize_taining{};
 sub register_training_event{}
-
-
 sub classify{}
 
 1;
