@@ -119,10 +119,62 @@ sub get_links{
 }
 
 
+# print tree alignments
+# - SrcId, TrgId = treebank IDs (default: src & trg)
+# - add link probablility in comment
+
+sub print_alignments{
+    my $self=shift;
+    my $srctree=shift;
+    my $trgtree=shift;
+    my $links=shift;
+
+    my $SrcId = shift || 'src';
+    my $TrgId = shift || 'trg';
+
+    my $str='';
+    foreach my $s (keys %{$links}){
+	foreach my $t (keys %{$$links{$s}}){
+	    my $att="author=\"Lingua::Align\" prob=\"$$links{$s}{$t}\"";
+
+#	    my $att="comment=\"None\"";
+	    # P<0.5 --> fuzzy link?!?
+	    if ($$links{$s}{$t}>0.5){
+		$str.="    <align $att type=\"good\">\n";
+	    }
+	    else{
+		$str.="    <align $att type=\"fuzzy\">\n";
+	    }
+#	    $str.="    <align $att type=\"auto\">\n";
+	    $str.="      <node node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
+	    $str.="      <node node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
+	    $str.="    </align>\n";
+	}
+    }
+    return $str;
+}
+
+sub print_header{
+    my $self=shift;
+    my ($srcfile,$trgfile,$srcid,$trgid)=@_;
+    my $string = "<?xml version=\"1.0\" ?>\n<treealign>\n  <treebanks>\n";
+    $string.="    <treebank filename=\"$srcfile\" id=\"$srcid\"/>\n";
+    $string.="    <treebank filename=\"$trgfile\" id=\"$trgid\"/>\n";
+    $string.="  </treebanks>\n  <alignments>\n";
+    return $string;
+}
+
+sub print_tail{
+    my $self=shift;
+    return "  </alignments>\n</treealign>\n";
+}
+
 
 sub read_tree_alignments{
     my $self=shift;
     my $file=shift;
+    my $links=shift;
+
     if (! defined $self->{FH}->{$file}){
 	$self->{FH}->{$file} = new FileHandle;
 	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
@@ -157,9 +209,56 @@ sub read_tree_alignments{
 	__find_corpus_file($self->{__XMLHANDLE__}->{TREEBANKS}->{$trgid},$file);
 
     $self->make_corpus_handles(%attr);
+    if (ref($links)){
+	$$links = $self->{__XMLHANDLE__}->{LINKS};
+    }
 
     return $self->{__XMLHANDLE__}->{LINKCOUNT};
 }
+
+
+
+sub treebankID{
+    my $self=shift;
+    my $nr=shift || 0;
+    if (exists $self->{__XMLHANDLE__}){
+	if (exists $self->{__XMLHANDLE__}->{TREEBANKIDS}){
+	    if (ref($self->{__XMLHANDLE__}->{TREEBANKIDS}) eq 'ARRAY'){
+		return $self->{__XMLHANDLE__}->{TREEBANKIDS}->[$nr];
+	    }
+	}
+    }
+    return undef;
+}
+
+sub src_treebankID{
+    my $self=shift;
+    return $self->treebankID(0);
+}
+
+sub trg_treebankID{
+    my $self=shift;
+    return $self->treebankID(1);
+}
+
+sub src_treebank{
+    my $self=shift;
+    my $id=$self->src_treebankID();
+    if (defined $id){
+	return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+    }
+    return undef;
+}
+
+sub trg_treebank{
+    my $self=shift;
+    my $id=$self->trg_treebankID();
+    if (defined $id){
+	return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+    }
+    return undef;
+}
+
 
 sub __find_corpus_file{
     my ($file,$alignfile)=@_;

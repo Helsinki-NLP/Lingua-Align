@@ -56,9 +56,10 @@ sub train{
 
 sub align{
     my $self=shift;
-    my ($corpus,$model,$max,$skip)=@_;
-    my $features = $_[4] || $self->{-features};
-    my $max_score = $self->{-max_score} || 0.2;
+    my ($corpus,$model,$type,$max,$skip)=@_;
+    my $features = $_[5] || $self->{-features};
+#    my $min_score = $self->{-min_score} || 0.2;
+    my $min_score = $self->{-min_score} || 0;
 
 
     $self->initialize_features($features);
@@ -69,14 +70,20 @@ sub align{
     # make a Treebank object for processing trees
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
     # make a search object
-    my $searcher = new Lingua::Align::LinkSearch;
+    my $searcher = new Lingua::Align::LinkSearch(-link_search => $type);
+
+    # output data
+    my %output;
+    $output{-type} = $self->{-output_format} || 'sta';
+    my $alignments = new Lingua::Align::Corpus::Parallel(%output);
 
     my %src=();my %trg=();my $links;
 
     my $count=0;
     my $skipped=0;
 
-    my ($correct,$wrong,$missed)=(0,0);
+    my ($correct,$wrong,$total)=(0,0,0);
+    my ($SrcId,$TrgId);
 
     while ($corpus->next_alignment(\%src,\%trg,\$links)){
 
@@ -108,30 +115,27 @@ sub align{
 	my @scores = $self->{CLASSIFIER}->classify($model);
 
 	my %links=();
-	my ($c,$w,$m)=$searcher->search(\%links,\@scores,$max_score,
+	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
 					$self->{INSTANCES_SRC},
 					$self->{INSTANCES_TRG},
 					$self->{LABELS});
-
 	$correct+=$c;
 	$wrong+=$w;
-	$missed+=$m;
+	$total+=$t;
 
-	foreach my $snid (keys %links){
-	    foreach my $tnid (keys %{$links{$snid}}){
-		print "<align comment=\"$links{$snid}{$tnid}\" type=\"auto\">\n";
-		print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
-		print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
-		print "<align/>\n";
-	    }
+	if ((not defined $SrcId) || (not defined $TrgId)){
+	    $SrcId=$corpus->src_treebankID();
+	    $TrgId=$corpus->trg_treebankID();
+	    my $SrcFile=$corpus->src_treebank();
+	    my $TrgFile=$corpus->trg_treebank();
+	    print $alignments->print_header($SrcFile,$TrgFile,$SrcId,$TrgId);
 	}
-		
-# 	for (0..$#scores){
-# 	    if ($scores[$_]>0.5){
-# #		print $self->{INSTANCES}->[$_],"\n";
-# 		my ($sid,$tid,$snid,$tnid)=
-# 		    split(/\:/,$self->{INSTANCES}->[$_]);
-# 		print "<align comment=\"$scores[$_]\" type=\"automatical\">\n";
+
+	print $alignments->print_alignments(\%src,\%trg,\%links,$SrcId,$TrgId);
+
+# 	foreach my $snid (keys %links){
+# 	    foreach my $tnid (keys %{$links{$snid}}){
+# 		print "<align comment=\"$links{$snid}{$tnid}\" type=\"auto\">\n";
 # 		print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
 # 		print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
 # 		print "<align/>\n";
@@ -139,16 +143,17 @@ sub align{
 # 	}
 
     }
+    print $alignments->print_tail();
 
     ## if there were any lables
-    if ($correct || $missed){
+    if ($total){
 	my $precision = $correct/($correct+$wrong);
-	my $recall = $correct/($correct+$missed);
+	my $recall = $correct/($total);
 
 	printf STDERR "precision = %5.2f (%d/%d)\n",
 	$precision*100,$correct,$correct+$wrong;
 	printf STDERR "recall = %5.2f (%d/%d)\n",
-	$recall*100,$correct,$correct+$missed;
+	$recall*100,$correct,$total;
 	printf STDERR "balanced F = %5.2f\n",
 	200*$precision*$recall/($precision+$recall);
 	print STDERR "=======================================\n";
@@ -170,7 +175,7 @@ sub align_old{
 #		print $self->{INSTANCES}->[$_],"\n";
 	    my ($sid,$tid,$snid,$tnid)=
 		split(/\:/,$self->{INSTANCES}->[$_]);
-	    print "<align comment=\"$scores[$_]\" type=\"automatical\">\n";
+	    print "<align comment=\"P=$scores[$_]\" type=\"automatical\">\n";
 	    print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
 	    print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
 	    print "<align/>\n";

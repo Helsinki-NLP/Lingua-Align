@@ -14,11 +14,12 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw();
+@ISA = qw(Lingua::Align::Corpus::Parallel);
 
 $VERSION = '0.01';
 
 use Lingua::Align::Corpus;
+use Lingua::Align::Corpus::Parallel;
 
 sub new{
     my $class=shift;

@@ -24,6 +24,44 @@ sub new{
 }
 
 
+sub print_tree{
+    my $self=shift;
+    my $tree=shift;
+
+    my $ids=shift || [];
+    my $node = shift || $tree->{ROOTNODE};
+
+    my $string.='(';
+    if (defined $tree->{NODES}->{$node}->{cat}){
+	$string.=$tree->{NODES}->{$node}->{cat};
+    }
+    elsif (defined $tree->{NODES}->{$node}->{pos}){
+	$string.=$tree->{NODES}->{$node}->{pos};
+    }
+    # add node ID if necessary (for Dublin aligner format)
+    if ($self->{-add_ids}){
+	my $idx = scalar @{$ids} + 1;
+	$string.='-'.$idx;
+    }
+    push (@{$ids},$tree->{NODES}->{$node}->{id});
+    $string.=' ';
+
+    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+	foreach my $c (@{$tree->{NODES}->{$node}->{CHILDREN}}){
+	    $string.=$self->print_tree($tree,$ids,$c);
+	}
+    }
+
+    if (defined $tree->{NODES}->{$node}->{word}){
+	$string.=$tree->{NODES}->{$node}->{word};
+    }
+    $string.=')';
+    return $string;
+}
+
+    
+
+
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!

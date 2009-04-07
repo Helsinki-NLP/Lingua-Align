@@ -12,19 +12,26 @@ $VERSION = '0.01';
 
 use Lingua::Align::Corpus::Parallel::Giza;
 use Lingua::Align::Corpus::Parallel::STA;
+use Lingua::Align::Corpus::Parallel::Dublin;
 
 
 sub new{
     my $class=shift;
     my %attr=@_;
 
-    if ($attr{-type}=~/sta/i){
+    if ($attr{-type}=~/(sta|stockholm)/i){
 	return new Lingua::Align::Corpus::Parallel::STA(%attr);
+    }
+    if ($attr{-type}=~/(dublin)/i){
+	return new Lingua::Align::Corpus::Parallel::Dublin(%attr);
     }
     return new Lingua::Align::Corpus::Parallel::Giza(%attr);
 }
 
 
+sub print_alignments{}
+sub print_header{}
+sub print_tail{}
 
 sub make_corpus_handles{
     my $self=shift;

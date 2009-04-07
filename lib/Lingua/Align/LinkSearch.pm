@@ -9,6 +9,10 @@ $VERSION = '0.01';
 
 use FileHandle;
 use Lingua::Align::LinkSearch::Greedy;
+use Lingua::Align::LinkSearch::Src2Trg;
+use Lingua::Align::LinkSearch::Trg2Src;
+use Lingua::Align::LinkSearch::Intersection;
+
 
 sub new{
     my $class=shift;
@@ -16,8 +20,14 @@ sub new{
 
     my $type = $attr{-link_search} || 'greedy';
 
+    if ($type=~/src2trg/i){
+	return new Lingua::Align::LinkSearch::Src2Trg(%attr);
+    }
+    if ($type=~/trg2src/i){
+	return new Lingua::Align::LinkSearch::Trg2Src(%attr);
+    }
     if ($type=~/inter/i){
-	return new Lingua::Align::LinkSearch::Inter(%attr);
+	return new Lingua::Align::LinkSearch::Intersection(%attr);
     }
     return new Lingua::Align::LinkSearch::Greedy(%attr);
 }

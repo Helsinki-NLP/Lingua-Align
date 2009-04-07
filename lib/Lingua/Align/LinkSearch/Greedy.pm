@@ -23,7 +23,7 @@ sub new{
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$max_score,$src,$trg,$labels)=@_;
+    my ($linksST,$scores,$min_score,$src,$trg,$labels)=@_;
 
     my $correct=0;
     my $wrong=0;
@@ -32,14 +32,16 @@ sub search{
     my %value=();
     my %label=();
     foreach (0..$#{$scores}){
-	$value{$$src[$_].':'.$$trg[$_]}=$$scores[$_];
-	$label{$$src[$_].':'.$$trg[$_]}=$$labels[$_];
-	if ($$labels[$_]){$total++;}
+	if ($$scores[$_]>=$min_score){
+	    $value{$$src[$_].':'.$$trg[$_]}=$$scores[$_];
+	    $label{$$src[$_].':'.$$trg[$_]}=$$labels[$_];
+	}
+	if ($$labels[$_] == 1){$total++;}
     }
 
     my %linksTS=();
     foreach my $k (sort {$value{$b} <=> $value{$a}} keys %value){
-	last if ($value{$k}<$max_score);
+	last if ($value{$k}<$min_score);
 	my ($snid,$tnid)=split(/\:/,$k);
 	next if (exists $$linksST{$snid});
 	next if (exists $linksTS{$tnid});
@@ -48,7 +50,7 @@ sub search{
 	if ($label{$k} == 1){$correct++;}
 	else{$wrong++;}
     }
-    return ($correct,$wrong,$total-$correct);
+    return ($correct,$wrong,$total);
 }
 
 
