@@ -44,21 +44,24 @@ sub next_sentence{
     my $file=shift || $self->{-file};
     my $encoding=shift || $self->{-encoding};
 
-    if (! defined $self->{FH}->{$file}){
-	$self->{FH}->{$file} = new FileHandle;
-	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
-	binmode($self->{FH}->{$file},":encoding($encoding)");
-	$self->{SENT_COUNT}->{$file}=0;
-    }
-    my $fh=$self->{FH}->{$file};
+    my $fh=$self->open_file($file,$encoding);
+
+#     if (! defined $self->{FH}->{$file}){
+# 	$self->{FH}->{$file} = new FileHandle;
+# 	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
+# 	binmode($self->{FH}->{$file},":encoding($encoding)");
+# 	$self->{COUNT}->{$file}=0;
+#     }
+#     my $fh=$self->{FH}->{$file};
+
     if (my $sent=<$fh>){
 	chomp $sent;
-	$self->{SENT_COUNT}->{$file}++;
+	$self->{COUNT}->{$file}++;
 	if ($sent=~/^\<s (snum|id)=\"?([^\"]+)\"?(\s|\>)/i){
 	    $self->{SENT_ID}->{$file}=$2;
 	}
 	else{
-	    $self->{SENT_ID}->{$file}=$self->{SENT_COUNT}->{$file};
+	    $self->{SENT_ID}->{$file}=$self->{COUNT}->{$file};
 	}
 	$self->{LAST_SENT_ID}=$self->{SENT_ID}->{$file};
 	$sent=~s/^\<s.*?\>\s*//;
@@ -79,6 +82,40 @@ sub current_id{
     return $self->{LAST_SENT_ID};
 }
 
+sub open_file{
+    my $self=shift;
+
+    my $file=shift || $self->{-file};
+    my $encoding=shift || $self->{-encoding};
+
+    if (! defined $self->{FH}->{$file}){
+	$self->{FH}->{$file} = new FileHandle;
+	my $filename = $file;
+
+	# if file doesn't exist but the gzipped version exists
+	if ((! -e $file) && (-e $file.'.gz')){$filename=$file.'.gz';}
+
+	if ($filename=~/\.gz$/){
+	    $self->{FH}->{$file}->open("gzip -cd < $filename |") ||
+		die "cannot open file $filename\n";
+	}
+	else{
+	    $self->{FH}->{$file}->open("<$filename") || 
+		die "cannot open file $filename\n";
+	}
+	if ($encoding){
+	    binmode($self->{FH}->{$file},":encoding($encoding)");
+	}
+	$self->{COUNT}->{$file}=0;
+	return $self->{FH}->{$file};
+    }
+    else{
+	return $self->{FH}->{$file};
+    }
+
+    ## shouldn't get here ....
+    return undef;
+}
 
 sub close_file{
     my $self=shift;

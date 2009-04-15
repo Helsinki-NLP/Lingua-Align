@@ -34,22 +34,50 @@ my ($correct,$wrong,$correctGood,$totalGood)= (0,0,0,0);
 # aligner didn't find any alignments ... hmmm ...
 
 my %srcIDs=();
+my $s_is_term;
+my $t_is_term;
+
+my %CorrectTypes=();
+my %WrongTypes=();
+
 
 foreach my $s (keys %{$SystemLinks}){
     if ($s=~/^(s[0-9]+)\_/){
 	$srcIDs{$1}=1;
     }
+
+    if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	if ($1 < 500){$s_is_term=1;}       # are terminal nodes
+	else{$s_is_term=0;}
+    }
+
     foreach my $t (keys %{$$SystemLinks{$s}}){
+
+	if ($t=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	    if ($1 < 500){$t_is_term=1;}       # are terminal nodes
+	    else{$t_is_term=0;}
+	}
+
 	if (exists $$GoldLinks{$s}){
 	    if (exists $$GoldLinks{$s}{$t}){
+
+		$CorrectTypes{$$GoldLinks{$s}{$t}}{$s_is_term}{$t_is_term}++;
+		$CorrectTypes{ALL}{$s_is_term}{$t_is_term}++;
+
 		$correct++;
 		if ($$GoldLinks{$s}{$t} eq 'good'){
 		    $correctGood++;
 		}
 	    }
-	    else{$wrong++;}
+	    else{
+		$WrongTypes{$s_is_term}{$t_is_term}++;
+		$wrong++;
+	    }
 	}
-	else{$wrong++;}
+	else{
+	    $WrongTypes{$s_is_term}{$t_is_term}++;
+	    $wrong++;
+	}
     }
 }
 
@@ -59,11 +87,28 @@ foreach my $s (keys %{$SystemLinks}){
 #   (which we haven't aligned with the system to be evaluated)
 
 my $total=0;
+my %TotalTypes=();
+
 foreach my $s (keys %{$GoldLinks}){
     if ($s=~/^(s[0-9]+)\_/){
 	next if (not exists $srcIDs{$1});
     }
+
+    if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	if ($1 < 500){$s_is_term=1;}       # are terminal nodes
+	else{$s_is_term=0;}
+    }
+
     foreach my $t (keys %{$$GoldLinks{$s}}){
+
+	if ($t=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	    if ($1 < 500){$t_is_term=1;}       # are terminal nodes
+	    else{$t_is_term=0;}
+	}
+
+	$TotalTypes{$$GoldLinks{$s}{$t}}{$s_is_term}{$t_is_term}++;
+	$TotalTypes{ALL}{$s_is_term}{$t_is_term}++;
+
 	$total++;
 	next if ($$GoldLinks{$s}{$t} ne 'good');
 	$totalGood++;
@@ -76,7 +121,62 @@ if ($total != $totalGold){
     print " for which we actually have alignments!\n\n";
 }
 
+#----------------------------------------------------------------
+# print scores per type (T:T, NT:NT, all, good, fuzzy)
 
+foreach my $type (sort keys %TotalTypes){
+    next if ($type eq 'comment');
+    foreach my $s (sort keys %{$TotalTypes{$type}}){
+	foreach my $t (sort keys %{$TotalTypes{$type}}){
+
+	    ## only if there is anything to say ....
+	    next if ((not $CorrectTypes{$type}{$s}{$t}) &&
+		     (not $WrongTypes{$s}{$t}));
+
+	    print "--------------------------------------------------------\n";
+
+	    my $precision=0;
+	    if ($CorrectTypes{$type}{$s}{$t} || $WrongTypes{$s}{$t}){
+		$precision = $CorrectTypes{$type}{$s}{$t}/
+		    ($CorrectTypes{$type}{$s}{$t}+$WrongTypes{$s}{$t});
+	    }
+	    my $recall=0;
+	    if ($TotalTypes{$type}{$s}{$t}){
+		$recall=$CorrectTypes{$type}{$s}{$t}/
+		    $TotalTypes{$type}{$s}{$t};
+	    }
+
+	    my $st = 'NT';
+	    if ($s){$st = 'T';}
+	    my $tt = 'NT';
+	    if ($t){$tt = 'T';}
+
+	    printf "%30s = %5.2f (%d/%d)\n",
+	    "precision ($type/$st:$tt)",
+	    $precision*100,
+	    $CorrectTypes{$type}{$s}{$t},
+	    $CorrectTypes{$type}{$s}{$t}+$WrongTypes{$s}{$t};
+
+	    printf "%30s = %5.2f (%d/%d)\n",
+	    "recall ($type/$st:$tt)",
+	    $recall*100,
+	    $CorrectTypes{$type}{$s}{$t},
+	    $TotalTypes{$type}{$s}{$t};
+
+	    my $F=0;
+	    if ($recall || $precision){
+		$F=2*$precision*$recall/($precision+$recall);
+	    }
+	    printf "%30s = %5.2f\n","balanced F ($type/$st:$tt)",100*$F;
+	}
+    }
+}
+
+print "\n\n";
+
+
+#----------------------------------------------------------------
+# print total numbers
 
 
 print "=======================================\n";

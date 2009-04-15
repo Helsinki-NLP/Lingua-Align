@@ -1,11 +1,3 @@
-#
-# constructor parameters:
-#    -src_file ...... source language corpus file
-#    -trg_file ...... target language corpus file
-#    -src_type ...... corpus type, source language
-#    -trg_type ...... corpus type, target language
-#
-#
 
 
 package Lingua::Align::Corpus::Parallel::Giza;
@@ -32,18 +24,44 @@ sub new{
 	$self->{$_}=$attr{$_};
     }
 
-    $self->make_corpus_handles(%attr);
-
     return $self;
 }
 
 
 sub next_alignment{
     my $self=shift;
-    my ($src,$trg)=@_;
-    return 0 if (not $self->{SRC}->next_sentence($src));
-    return 0 if (not $self->{TRG}->next_sentence($trg));
-    return 1;
+    my ($src,$trg,$links)=@_;
+
+    my $file=$_[3] || $self->{-alignfile};
+    my $encoding=$_[4] || $self->{-encoding};
+
+    my $fh=$self->open_file($file,$encoding);
+
+    while (<$fh>){
+	if (/^\#\s+Sentence pair \(([0-9]+)\) source length ([0-9]+) target length ([0-9]+) alignment score : (.*)$/){
+	    $self->{SENT_PAIR}=$1;
+	    $self->{SRC_LENGTH}=$2;
+	    $self->{TRG_LENGTH}=$3;
+	    $self->{ALIGN_SCORE}=$4;
+	    my $srcline = <$fh>;
+	    chomp $srcline;
+	    @{$src}=split(/\s+/,$srcline);
+	    my $trgline = <$fh>;
+	    chomp $trgline;
+	    @{$trg}=();
+
+	    while ($trgline=~/(\S+)\s+\(\{\s*([^\}]*?)\s*\}\)\s+/g){
+		push (@{$trg},$1);
+		my @wordlinks = split(/\s+/,$2);
+		my $trgid=$#{$trg};
+		foreach (@wordlinks){
+		    $$links{$_}=$trgid;
+		}
+	    }
+	    return 1;
+	}
+    }
+    return 0;
 }
 
 

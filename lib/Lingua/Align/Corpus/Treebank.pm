@@ -69,6 +69,40 @@ sub get_all_leafs{
     return @words;
 }
 
+sub is_nonterminal{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}){
+	if (exists $tree->{NODES}->{$node}){
+	    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+		return 1;
+	    }
+	}
+    }
+    return 0;
+}
+
+sub is_terminal{
+    my $self=shift;
+    return not $self->is_nonterminal(@_);
+}
+
+sub is_unary_subtree{
+    my $self=shift;
+    my ($tree,$node,$child)=@_;
+    if (exists $tree->{NODES}){
+	if (exists $tree->{NODES}->{$node}){
+	    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+		if ($#{$tree->{NODES}->{$node}->{CHILDREN}} == 0){
+		    $$child = $tree->{NODES}->{$node}->{CHILDREN}->[0];
+		    return 1;
+		}
+	    }
+	}
+    }
+    return 0;
+}
+
 sub get_outside_leafs{
     my $self=shift;
     my ($tree,$node,$attr)=@_;
@@ -161,6 +195,37 @@ sub get_leafs{
 	    return ($tree->{NODES}->{$node}->{$attr});
 	}
     }
+}
+
+
+sub subtree_span{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}->{$node}->{begin}){
+	if (exists $tree->{NODES}->{$node}->{end}){
+	    return ($tree->{NODES}->{$node}->{begin},
+		    $tree->{NODES}->{$node}->{end});
+	}
+    }
+
+    my @leafs = $self->get_leafs($tree,$node,'id');
+
+    my %hash=();
+    foreach (@leafs){$hash{$_}=1;}
+    my $start=9999999;
+    my $end=0;
+    foreach (0..$#{$tree->{TERMINALS}}){
+	if (exists $hash{$tree->{TERMINALS}->[$_]}){
+	    if ($_<$start){$start = $_+1;}
+	    if ($_>$end){$end = $_+1;}
+	}
+    }
+    if ($start<9999999 && $end>0){
+	$tree->{NODES}->{$node}->{begin} = $start;
+	$tree->{NODES}->{$node}->{end} = $end;
+	return ($start,$end);
+    }
+    return ();
 }
 
 

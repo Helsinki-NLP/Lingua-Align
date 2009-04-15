@@ -1,75 +1,74 @@
-package YADWA::Data::Aligned::Bitext;
+
+package Lingua::Align::Corpus::Parallel::Bitext;
 
 use 5.005;
 use strict;
 
-require Exporter;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-@ISA = qw(Exporter);
-
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use YADWA::Data::Aligned::Bitext ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-%EXPORT_TAGS = ( 'all' => [ qw(
-	
-) ] );
-
-@EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-@EXPORT = qw(
-	
-);
+use vars qw($VERSION @ISA);
+@ISA = qw(Lingua::Align::Corpus::Parallel);
 
 $VERSION = '0.01';
 
+use Lingua::Align::Corpus;
+use Lingua::Align::Corpus::Parallel;
 
-# Preloaded methods go here.
+sub new{
+    my $class=shift;
+    my %attr=@_;
+
+    my $self={};
+    bless $self,$class;
+
+    foreach (keys %attr){
+	$self->{$_}=$attr{$_};
+    }
+
+    $self->make_corpus_handles(%attr);
+
+    return $self;
+}
+
+
+sub next_alignment{
+    my $self=shift;
+    my ($src,$trg)=@_;
+    return 0 if (not $self->{SRC}->next_sentence($src));
+    return 0 if (not $self->{TRG}->next_sentence($trg));
+    return 1;
+}
+
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-YADWA::Data::Aligned::Bitext - Perl extension for blah blah blah
+Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
 
 =head1 SYNOPSIS
 
-  use YADWA::Data::Aligned::Bitext;
-  blah blah blah
+  use Lingua::Align::Corpus::Parallel;
+
+  my $corpus = new Lingua::Align::Corpus::Parallel(-srcfile => $srcfile,
+                                                   -trgfile => $trgfile);
+
+  my @src=();
+  my @trg=();
+  while ($corpus->next_alignment(\@src,\@trg)){
+     print "src> ";
+     print join(' ',@src);
+     print "\ntrg> ";
+     print join(' ',@trg);
+     print "============================\n";
+  }
 
 =head1 DESCRIPTION
 
-Stub documentation for YADWA::Data::Aligned::Bitext, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-
-
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

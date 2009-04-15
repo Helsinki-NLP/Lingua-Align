@@ -6,13 +6,18 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw();
+@ISA = qw(Lingua::Align::Corpus);
 
 $VERSION = '0.01';
 
-use Lingua::Align::Corpus::Parallel::Giza;
+use Lingua::Align::Corpus;
+
 use Lingua::Align::Corpus::Parallel::STA;
 use Lingua::Align::Corpus::Parallel::Dublin;
+use Lingua::Align::Corpus::Parallel::Giza;
+use Lingua::Align::Corpus::Parallel::Moses;
+use Lingua::Align::Corpus::Parallel::Bitext;
+
 
 
 sub new{
@@ -22,10 +27,16 @@ sub new{
     if ($attr{-type}=~/(sta|stockholm)/i){
 	return new Lingua::Align::Corpus::Parallel::STA(%attr);
     }
-    if ($attr{-type}=~/(dublin)/i){
+    if ($attr{-type}=~/dublin/i){
 	return new Lingua::Align::Corpus::Parallel::Dublin(%attr);
     }
-    return new Lingua::Align::Corpus::Parallel::Giza(%attr);
+    if ($attr{-type}=~/giza/i){
+	return new Lingua::Align::Corpus::Parallel::Giza(%attr);
+    }
+    if ($attr{-type}=~/moses/i){
+	return new Lingua::Align::Corpus::Parallel::Moses(%attr);
+    }
+    return new Lingua::Align::Corpus::Parallel::Bitext(%attr);
 }
 
 
