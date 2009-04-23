@@ -21,6 +21,14 @@ sub new{
     return $self;
 }
 
+sub set_attr{
+    my $self=shift;
+
+    my %attr=@_;
+    foreach (keys %attr){
+	$self->{$_}=$attr{$_};
+    }
+}
 
 sub align{}
 

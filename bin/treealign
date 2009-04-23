@@ -1,0 +1,277 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+#
+
+use strict;
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
+
+use vars qw($opt_E $opt_F $opt_G $opt_I $opt_A 
+	    $opt_l $opt_m $opt_v $opt_t $opt_f 
+	    $opt_x $opt_a $opt_M $opt_o
+	    $opt_S $opt_P $opt_N $opt_k $opt_T);
+
+
+use Getopt::Std;
+
+getopts('E:F:G:I:A:lm:vtf:x:a:M:o:S:P:N:k:T:');
+
+
+use Lingua::Align::Trees;
+
+my $mosesHome = $opt_M || 'moses';
+
+# lexical probabilities
+
+my $lexe2f = $opt_E || $mosesHome.'/model/lex.0-0.e2f';
+my $lexf2e = $opt_F || $mosesHome.'/model/lex.0-0.f2e';
+
+# GIZA++ alignments
+
+my $gizae2f = $opt_G || $mosesHome.'/giza.src-trg/src-trg.A3.final.gz';
+my $gizaf2e = $opt_I || $mosesHome.'/giza.trg-src/trg-src.A3.final.gz';
+my $gizaalg = $opt_A || $mosesHome.'/model/aligned.grow-diag-final-and';
+
+my $model = $opt_o || 'treealign.megam';
+
+
+
+my $treealigner = new Lingua::Align::Trees(
+
+    -same_types_only => 1,                # link only T&T and nonT&nonT
+#    -nonterminals_only => 1,              # link non-terminals only
+#    -terminals_only => 1,                 # link terminals only
+    -skip_unary => 1,                     # skip nodes with unary productions
+
+    -lexe2f => $lexe2f,
+    -lexf2e => $lexf2e,
+    -lex_lower => $opt_l,                 # always convert to lower case!
+
+    ## for the GIZA++ word alignment features
+    -gizaA3_e2f => $gizae2f,
+    -gizaA3_f2e => $gizaf2e,
+
+    ## for the Moses word alignment features
+    -moses_align => $gizaalg,
+
+#    -output_format => 'dublin',          # Dublin format (default = sta)
+    -min_score => $opt_m,                 # classification score threshold
+    -verbose => $opt_v,
+
+    );
+
+
+
+
+
+#-------------------------------------------------------------------
+# training mode!
+#-------------------------------------------------------------------
+
+if ($opt_t){
+
+    # training data: I should test correct input .....
+
+    my $file = shift(@ARGV);
+    my $format = $opt_T || 'STA';
+
+    my %corpus = ( -alignfile => $file,    # should be in STA format
+		   -type => $format );
+
+    my @DefaultFeatures = default_features();
+    my $featureStr = $opt_f || join(':',@DefaultFeatures);
+
+    # weights for training items
+
+    my $weightSure = $opt_S || 3;         # good links
+    my $weightPossible = $opt_P || 0;     # fuzzy links
+    my $weightNegative = $opt_N || 1;     # non-linked items
+
+    $treealigner->set_attr(-features => $featureStr,
+			   -classifier => 'megam',
+			   -classifier_weight_sure => $weightSure,
+			   -classifier_weight_possible => $weightPossible,
+			   -classifier_weight_negative => $weightNegative,
+			   -keep_training_data => $opt_k);
+
+    $treealigner->train(\%corpus,$model,$opt_x);
+    exit 1;
+}
+
+
+
+
+#-------------------------------------------------------------------
+# alignment mode!
+#-------------------------------------------------------------------
+
+
+my $format = $opt_T || 'STA';    # default: STA format
+my %corpus = (-type => $format);
+
+if ($format=~/STA/){
+    $corpus{-alignfile} = shift(@ARGV);
+}
+
+$treealigner->align(\%corpus,$model,'greedy',$opt_x);
+
+
+
+
+
+
+
+
+
+sub default_features{
+    return (
+    'nrleafsratio',          # ratio of nr_leafs in both subtrees
+    'inside2',                 # non-normalized inside score
+    'outside2',                # non-normalized outside score
+    'inside2*outside2',        # product of the 2 above
+    'parent_inside2',          # inside score of parent nodes
+#    'catpos',                  # cat OR pos attribute pair
+    'parent_catpos',           # labels of the parent nodes
+    'catpos.parent_catpos',     # label plus parent's label
+    'insideST2',               # inside1 score for lex.e2f only
+    'insideTS2',               # inside1 score for lex.f2e only
+    'maxinsideST',          # disjunction of prob's (lexe2f)
+    'maxinsideTS',          # disjunction of prob's (lexf2e)
+#    'maxinside*inside2',
+#    'maxinside',           # disjunction of prob's (lexe2f & lexf2e)
+#    'maxoutside',          # the same for outside word pairs
+    'inside2*parentinside2',  # current * parent's inside score
+    'treelevelsim',          # similarity in relative tree level
+    'treelevelsim*inside2',
+    'treespansim',           # similarity of subtree positions
+    'treespansim*treelevelsim',
+#    'gizae2f',                 # proportion of word links inside/outside
+#    'gizaf2e',                 # the same for the other direction
+    'giza',                    # both alignment directions combined
+    'parent_giza',
+#    'parent_giza*giza',
+#    'gizae2f*gizaf2e'
+    'giza.catpos',              # catpos with giza score
+#    'parent_giza.parent_catpos',
+    'moses',
+    'moses.catpos',
+	    );
+}
+
+
+__END__
+
+=head1 NAME
+
+treealign.pl - a simple frontend for training and applying a tree aligner model
+
+=head1 SYNOPSIS
+
+    # training a model from tree aligned data
+    treealign.pl -t -o treealign.model train-data.xml
+
+    # aligning a parallel treebank
+    treealign.pl -o treealign.model parallel-treebank.xml > tree-aligned.xml
+
+
+=head1 DESCRIPTION
+
+Currently, training data has to be in Stockholm Tree Aligner format.
+
+OPTIONS
+
+=item -t
+
+Run in training mode
+
+=item -f features
+
+Define features to be used in training. (For alignment, features are taken from the modelfile.feat file!!) <features> is a string with feature types separated by ':'. There are various features that can be used and combined. For more details look at L<Lingua::Align::Trees::Features>. The default is 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos' 
+
+=item -o model-file
+
+Name of the file to store model parameters
+
+=item -m threshold
+
+Score threshold used for tree alignment.
+
+=item -T format
+
+Input format. Default = STA (Stockholm Tree Aligner)
+
+=item -v
+
+Verbose output
+
+
+=item -M MosesModelHomeDir
+
+Name of the directory where your Moses model can be found (GIZA++ alignments, lexical probabilities, symmetrization files)
+
+=item -E /path/to/lex.e2f
+
+Path to lexical probabilities estimated from word aligned corpora (Moses); source to target. Default = <MosesModelHomeDir>/model/lex.0-0.e2f'
+
+=item -F /path/to/lex.f2e
+
+Path to lexical probabilities estimated from word aligned corpora (Moses); target to source. Default = <MosesModelHomeDir>/model/lex.0-0.f2e'
+
+=item -l
+
+Use lower case for all words when matching with items in the lexicon.
+
+=item -G /path/to/giza.A3.final.gz
+
+Path to Viterbi word alignments (GIZA++); source to target. Default = <MosesModelHomeDir>/giza.src-trg/src-trg.A3.final.gz
+
+=item -I /path/to/giza.A3.final.gz
+
+Path to Viterbi word alignments (GIZA++); target to source. Default = <MosesModelHomeDir>/giza.trg-src/trg-src.A3.final.gz
+
+=item -I /path/to/aligned.heuristics
+
+Path to symmetrized alignment files (Moses). Default = <MosesModelHomeDir>/model/aligned.grow-diag-final-and
+
+=item -S weight
+
+Training weight for good (sure) alignments
+
+=item -P weight
+
+Training weight for fuzzy (possible) alignments
+
+=item -N weight
+
+Training weight for negative examples (non-aligned nodes)
+
+=item -k
+
+Keep feature file created for training (__train.PID)
+
+=item -x max
+
+Use at most max sentence pairs for training/alignment.
+
+
+
+
+
+=head1 SEE ALSO
+
+
+=head1 AUTHOR
+
+Joerg Tiedemann, E<lt>j.tiedemann@rug.nl@E<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by Joerg Tiedemann
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

@@ -8,6 +8,8 @@ use vars qw($VERSION @ISA);
 $VERSION = '0.01';
 
 use FileHandle;
+use Time::HiRes qw ( time alarm sleep );
+
 use Lingua::Align;
 use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Classifier;           # binary classifier
@@ -45,6 +47,8 @@ sub new{
 
 sub train{
     my $self=shift;
+
+    $self->{START_TRAINING}=time();
     my ($corpus,$model,$max,$skip)=@_;
     my $features = $_[4] || $self->{-features};
 
@@ -55,14 +59,41 @@ sub train{
     #
     # $model is the name of the model-file
 
+    $self->{SENT_COUNT}=0;
+    $self->{START_EXTRACT_FEATURES}=time();
     $self->extract_training_data($corpus,$features,$max,$skip);
+    $self->{TIME_EXTRACT_FEATURES}=time()-$self->{START_EXTRACT_FEATURES};
+
+    $self->{START_TRAIN_MODEL}=time();
     $model = $self->{CLASSIFIER}->train($model);
+    $self->{TIME_TRAIN_MODEL} = time() - $self->{START_TRAIN_MODEL};
+
     $self->store_features_used($model,$features);
+    $self->{TIME_TRAINING} = time() - $self->{START_TRAINING};
+
+    if ($self->{-verbose}){
+	print STDERR "\n============ ";
+	print STDERR "statistics for training an alignment model ";
+	print STDERR "======\n";
+	printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
+	$self->{TIME_EXTRACT_FEATURES},
+	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
+	printf STDERR "%30s: %f\n","time for training classifier",
+	$self->{TIME_TRAIN_MODEL};
+	printf STDERR "%30s: %f\n","total time training",
+	$self->{TIME_TRAINING};
+	print STDERR "==================";
+	print STDERR "============================================\n\n";
+    }
+
+
 }
 
 
 sub align{
     my $self=shift;
+
+    $self->{START_ALIGNING}=time();
     my ($corpus,$model,$type,$max,$skip)=@_;
 
     my $features = $self->get_features_used($model);
@@ -93,6 +124,11 @@ sub align{
     my ($correct,$wrong,$total)=(0,0,0);
     my ($SrcId,$TrgId);
 
+    $self->{TIME_EXTRACT_FEATURES}=0;
+    $self->{TIME_CLASSIFICATION}=0;
+    $self->{TIME_LINK_SEARCH}=0;
+    $self->{SENT_COUNT}=0;
+
     while ($corpus->next_alignment(\%src,\%trg,\$links)){
 
 	# this is useful to skip sentences that have been used for training
@@ -115,18 +151,30 @@ sub align{
 	    }
 	}
 
+	$self->{SENT_COUNT}++;
+
 	$self->{INSTANCES}=[];
 	$self->{INSTANCES_SRC}=[];
 	$self->{INSTANCES_TRG}=[];
 
+	# extract features
+	$self->{START_EXTRACT_FEATURES}=time();
 	$self->extract_classification_data(\%src,\%trg,$links);
+	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+
+	# classify data instances
+	$self->{START_CLASSIFICATION}=time();
 	my @scores = $self->{CLASSIFIER}->classify($model);
+	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
 
 	my %links=();
+	$self->{START_LINK_SEARCH}=time();
 	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
 					$self->{INSTANCES_SRC},
 					$self->{INSTANCES_TRG},
 					$self->{LABELS});
+	$self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
+
 	$correct+=$c;
 	$wrong+=$w;
 	$total+=$t;
@@ -155,18 +203,43 @@ sub align{
 
     ## if there were any lables
     if ($total){
-	my $precision = $correct/($correct+$wrong);
+	my $precision = 0;
+	if ($correct || $wrong){
+	    $precision = $correct/($correct+$wrong);
+	}
 	my $recall = $correct/($total);
 
-	printf STDERR "precision = %5.2f (%d/%d)\n",
+	printf STDERR "\n%20s = %5.2f (%d/%d)\n","precision",
 	$precision*100,$correct,$correct+$wrong;
-	printf STDERR "recall = %5.2f (%d/%d)\n",
+	printf STDERR "%20s = %5.2f (%d/%d)\n","recall",
 	$recall*100,$correct,$total;
-	printf STDERR "balanced F = %5.2f\n",
-	200*$precision*$recall/($precision+$recall);
-	print STDERR "=======================================\n";
+	my $F=0;
+	if ($precision || $recall){
+	    $F=2*$precision*$recall/($precision+$recall);
+	}
+	printf STDERR "%20s = %5.2f\n","balanced F",100*$F;
+#	print STDERR "=======================================\n";
 
     }
+    $self->{TIME_ALIGNING} = time() - $self->{START_ALIGNING};
+
+    if ($self->{-verbose}){
+	print STDERR "\n================= ";
+	print STDERR "statistics for aligning trees ==============\n";
+	printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
+	$self->{TIME_EXTRACT_FEATURES},
+	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
+	printf STDERR "%30s: %f (%f/sentence)\n","time for classification",
+	$self->{TIME_CLASSIFY},$self->{TIME_CLASSIFY}/$self->{SENT_COUNT};
+	printf STDERR "%30s: %f (%f/sentence)\n","time for link search",
+	$self->{TIME_LINK_SEARCH},
+	$self->{TIME_LINK_SEARCH}/$self->{SENT_COUNT};
+	printf STDERR "%30s: %f (%f/sentence)\n","total time aligning",
+	$self->{TIME_ALIGNING},$self->{TIME_ALIGNING}/$self->{SENT_COUNT};
+	print STDERR "==================";
+	print STDERR "============================================\n\n";
+    }
+
 }
 
 
@@ -234,6 +307,7 @@ sub extract_training_data{
 	    }
 	}
 
+	$self->{SENT_COUNT}++;
 
 	foreach my $sn (keys %{$src{NODES}}){
 	    my $s_is_terminal=$self->{TREES}->is_terminal(\%src,$sn);

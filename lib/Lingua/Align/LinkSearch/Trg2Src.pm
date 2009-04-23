@@ -46,7 +46,7 @@ sub searchTrg2Src{
     }
 
     foreach my $t (keys %BestTrg){
-	$$linksST{$t}{$BestLink{$t}}=$BestTrg{$t};
+	$$linksST{$BestLink{$t}}{$t}=$BestTrg{$t};
 	if ($BestLabel{$t} == 1){$correct++;}
 	else{$wrong++;}
     }
