@@ -24,6 +24,10 @@ sub new{
     $self->{MEGAM_ARGUMENTS} = $attr{-megam_arguments} || '';
     $self->{MEGAM_MODEL} = $attr{-megam_model_type} || 'binary';
 
+    foreach (keys %attr){
+	$self->{$_}=$attr{$_};
+    }
+
     return $self;
 }
 

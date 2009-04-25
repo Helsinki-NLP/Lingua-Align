@@ -172,7 +172,8 @@ sub align{
 	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
 					$self->{INSTANCES_SRC},
 					$self->{INSTANCES_TRG},
-					$self->{LABELS});
+					$self->{LABELS},
+					\%src,\%trg);
 	$self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
 
 	$correct+=$c;

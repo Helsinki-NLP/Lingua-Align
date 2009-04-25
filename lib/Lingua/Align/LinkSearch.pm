@@ -9,6 +9,7 @@ $VERSION = '0.01';
 
 use FileHandle;
 use Lingua::Align::LinkSearch::Greedy;
+use Lingua::Align::LinkSearch::GreedyWellFormed;
 use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
@@ -28,6 +29,9 @@ sub new{
     }
     if ($type=~/inter/i){
 	return new Lingua::Align::LinkSearch::Intersection(%attr);
+    }
+    if ($type=~/well.*formed/i){
+	return new Lingua::Align::LinkSearch::GreedyWellFormed(%attr);
     }
     return new Lingua::Align::LinkSearch::Greedy(%attr);
 }

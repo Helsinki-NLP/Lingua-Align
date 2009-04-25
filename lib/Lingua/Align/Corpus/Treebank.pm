@@ -87,6 +87,83 @@ sub is_terminal{
     return not $self->is_nonterminal(@_);
 }
 
+ sub is_descendent{
+    my $self=shift;
+    my ($tree,$desc,$anc)=@_;
+    my @parents=();
+    if (exists $tree->{NODES}->{$desc}->{PARENTS}){
+	@parents = @{$tree->{NODES}->{$desc}->{PARENTS}};
+    }
+    while (@parents){
+	my $p=shift(@parents);
+	return 1 if ($p eq $anc);
+	if ($self->is_descendent($tree,$p,$anc)){
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+
+sub is_ancestor{
+    my $self=shift;
+    my ($tree,$anc,$desc)=@_;
+    return $self->is_descendent($tree,$desc,$anc);
+}
+
+
+# get all parents for a given node in a given tree
+
+sub parents{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}->{$node}->{PARENTS}){
+	return @{$tree->{NODES}->{$node}->{PARENTS}};
+    }
+    return ();
+}
+
+# get (first) parent
+
+sub parent{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}->{$node}->{PARENTS}){
+	return $tree->{NODES}->{$node}->{PARENTS}->[0];
+    }
+    return undef;
+}
+
+# get all children
+
+sub children{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+	return @{$tree->{NODES}->{$node}->{CHILDREN}};
+    }
+    return ();
+}
+
+# get all sister nodes
+
+sub sisters{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    my @sisters=();
+    if (exists $tree->{NODES}->{$node}->{PARENTS}){
+	foreach my $p (@{$tree->{NODES}->{$node}->{PARENTS}}){
+	    foreach my $s (@{$tree->{NODES}->{$p}->{CHILDREN}}){
+		if ($node ne $s){
+		    push(@sisters,$s);
+		}
+	    }
+	}
+    }
+    return @sisters;
+}
+
+
 sub is_unary_subtree{
     my $self=shift;
     my ($tree,$node,$child)=@_;
