@@ -123,7 +123,7 @@ sub classify{
 
     return () if (not ref($self->{TEST_DATA}));
 
-    if (not ref($self->{MEGAM_PROC})){
+    if (not defined $self->{MEGAM_PROC}){
 	if (not $self->initialize_classification($model)){
 	    return $self->classify_with_tempfile($model);
 	}
@@ -147,6 +147,8 @@ sub classify{
     delete $self->{TEST_DATA};
     delete $self->{TEST_LABEL};
 
+#    print STDERR scalar @scores if ($self->{-verbose});
+#    print STDERR " ... new scores returned\n"  if ($self->{-verbose});
     return @scores;
 
 }

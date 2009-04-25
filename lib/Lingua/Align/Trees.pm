@@ -157,15 +157,17 @@ sub align{
 	$self->{INSTANCES_SRC}=[];
 	$self->{INSTANCES_TRG}=[];
 
-	# extract features
-	$self->{START_EXTRACT_FEATURES}=time();
-	$self->extract_classification_data(\%src,\%trg,$links);
-	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+# 	# extract features
+# 	$self->{START_EXTRACT_FEATURES}=time();
+# 	$self->extract_classification_data(\%src,\%trg,$links);
+# 	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
 
-	# classify data instances
-	$self->{START_CLASSIFICATION}=time();
-	my @scores = $self->{CLASSIFIER}->classify($model);
-	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+# 	# classify data instances
+# 	$self->{START_CLASSIFICATION}=time();
+# 	my @scores = $self->{CLASSIFIER}->classify($model);
+# 	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+	my @scores = $self->classify($model,\%src,\%trg,$links);
 
 	my %links=();
 	$self->{START_LINK_SEARCH}=time();
@@ -281,7 +283,7 @@ sub extract_training_data{
 
     while ($corpus->next_alignment(\%src,\%trg,\$links)){
 
-	# this is useful to skip sentences that shouldn't been used
+	# this is useful to skip sentences that shouldn't been used for train
 	if (defined $skip){
 	    if ($skipped<$skip){
 		$skipped++;
@@ -290,7 +292,6 @@ sub extract_training_data{
 	}
 
 	# clear the feature value cache
-#	$self->clear_cache();
 	$FE->clear_cache();
 
 	$count++;
@@ -373,6 +374,14 @@ sub extract_training_data{
 		    next if ($self->{TREES}->is_unary_subtree(\%trg,$tn));
 		}
 
+		my %values = $FE->features(\%src,\%trg,$sn,$tn);
+
+		# option: first order dependence on children links
+		if ($self->{-linked_children}){
+		    $self->linked_children(\%values,\%src,\%trg,
+					   $sn,$tn,$links);
+		}
+
 		# positive training events
 		# (good/sure examples && fuzzy/possible examples)
 
@@ -381,16 +390,14 @@ sub extract_training_data{
 
 		    if ($$links{$sn}{$tn}=~/(good|S)/){
 			if ($weightSure){
-#			    my %values = $self->features(\%src,\%trg,$sn,$tn);
-			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
+#			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightSure);
 			}
 		    }
 		    elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
 			if ($weightPossible){
-#			    my %values = $self->features(\%src,\%trg,$sn,$tn);
-			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
+#			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightPossible);
 			}
@@ -400,8 +407,7 @@ sub extract_training_data{
 		# negative training events
 
 		elsif ($weightNegative){
-#		    my %values = $self->features(\%src,\%trg,$sn,$tn);
-		    my %values = $FE->features(\%src,\%trg,$sn,$tn);
+#		    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 		    $self->{CLASSIFIER}->add_train_instance(
 			'0',\%values,$weightNegative);
 		}
@@ -409,6 +415,205 @@ sub extract_training_data{
 	}
     }
 }
+
+sub linked_children{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
+    my @srcchildren=$self->{TREES}->children($src,$sn);
+    my @trgchildren=$self->{TREES}->children($trg,$tn);
+    my $nr=0;
+    foreach my $s (@srcchildren){
+	foreach my $t (@trgchildren){
+	    if (exists $$links{$s}){
+		if (exists $$links{$s}{$t}){
+		    if ($softcount){
+			$nr+=$$links{$s}{$t};
+		    }
+		    else{$nr++;}
+		}
+	    }
+	}
+    }
+    if ($nr){
+	if ($#srcchildren > $#trgchildren){
+	    if ($#srcchildren>=0){
+		$$values{linkedchildren}=$nr/($#srcchildren+1);
+	    }
+	}
+	elsif ($#trgchildren>=0){
+	    $$values{linkedchildren}=$nr/($#trgchildren+1);
+	}
+    }
+}
+
+
+sub classify{
+    my $self=shift;
+
+    if ($self->{-linked_children}){
+	return $self->classify_bottom_up(@_);
+    }
+
+    my ($model,$src,$trg,$links)=@_;
+
+    # extract features
+    $self->{START_EXTRACT_FEATURES}=time();
+    $self->extract_classification_data($src,$trg,$links);
+    $self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+    
+    # classify data instances
+    $self->{START_CLASSIFICATION}=time();
+    my @scores = $self->{CLASSIFIER}->classify($model);
+    $self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+    print STDERR scalar @scores if ($self->{-verbose});
+    print STDERR " ... scores returned\n"  if ($self->{-verbose});
+    return @scores;
+
+}
+
+
+sub classify_bottom_up{
+    my $self=shift;
+    my ($model,$src,$trg,$links)=@_;
+
+    $self->{LABELS}=[];
+    my $FE=$self->{FEATURE_EXTRACTOR};
+
+    my @srcnodes=@{$$src{TERMINALS}};
+    my @trgnodes=@{$$trg{TERMINALS}};
+
+    my %srcdone=();
+    my @scores=();
+
+    while (@srcnodes){
+
+	$self->{START_EXTRACT_FEATURES}=time();
+	my $sn = shift(@srcnodes);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+
+	## align only non-terminals!
+	if ($self->{-nonterminals_only}){
+	    next if ($s_is_terminal);
+	}
+	## align only terminals!
+	## (do we need this?)
+	if ($self->{-terminals_only}){
+	    next if (not $s_is_terminal);
+	}
+	# skip nodes with unary productions
+	if ($self->{-skip_unary}){
+	    if ($self->{-nonterminals_only} ||  # special treatment for
+		$self->{-same_types_only}){     # unary subtrees with
+		my $child=undef;                # a terminal as child node
+		if ($self->{TREES}->is_unary_subtree($src,$sn,\$child)){
+		    next if ($self->{TREES}->is_nonterminal($src,$child));
+		}
+	    }
+	    else{
+		next if ($self->{TREES}->is_unary_subtree($src,$sn));
+	    }
+	}
+
+	my @trgnodes=();
+	foreach my $tn (keys %{$$trg{NODES}}){
+	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+
+	    ## align ony terminals with terminals and
+	    ## nonterminals with nonterminals
+	    if ($self->{-same_types_only}){
+		if ($s_is_terminal){
+		    next if (not $t_is_terminal);
+		}
+		elsif ($t_is_terminal){next;}
+	    }
+	    ## align only non-terminals!
+	    if ($self->{-nonterminals_only}){
+		next if ($t_is_terminal);
+	    }
+	    ## align only terminals!
+	    if ($self->{-terminals_only}){
+		next if (not $t_is_terminal);
+	    }
+	    # skip nodes with unary productions
+	    if ($self->{-skip_unary}){              
+		if ($self->{-nonterminals_only} ||  # special treatment for
+		    $self->{-same_types_only}){     # unary subtrees with
+		    my $child=undef;                # a terminal as child node
+		    if ($self->{TREES}->is_unary_subtree($trg,$tn,\$child)){
+			next if ($self->{TREES}->is_nonterminal($trg,$child));
+		    }
+		}
+		else{
+		    next if ($self->{TREES}->is_unary_subtree($trg,$tn));
+		}
+	    }
+
+
+	    my $label=0;
+	    if ((ref($$links{$sn}) eq 'HASH') && 
+		(exists $$links{$sn}{$tn})){
+		if ($self->{-count_good_only}){           # discard fuzzy
+		    if ($$links{$sn}{$tn}=~/(good|S)/){
+			$label=1;
+		    }
+		}
+		else{$label=1;}
+	    }
+	    push(@{$self->{LABELS}},$label);
+	    my %values = $FE->features($src,$trg,$sn,$tn);
+	    $self->linked_children(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
+
+	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+
+	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
+	    push(@{$self->{INSTANCES_SRC}},$sn);
+	    push(@{$self->{INSTANCES_TRG}},$tn);
+	    push(@trgnodes,$tn);
+
+	}
+	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+
+	# classify data instances
+	$self->{START_CLASSIFICATION}=time();
+	my @res = $self->{CLASSIFIER}->classify($model);
+	push (@scores,@res);
+	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+	# store scores in srcdone hash
+	# for linked-children feature
+	foreach (0..$#trgnodes){
+	    $srcdone{$sn}{$trgnodes[$_]}=$res[$_];
+#	    if ($res[$_]>0.5){
+#		$srcdone{$sn}{$trgnodes[$_]}=1;
+#	    }
+	}
+
+	# add sn's parent nodes to srcnodes if all its children are 
+	# classified already (good enough?)
+
+	my @parents=$self->{TREES}->parents($src,$sn);
+	foreach my $p (@parents){
+	    next if (exists $srcdone{$p});
+	    my @children=$self->{TREES}->children($src,$p);
+	    my $isok=1;
+	    foreach my $c (@children){
+		$isok = 0 if (not exists $srcdone{$c});
+	    }
+	    if ($isok){
+		push(@srcnodes,$p);
+	    }
+	}
+
+    }
+
+    print STDERR scalar @scores if ($self->{-verbose});
+    print STDERR " ... scores returned\n"  if ($self->{-verbose});
+    return @scores;
+
+}
+
+
 
 
 sub extract_classification_data{
@@ -489,7 +694,6 @@ sub extract_classification_data{
 		else{$label=1;}
 	    }
 	    push(@{$self->{LABELS}},$label);
-#	    my %values = $self->features($src,$trg,$sn,$tn);
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
 
