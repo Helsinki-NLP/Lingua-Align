@@ -8,6 +8,7 @@ use vars qw($VERSION @ISA);
 $VERSION = '0.01';
 
 use FileHandle;
+use Lingua::Align::LinkSearch::Threshold;
 use Lingua::Align::LinkSearch::Greedy;
 use Lingua::Align::LinkSearch::GreedyWellFormed;
 use Lingua::Align::LinkSearch::Src2Trg;
@@ -19,7 +20,8 @@ sub new{
     my $class=shift;
     my %attr=@_;
 
-    my $type = $attr{-link_search} || 'greedy';
+#    my $type = $attr{-link_search} || 'greedy';
+    my $type = $attr{-link_search} || 'threshold';
 
     if ($type=~/src2trg/i){
 	return new Lingua::Align::LinkSearch::Src2Trg(%attr);
@@ -33,7 +35,10 @@ sub new{
     if ($type=~/well.*formed/i){
 	return new Lingua::Align::LinkSearch::GreedyWellFormed(%attr);
     }
-    return new Lingua::Align::LinkSearch::Greedy(%attr);
+    if ($type=~/greedy/i){
+	return new Lingua::Align::LinkSearch::Greedy(%attr);
+    }
+    return new Lingua::Align::LinkSearch::Threshold(%attr);
 }
 
 

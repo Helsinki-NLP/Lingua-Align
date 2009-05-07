@@ -145,6 +145,20 @@ sub children{
     return ();
 }
 
+# get all nodes in the subtree
+
+sub subtree_nodes{
+    my $self=shift;
+    my ($tree,$node)=@_;
+    my @subtree=();
+    my @children=$self->children($tree,$node);
+    foreach my $c (@children){
+	push (@subtree,$c);
+	push (@subtree,$self->subtree_nodes($tree,$c));
+    }
+    return @subtree;
+}
+
 # get all sister nodes
 
 sub sisters{
