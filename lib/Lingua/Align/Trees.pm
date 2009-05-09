@@ -1032,6 +1032,11 @@ sub extract_classification_data{
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
 
+#	    print STDERR $label,' ';
+#	    print STDERR join(':',%values);
+#	    print STDERR "\n";
+#	    print STDERR "\n----------------------------------\n";
+
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
 	    push(@{$self->{INSTANCES_SRC}},$sn);
 	    push(@{$self->{INSTANCES_TRG}},$tn);

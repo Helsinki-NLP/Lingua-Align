@@ -10,6 +10,7 @@ use strict;
 
 
 use Lingua::Align::Classifier::Megam;
+use Lingua::Align::Classifier::LibSVM;
 use Lingua::Align::Classifier::Clues;
 
 #use Lingua::Align::Words::FeatureExtractor;
