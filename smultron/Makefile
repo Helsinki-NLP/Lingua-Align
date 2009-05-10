@@ -6,8 +6,8 @@ SEARCH = wellformed
 MODEL = megam
 
 SMULTRON=${HOME}/projects/SMULTRON
-SOPHIE=${SMULTRON}/Alignments_SMULTRON_Sophies_World_SV_EN
-ECO=${SMULTRON}/Alignments_SMULTRON_Economy_Texts_SV_EN
+SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
+ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
 
 TRAIN=${SOPHIE}
 
@@ -34,32 +34,32 @@ all: sophie
 sophie: moses-sophie
 	./train_align.pl \
 		-m ${MODEL} \
-		-c ${SOPHIE}.xml \
+		-c ${SMULTRON}/${SOPHIE}.xml \
 		-M $< \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
 		-x 0.2 \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
-	../bin/eval_sta ${SOPHIE}.xml $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
 
 eco: moses-eco
 	./train_align.pl \
 		-m ${MODEL} \
-		-c ${ECO}.xml \
+		-c ${SMULTRON}/${ECO}.xml \
 		-M $< \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
 		-x 0.2 \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
-	../bin/eval_sta ${ECO}.xml $@.alg
+	../bin/eval_sta ${SMULTRON}/${ECO}.xml $@.alg
 
 
 sophie_eco: moses-sophie moses-eco
 	./train.pl \
 		-m ${MODEL} \
-		-c ${SOPHIE}.xml \
+		-c ${SMULTRON}/${SOPHIE}.xml \
 		-M moses-sophie \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
@@ -68,20 +68,20 @@ sophie_eco: moses-sophie moses-eco
 		${EXTRAOPT} > $@.alg
 	./align.pl \
 		-m ${MODEL} \
-		-c ${ECO}.xml \
+		-c ${SMULTRON}/${ECO}.xml \
 		-M moses-eco \
 		-f ${FEAT} \
 		-a ${NR_TEST} \
 		-x 0.2 \
 		-o sophie.megam \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
-	../bin/eval_sta ${ECO}.xml $@.alg
+	../bin/eval_sta ${SMULTRON}/${ECO}.xml $@.alg
 
 
-sophie_eco: moses-sophie moses-eco
+eco_sophie: moses-sophie moses-eco
 	./train.pl \
 		-m ${MODEL} \
-		-c ${ECO}.xml \
+		-c $${SMULTRON}/{ECO}.xml \
 		-M moses-eco \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
@@ -90,14 +90,14 @@ sophie_eco: moses-sophie moses-eco
 		${EXTRAOPT} > $@.alg
 	./align.pl \
 		-m ${MODEL} \
-		-c ${SOPHIE}.xml \
+		-c ${SMULTRON}/${SOPHIE}.xml \
 		-M moses-sophie \
 		-f ${FEAT} \
 		-a ${NR_TEST} \
 		-x 0.2 \
 		-o eco.megam \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
-	../bin/eval_sta ${SOPHIE}.xml $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
 
 
 
@@ -106,22 +106,22 @@ moses-sophie: moses-sophie/model/aligned.grow-diag-final-and
 moses-eco: moses-eco/model/aligned.grow-diag-final-and
 moses-all: moses-all/model/aligned.grow-diag-final-and
 
-${SOPHIE}.${SRC}: ${SOPHIE}.xml
+${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
 	../bin/sta2moses $<
 
-moses-sophie/model/aligned.%: ${ECO}.${SRC} ${ECO}.${TRG}
+moses-sophie/model/aligned.%: ${SOPHIE}.${SRC} # ${SOPHIE}.${TRG}
 	${MOSESTRAINING}/train-factored-phrase-model.perl \
 	    -corpus ${SOPHIE} \
-	    -root-dir moses-eco \
+	    -root-dir moses-sophie \
 	    -f ${SRC} --e ${TRG} \
 	    -alignment `echo '$@'|sed 's/^.*\.//'` \
 	    --parallel \
 	    --last-step 4
 
-${ECO}.${SRC}: ${ECO}.xml
+${ECO}.${SRC}: ${SMULTRON}/${ECO}.xml
 	../bin/sta2moses $<
 
-moses-eco/model/aligned.%: ${ECO}.${SRC} ${ECO}.${TRG}
+moses-eco/model/aligned.%: ${ECO}.${SRC} # ${ECO}.${TRG}
 	${MOSESTRAINING}/train-factored-phrase-model.perl \
 	    -corpus ${ECO} \
 	    -root-dir moses-eco \
@@ -149,16 +149,7 @@ moses-all/model/aligned.%: all.${SRC} all.${TRG}
 	    --last-step 4
 
 
-moses: moses/model/aligned.grow-diag-final-and
 
-moses/model/aligned.%: ${TRAIN}.${SRC} ${TRAIN}.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus ${TRAIN} \
-	    -root-dir moses \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
 
 
 
