@@ -19,8 +19,6 @@ TRG=trg
 
 
 
-
-
 # FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:maxinside:maxoutside:parent_maxinside:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos'
 
 
@@ -34,42 +32,134 @@ all: sophie
 
 
 sophie: moses-sophie
-	./treealign_sophie.pl \
+	./train_align.pl \
 		-m ${MODEL} \
 		-c ${SOPHIE}.xml \
+		-M $< \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
+		-x 0.2 \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SOPHIE}.xml $@.alg
 
-
-sophie_eco:
-	./treealign_sophie_eco.pl \
+eco: moses-eco
+	./train_align.pl \
 		-m ${MODEL} \
+		-c ${ECO}.xml \
+		-M $< \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
+		-x 0.2 \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${ECO}.xml $@.alg
 
 
-eco_sophie:
-	./treealign_eco_sophie.pl \
+sophie_eco: moses-sophie moses-eco
+	./train.pl \
 		-m ${MODEL} \
+		-c ${SOPHIE}.xml \
+		-M moses-sophie \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
+		-x 0.2 \
+		-o sophie.megam \
+		${EXTRAOPT} > $@.alg
+	./align.pl \
+		-m ${MODEL} \
+		-c ${ECO}.xml \
+		-M moses-eco \
+		-f ${FEAT} \
 		-a ${NR_TEST} \
+		-x 0.2 \
+		-o sophie.megam \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${ECO}.xml $@.alg
+
+
+sophie_eco: moses-sophie moses-eco
+	./train.pl \
+		-m ${MODEL} \
+		-c ${ECO}.xml \
+		-M moses-eco \
+		-f ${FEAT} \
+		-t ${NR_TRAIN} \
+		-x 0.2 \
+		-o eco.megam \
+		${EXTRAOPT} > $@.alg
+	./align.pl \
+		-m ${MODEL} \
+		-c ${SOPHIE}.xml \
+		-M moses-sophie \
+		-f ${FEAT} \
+		-a ${NR_TEST} \
+		-x 0.2 \
+		-o eco.megam \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SOPHIE}.xml $@.alg
 
 
 
 
-moses: moses/model/aligned.grow-diag-final-and
 moses-sophie: moses-sophie/model/aligned.grow-diag-final-and
 moses-eco: moses-eco/model/aligned.grow-diag-final-and
 moses-all: moses-all/model/aligned.grow-diag-final-and
+
+${SOPHIE}.${SRC}: ${SOPHIE}.xml
+	../bin/sta2moses $<
+
+moses-sophie/model/aligned.%: ${ECO}.${SRC} ${ECO}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${SOPHIE} \
+	    -root-dir moses-eco \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+${ECO}.${SRC}: ${ECO}.xml
+	../bin/sta2moses $<
+
+moses-eco/model/aligned.%: ${ECO}.${SRC} ${ECO}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${ECO} \
+	    -root-dir moses-eco \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+
+all.${SRC}:
+	cat ${SOPHIE}.src ${ECO}.src ../europarl/ep.src > $@
+
+all.${TRG}:
+	cat ${SOPHIE}.trg ${ECO}.trg ../europarl/ep.trg > $@
+
+
+
+moses-all/model/aligned.%: all.${SRC} all.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus all \
+	    -root-dir moses-all \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+
+moses: moses/model/aligned.grow-diag-final-and
+
+moses/model/aligned.%: ${TRAIN}.${SRC} ${TRAIN}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${TRAIN} \
+	    -root-dir moses \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
 
 
 
@@ -201,46 +291,6 @@ current+parent:
 
 
 dublin: ${TRAIN}.dublin
-
-all.${SRC}:
-	cat ${SOPHIE}.src ${ECO}.src ../europarl/ep.src > $@
-
-all.${TRG}:
-	cat ${SOPHIE}.trg ${ECO}.trg ../europarl/ep.trg > $@
-
-
-
-moses-all/model/aligned.%: all.${SRC} all.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus all \
-	    -root-dir moses-all \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
-
-
-moses/model/aligned.%: ${TRAIN}.${SRC} ${TRAIN}.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus ${TRAIN} \
-	    -root-dir moses \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
-
-${ECO}.${SRC}: ${ECO}.xml
-	../Lingua-Align/bin/sta2moses $<
-
-moses-eco/model/aligned.%: ${ECO}.${SRC} ${ECO}.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus ${ECO} \
-	    -root-dir moses-eco \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
-
 
 
 ${TRAIN}.dublin.gold: ${HOME}/projects/SMULTRON/Alignments_SMULTRON_Sophies_World_SV_EN.xml
