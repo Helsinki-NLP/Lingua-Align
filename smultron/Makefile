@@ -2,8 +2,12 @@
 
 NR_TRAIN = 100
 NR_TEST = 100
-SEARCH = wellformed
 MODEL = megam
+
+# SEARCH = wellformed
+SEARCH = greedy
+ALIGNTHR = 0.1
+EXTRAOPT = -C -S
 
 SMULTRON=${HOME}/projects/SMULTRON
 SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
@@ -39,7 +43,7 @@ sophie: moses-sophie
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
 
@@ -51,7 +55,7 @@ eco: moses-eco
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${ECO}.xml $@.alg
 
@@ -63,7 +67,7 @@ sophie_eco: moses-sophie moses-eco
 		-M moses-sophie \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-o sophie.megam \
 		${EXTRAOPT} > $@.alg
 	./align.pl \
@@ -72,7 +76,7 @@ sophie_eco: moses-sophie moses-eco
 		-M moses-eco \
 		-f ${FEAT} \
 		-a ${NR_TEST} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-o sophie.megam \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${ECO}.xml $@.alg
@@ -85,7 +89,7 @@ eco_sophie: moses-sophie moses-eco
 		-M moses-eco \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-o eco.megam \
 		${EXTRAOPT} > $@.alg
 	./align.pl \
@@ -94,7 +98,7 @@ eco_sophie: moses-sophie moses-eco
 		-M moses-sophie \
 		-f ${FEAT} \
 		-a ${NR_TEST} \
-		-x 0.2 \
+		-x ${ALIGNTHR} \
 		-o eco.megam \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
