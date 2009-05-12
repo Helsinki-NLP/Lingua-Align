@@ -6,10 +6,11 @@ use strict;
 
 use FileHandle;
 use IPC::Open3;
+use Algorithm::SVM;
+use Algorithm::SVM::DataSet;
 
 $VERSION='0.1';
 @ISA = qw( Lingua::Align::Classifier::Megam );
-
 
 
 sub new{
@@ -19,15 +20,6 @@ sub new{
     my $self={};
     bless $self,$class;
 
-    $self->{LIBSVM_TRAIN} = $attr{-libsvm_train} || 
-	$ENV{HOME}.'/projects/align/MaxEnt/SVM/libsvm-2.88/svm-train';
-    $self->{LIBSVM_PREDICT} = $attr{-libsvm_train} || 
-	$ENV{HOME}.'/projects/align/MaxEnt/SVM/libsvm-2.88/svm-predict';
-    $self->{LIBSVM_SCALE} = $attr{-libsvm_train} || 
-	$ENV{HOME}.'/projects/align/MaxEnt/SVM/libsvm-2.88/svm-scale';
-
-    $self->{LIBSVM_TRAIN_ARGS} = $attr{-libsvm_train_args} || ' -h 0 -m 4096 ';
-
     foreach (keys %attr){
 	$self->{$_}=$attr{$_};
     }
@@ -35,18 +27,111 @@ sub new{
     return $self;
 }
 
+
+
+sub initialize_training{
+    my $self=shift;
+    $self->{SVM} = new Algorithm::SVM(Type => 'nu-SVR',
+				      Kernel => 'linear');
+    $self->{SVM_TRAINSET}=[];
+}
+
+
+sub add_train_instance{
+    my ($self,$label,$feat,$weight)=@_;
+    if (not ref($self->{SVM})){
+	$self->initialize_training();
+    }
+
+#    if ($label==0){$label='-1';}
+#    if ($label==1){$label='+1';}
+
+    if (defined($weight) && ($weight != 1)){
+	if ($weight<1){
+	    print STDERR "weights are not supported!\n --> use weight=1!\n";
+	}
+    }
+    else{$weight=1;}
+
+    my @data=();
+    foreach (keys %{$feat}){
+	if (! exists $self->{__FEATIDS__}->{$_}){
+	    $self->{__FEATCOUNT__}++;
+	    $self->{__FEATIDS__}->{$_}=$self->{__FEATCOUNT__};
+	}
+	$data[$self->{__FEATIDS__}->{$_}]=$$feat{$_};
+    }
+
+    my $instance = new Algorithm::SVM::DataSet(Label => $label, 
+					       Data => \@data);
+#    for (my $i=0;$i<$weight;$i++){
+	push(@{$self->{SVM_TRAINSET}},$instance);
+#    }
+}
+
+sub train{
+    my $self = shift;
+    my $model = shift || '__megam.'.$$;
+
+    $self->{SVM}->train(@{$self->{SVM_TRAINSET}});
+
+#    # cross validation on training set
+#    if ($self->{-verbose}){
+#	my $accuracy = $self->{SVM}->svm_validate(5);
+#	print STDERR "accuracy = $accuracy\n";
+#    }
+
+    $self->{SVM}->save($model);
+    $self->save_feature_ids($model.'.ids',$self->{__FEATIDS__});
+
+    ################################ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ## save feature ids ......
+    ## ---> need them for feature extraction for aligning!!!!!!!!!
+    ################################ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    return $model;
+}
+
+sub save_feature_ids{
+    my $self=shift;
+    my ($file,$feat)=@_;
+    open F,">$file" || die "cannot open feature ID file $file\n";
+    foreach (keys %{$feat}){
+	print F "$$feat{$_}\t$_\n";
+    }
+    close F;
+}
+
+sub load_feature_ids{
+    my $self=shift;
+    my ($file,$feat)=@_;
+    open F,"<$file" || die "cannot open feature ID file $file\n";
+    while (<F>){
+	chomp;
+	my ($id,$f)=split(/\t/);
+	$$feat{$f}=$id;
+    }
+    close F;
+}
+
+
+
+
+
 sub initialize_classification{
     my $self=shift;
     my $model=shift;
 
-    my $arguments = "-fvals -predict $model binary";
-    my $command = "$self->{MEGAM} $arguments -";
+    $self->{__FEATCOUNT__}=0;
+    $self->{__FEATIDS__}={};
 
-    $self->{MEGAM_PROC} = open3($self->{MEGAM_IN}, 
-				$self->{MEGAM_OUT}, 
-				$self->{MEGAM_ERR},
-				$command);
-    return $self->{MEGAM_PROC};
+    $self->{SVM} = new Algorithm::SVM(Model => $model,
+				      Kernel => 'linear',
+				      Type => 'nu-SVR');
+    $self->{SVM_MODEL} = $model;
+    $self->load_feature_ids($model.'.ids',$self->{__FEATIDS__});
+
+    return 1;
 }
 
 sub add_test_instance{
@@ -57,150 +142,51 @@ sub add_test_instance{
 	$self->{TEST_DATA}=[];
 	$self->{TEST_LABEL}=[];
     }
-    push(@{$self->{TEST_DATA}},join(' ',%{$feat}));
-    push(@{$self->{TEST_LABEL}},$label);
-}
 
+#    if ($label==0){$label='-1';}
+#    if ($label==1){$label='+1';}
 
-
-sub initialize_training{
-    my $self=shift;
-
-    $self->{TRAINFILE} = $self->{-training_data} || '__train.'.$$;
-    $self->{TRAIN_FH} = new FileHandle;
-    $self->{TRAIN_FH}->open(">$self->{TRAINFILE}") || 
-	die "cannot open training data file $self->{TRAINFILE}\n";
-}
-
-
-sub add_train_instance{
-    my ($self,$label,$feat,$weight)=@_;
-    if (not ref($self->{TRAIN_FH})){
-	$self->initialize_training();
-    }
-
-    if (not ref($self->{TRAIN_FH})){
-	$self->initialize_training();
-    }
-    my $fh=$self->{TRAIN_FH};
-
-    if ($label==0){$label='-1';}
-    if ($label==1){$label='+1';}
-
-    if (defined($weight) && ($weight != 1)){
-	if ($weight>0){
-	    print STDERR "weights are not supported!\n --> use weight=1!\n";
-	}
-    }
-    print $fh $label;
-    
+    my @data=();
     foreach (keys %{$feat}){
 	if (! exists $self->{__FEATIDS__}->{$_}){
-	    $self->{__FEATCOUNT__}++;
-	    $self->{__FEATIDS__}->{$_}=$self->{__FEATCOUNT__};
+	    if ($self->{-verbose}){
+		print STDERR "feature $_ does not exist! ignore!\n";
+	    }
 	}
-	print $fh ' ',$self->{__FEATIDS__}->{$_},':'.$$feat{$_}
+	$data[$self->{__FEATIDS__}->{$_}]=$$feat{$_};
     }
-    print $fh "\n";
-}
 
-sub train{
-    my $self = shift;
-    my $model = shift || '__megam.'.$$;
+    my $instance = new Algorithm::SVM::DataSet(Label => $label, 
+					       Data => \@data);
+    push(@{$self->{TEST_DATA}},$instance);
+    push(@{$self->{TEST_LABEL}},$label);
 
-#    $self->store_features_used($model);
-    my $trainfile = $self->{TRAINFILE};
-
-# .... train a new model
-
-    my $arguments=$self->{LIBSVM_TRAIN_ARGS};
-    my $command = "$self->{LIBSVM_TRAIN} $arguments $trainfile $model";
-    print STDERR "train with:\n$command\n" if ($self->{-verbose});
-    system($command);
-
-    unlink $trainfile unless $self->{-keep_training_data};
-    return $model;
 }
 
 
 sub classify{
     my $self=shift;
-    my $model = shift || '__megam.'.$$;
+    my $model = shift || '__svm.'.$$;
 
     return () if (not ref($self->{TEST_DATA}));
 
-    if (not defined $self->{MEGAM_PROC}){
-	if (not $self->initialize_classification($model)){
-	    return $self->classify_with_tempfile($model);
-	}
+    if ($self->{SVM_MODEL} ne $model){
+	$self->initialize_classification($model);
     }
-
-    my $in = $self->{MEGAM_IN};
-    my $out = $self->{MEGAM_OUT};
 
     # send input data to the megam process
 
     my @scores=();
+    my @labels=();
     foreach my $data (@{$self->{TEST_DATA}}){
-	my $label=shift(@{$self->{TEST_LABEL}});
-	print $in $label,' ',$data,"\n";            # send input
-	my $line=<$out>;                            # read classification
-	chomp $line;
-	my ($label,$score)=split(/\s+/,$line);
-	push (@scores,$score);
-    }
-
-    delete $self->{TEST_DATA};
-    delete $self->{TEST_LABEL};
-
-#    print STDERR scalar @scores if ($self->{-verbose});
-#    print STDERR " ... new scores returned\n"  if ($self->{-verbose});
-    return @scores;
-
-}
-
-
-
-
-# classify test data by calling megam with a temporary feature file
-# (if opening IPC fails)
-
-
-sub classify_with_tempfile{
-    my $self=shift;
-    my $model = shift || '__megam.'.$$;
-
-    return () if (not ref($self->{TEST_DATA}));
-
-    # store features in temporary file
-    # (or can we somehow pipe data into megam?)
-
-    my $testfile = $self->{-classification_data} || '__megam_testdata.'.$$;
-    my $fh = new FileHandle;
-    $fh->open(">$testfile") || die "cannot open data file $testfile\n";
-    foreach my $data (@{$self->{TEST_DATA}}){
-	my $label=shift(@{$self->{TEST_LABEL}});
-	print $fh $label.' ';
-	print $fh $data,"\n";
-    }
-    $fh->close();
-
-    # classify with megam (predict mode)
-
-    my $arguments="-fvals -predict $model binary";
-    my $command = "$self->{MEGAM} $arguments $testfile";
-    print STDERR "classify with:\n$command\n" if ($self->{-verbose});
-    my $results = `$command 2>/dev/null`;
-    unlink $testfile;
-
-    # get the results (from STDOUT)
-
-    my @lines = split(/\n/,$results);
-
-    my @scores=();
-    foreach (@lines){
-	my ($label,$score)=split(/\s+/);
-	push (@scores,$score);
+	my $res=$self->{SVM}->predict($data);
+	my $val=$self->{SVM}->predict_value($data);
+#	my $prob=$self->{SVM}->getSVRProbability();
+#	if ($res>0){
+#	    print STDERR "!!!!! positive!!!!!!\n";
+#	}
+	push (@scores,$val);
+	push (@labels,$res);
     }
 
     delete $self->{TEST_DATA};
@@ -209,56 +195,6 @@ sub classify_with_tempfile{
     return @scores;
 
 }
-
-
-###########################################################################
-# alternative: load the model and classify myself (without megam)
-
-sub load_model{
-    my $self=shift;
-    my $model = shift || '__megam.'.$$;
-    open F,"<$model" || die "cannot open megam model $model\n";
-    while (<F>){
-	chomp;
-	my ($name,$value)=split(/\s+/);
-	$self->{MODEL}->{$name}=$value;
-    }
-    close F;
-}
-
-# classify internally without calling megam using the weights in the model file
-# problem: how do we normalize?
-
-sub classify_myself{
-    my $self=shift;
-    my $model = shift || '__megam.'.$$;
-    if (not ref($self->{MODEL})){
-	$self->load_model($model);
-    }
-
-    return () if (not ref($self->{TEST_DATA}));
-
-    my $topscore=0;
-    my @scores=();
-    foreach my $data (@{$self->{TEST_DATA}}){
-	my $label=shift(@{$self->{TEST_LABEL}});
-	my %feat = split(/\s+/,$data);
-	my $score=0;
-	foreach my $f (keys %feat){
-	    $score += $feat{$f}*$self->{MODEL}->{$f};
-	    if ($score>$topscore){$topscore=$score;}
-	}
-#	$score = 1/(1+exp(0-$score));
-	push(@scores,$score);
-    }
-    map($_/=$topscore,@scores);
-
-    delete $self->{TEST_DATA};
-    delete $self->{TEST_LABEL};
-
-    return @scores;
-}
-
 
 
 1;

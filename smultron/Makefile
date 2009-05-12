@@ -6,7 +6,7 @@ MODEL = megam
 
 # SEARCH = wellformed
 SEARCH = greedy
-ALIGNTHR = 0.1
+ALIGNTHR = 0
 EXTRAOPT = -C -S
 
 SMULTRON=${HOME}/projects/SMULTRON
@@ -105,10 +105,12 @@ eco_sophie: moses-sophie moses-eco
 
 
 
+MOSES_SYM=intersect
+# MOSES_SYM=grow-diag-final-and
 
-moses-sophie: moses-sophie/model/aligned.grow-diag-final-and
-moses-eco: moses-eco/model/aligned.grow-diag-final-and
-moses-all: moses-all/model/aligned.grow-diag-final-and
+moses-sophie: moses-sophie/model/aligned.${MOSES_SYM}
+moses-eco: moses-eco/model/aligned.${MOSES_SYM}
+moses-all: moses-all/model/aligned.${MOSES_SYM}
 
 ${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
 	../bin/sta2moses $<
