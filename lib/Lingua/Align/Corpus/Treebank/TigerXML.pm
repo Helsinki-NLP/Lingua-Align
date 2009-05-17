@@ -5,6 +5,9 @@ use strict;
 use Lingua::Align::Corpus::Treebank;
 
 
+## should I do something with REL (see XMLstart)
+
+
 use vars qw($VERSION @ISA);
 $VERSION = '0.01';
 @ISA = qw(Lingua::Align::Corpus::Treebank);

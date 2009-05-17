@@ -6,7 +6,7 @@ MODEL = megam
 
 # SEARCH = wellformed
 SEARCH = greedy
-ALIGNTHR = 0
+ALIGNTHR = 0.15
 EXTRAOPT = -C -S
 
 SMULTRON=${HOME}/projects/SMULTRON
