@@ -77,8 +77,6 @@ sub next_sentence{
 ##-------------------------------------------------------------------------
 ## 
 
-## ... still need to handle index!!!!!!!!!!!!!!!!!!!!!!
-
 
 sub __XMLTagStart{
     my ($p,$e,%a)=@_;
@@ -86,6 +84,7 @@ sub __XMLTagStart{
     if ($e eq 'alpino_ds'){
 	$p->{NODES}={};        # need better clean-up?! (memory leak?)
 	$p->{TERMINALS}=[];
+	$p->{INDEX}={};
 	delete $p->{ROOTNODE};
 	delete $p->{CURRENT};
     }
@@ -96,10 +95,16 @@ sub __XMLTagStart{
 	foreach (keys %a){
 	    $p->{NODES}->{$a{id}}->{$_}=$a{$_};
 	}
+
+	# save indeces ...
+	if (exists $a{index}){
+	    push(@{$p->{INDEX}->{$a{index}}},$a{id});
+	}
 	if (exists $p->{CURRENT}){
 	    my $parent=$p->{CURRENT};
 	    push(@{$p->{NODES}->{$a{id}}->{PARENTS}},$parent);
 	    push(@{$p->{NODES}->{$parent}->{CHILDREN}},$a{id});
+	    push(@{$p->{NODES}->{$a{id}}->{RELATION}},$a{rel});
 	}
 	$p->{CURRENT}=$a{id};
 	if (not exists $p->{ROOTNODE}){
@@ -127,6 +132,42 @@ sub __XMLTagEnd{
     }
     elsif ($e eq 'comment'){
 	delete $p->{__COMMENT__};
+    }
+
+    elsif ($e eq 'alpino_ds'){
+
+	# solve index links ...
+	my %add=();
+	foreach my $i (keys %{$p->{INDEX}}){
+	    foreach my $n1 (@{$p->{INDEX}->{$i}}){
+		foreach my $n2 (@{$p->{INDEX}->{$i}}){
+		    next if ($n1 eq $n2);
+
+		    # if n1 has children
+		    # --> add them to n2 as well!
+		    # if n1 is a terminal node
+		    # --> add as child to n2!
+
+		    if (exists $p->{NODES}->{$n1}->{CHILDREN}){
+			@{$add{$n2}}=@{$p->{NODES}->{$n1}->{CHILDREN}};
+		    }
+		    elsif (exists $p->{NODES}->{$n1}->{word}){
+			@{$add{$n2}}=($n1);
+		    }
+		}
+	    }
+	}
+
+	# add links to children as collected above
+	# (this could probably be simplified ...)
+
+	foreach my $n (keys %add){
+	    print STDERR "add ";
+	    print STDERR join(' ',@{$add{$n}});
+	    print STDERR " to $n\n";
+	    push(@{$p->{NODES}->{$n}->{CHILDREN}},@{$add{$n}});
+	}
+	
     }
 }
 

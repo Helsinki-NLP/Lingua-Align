@@ -506,6 +506,27 @@ sub label_features{
 	}
 	$$values{$key}=1;
     }
+
+    # edge labels
+    # (relation to (first) parent) 
+
+    if (exists $$FeatTypes{edge}){
+	my $key='edge_';
+	if (exists $srctree->{NODES}->{$srcnode}->{RELATION}){
+	    if (ref($srctree->{NODES}->{$srcnode}->{RELATION}) eq 'ARRAY'){
+		$key.=$srctree->{NODES}->{$srcnode}->{RELATION}->[0];
+	    }
+	}
+	$key.='_';
+	if (exists $trgtree->{NODES}->{$trgnode}->{RELATION}){
+	    if (ref($trgtree->{NODES}->{$trgnode}->{RELATION}) eq 'ARRAY'){
+		$key.=$trgtree->{NODES}->{$trgnode}->{RELATION}->[0];
+	    }
+	}
+	$$values{$key}=1;
+    }
+
+
 }
 
 
@@ -920,86 +941,151 @@ sub lex_inside_features{
 
 
     ## lexical inside scores
-    ## -----------------------
+    ## ----------------------------------------
+    ## original Dublin Subtree aligner scores
+    ## ----------------------------------------
     ## insideST1 ...... un-normalized inside score a(s|t)
     ## insideST1 ...... un-normalized inside score a(t|s)
     ## insideST2 ...... normalized inside score a(s|t)
     ## insideST2 ...... normalized inside score a(t|s)
+    ## ----------------------------------------
+    ## the same without considering NULL links
+    ## ----------------------------------------
+    ## insideST3 ...... un-normalized inside score a(s|t)
+    ## insideST3 ...... un-normalized inside score a(t|s)
+    ## insideST4 ...... normalized inside score a(s|t)
+    ## insideST4 ...... normalized inside score a(t|s)
+
 
     if (exists $$FeatTypes{insideST1}){
 	$$values{insideST1} = 
-	    $self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+	    $self->zhechev_scoreXY_NULL(\@srcleafs,\@trgleafs,
 				   $self->{LEXE2F},$self->{LEXF2E},0);
-#				   $self->{LEXE2F},0);
     }
     if (exists $$FeatTypes{insideTS1}){
 	$$values{insideTS1} = 
-	    $self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
+	    $self->zhechev_scoreXY_NULL(\@trgleafs,\@srcleafs,
 				   $self->{LEXF2E},$self->{LEXE2F},0);
-#				   $self->{LEXF2E},0);
     }
 
     if (exists $$FeatTypes{insideST2}){
 	$$values{insideST2} = 
-	    $self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+	    $self->zhechev_scoreXY_NULL(\@srcleafs,\@trgleafs,
 				   $self->{LEXE2F},$self->{LEXF2E},1);
-#				   $self->{LEXE2F},1);
     }
     if (exists $$FeatTypes{insideTS2}){
 	$$values{insideTS2} = 
+	    $self->zhechev_scoreXY_NULL(\@trgleafs,\@srcleafs,
+				   $self->{LEXF2E},$self->{LEXE2F},1);
+    }
+
+    ## without NULL links
+
+    if (exists $$FeatTypes{insideST3}){
+	$$values{insideST3} = 
+	    $self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+				   $self->{LEXE2F},$self->{LEXF2E},0);
+    }
+    if (exists $$FeatTypes{insideTS3}){
+	$$values{insideTS3} = 
+	    $self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
+				   $self->{LEXF2E},$self->{LEXE2F},0);
+    }
+
+    if (exists $$FeatTypes{insideST4}){
+	$$values{insideST4} = 
+	    $self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+				   $self->{LEXE2F},$self->{LEXF2E},1);
+    }
+    if (exists $$FeatTypes{insideTS4}){
+	$$values{insideTS4} = 
 	    $self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
 				   $self->{LEXF2E},$self->{LEXE2F},1);
-#				   $self->{LEXF2E},1);
     }
 
 
-    ## inside scores a la Dublin Tree Aligner
-    ## (without normalization)
+    ## combine src-trg and trg-src as in the 
+    ## Dublin Tree Aligner (without normalization)
 
     if (exists $$FeatTypes{inside1}){
 	my $insideST1;
 	if (exists $$values{insideST1}){$insideST1=$$values{insideST1};}
 	else{
-	    $insideST1=
-		$self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+	    $insideST1= $self->zhechev_scoreXY_NULL(\@srcleafs,\@trgleafs,
 				       $self->{LEXE2F},$self->{LEXF2E},0);
-#				       $self->{LEXE2F},0);
 	}
 	my $insideTS1;
 	if (exists $$values{insideTS1}){$insideTS1=$$values{insideTS1};}
 	else{
-	    $insideTS1=
-		$self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
+	    $insideTS1=	$self->zhechev_scoreXY_NULL(\@trgleafs,\@srcleafs,
 				       $self->{LEXF2E},$self->{LEXE2F},0);
-#				       $self->{LEXF2E},0);
 	}
 	$$values{inside1}=$insideST1*$insideTS1;
 
     }
 
-    ## inside scores a la Dublin Tree Aligner
     ## (with normalization)
 
     if (exists $$FeatTypes{inside2}){
 	my $insideST2;
 	if (exists $$values{insideST2}){$insideST2=$$values{insideST2};}
 	else{
-	    $insideST2=
-		$self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+	    $insideST2=	$self->zhechev_scoreXY_NULL(\@srcleafs,\@trgleafs,
 				       $self->{LEXE2F},$self->{LEXF2E},1);
-#				       $self->{LEXE2F},1);
 	}
 	my $insideTS2;
 	if (exists $$values{insideTS2}){$insideTS2=$$values{insideTS2};}
 	else{
-	    $insideTS2=
-		$self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
+	    $insideTS2=	$self->zhechev_scoreXY_NULL(\@trgleafs,\@srcleafs,
 				       $self->{LEXF2E},$self->{LEXE2F},1);
-#				       $self->{LEXF2E},1);
 	}
 	$$values{inside2}=$insideST2*$insideTS2;
 #	$$values{inside2}=$insideST2+$insideTS2;
     }
+
+
+    ## -------------------------------------------
+    ## now with the scores without NULL links
+
+    if (exists $$FeatTypes{inside3}){
+	my $insideST3;
+	if (exists $$values{insideST3}){$insideST3=$$values{insideST3};}
+	else{
+	    $insideST3= $self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+				       $self->{LEXE2F},$self->{LEXF2E},0);
+	}
+	my $insideTS3;
+	if (exists $$values{insideTS3}){$insideTS3=$$values{insideTS3};}
+	else{
+	    $insideTS3=	$self->zhechev_scoreXY_NULL(\@trgleafs,\@srcleafs,
+				       $self->{LEXF2E},$self->{LEXE2F},0);
+	}
+	$$values{inside3}=$insideST3*$insideTS3;
+    }
+
+    ## (with normalization)
+
+    if (exists $$FeatTypes{inside4}){
+	my $insideST4;
+	if (exists $$values{insideST4}){$insideST4=$$values{insideST4};}
+	else{
+	    $insideST4=	$self->zhechev_scoreXY(\@srcleafs,\@trgleafs,
+				       $self->{LEXE2F},$self->{LEXF2E},1);
+	}
+	my $insideTS4;
+	if (exists $$values{insideTS2}){$insideTS4=$$values{insideTS4};}
+	else{
+	    $insideTS4=	$self->zhechev_scoreXY(\@trgleafs,\@srcleafs,
+				       $self->{LEXF2E},$self->{LEXE2F},1);
+	}
+	$$values{inside4}=$insideST4*$insideTS4;
+    }
+
+
+
+
+    ## alterantive definition of inside scores:
+    ## use max instead of averaged sum!
 
 
     if (exists $$FeatTypes{maxinsideST}){
@@ -1026,6 +1112,11 @@ sub lex_inside_features{
     }
 
 
+
+    ## yet another alterantive definition of inside scores:
+    ## use max instead of averaged sum &
+    ## compute average instead of multiplying prob's
+
     if (exists $$FeatTypes{avgmaxinsideST}){
 	$$values{avgmaxinsideST} = 
 	    $self->avgmaxscoreXY(\@srcleafs,\@trgleafs,$self->{LEXE2F});
@@ -1050,7 +1141,8 @@ sub lex_inside_features{
     }
 
 
-
+    ## finally: another definition
+    ## union of all prob's (is that justifyable?)
 
     if (exists $$FeatTypes{unioninsideST}){
 	$$values{unioninsideST} = 
@@ -1061,9 +1153,7 @@ sub lex_inside_features{
 	    $self->unionscoreXY(\@trgleafs,\@srcleafs,$self->{LEXF2E});
     }
 
-
     if (exists $$FeatTypes{unioninside}){
-
 	my $ST;
 	if (exists $$values{unioninsideST}){$ST=$$values{unioninsideST};}
 	else{$ST=$self->unionscoreXY(\@srcleafs,\@trgleafs,$self->{LEXE2F});}
@@ -1092,10 +1182,7 @@ sub lex_outside_features{
 
     ## lexical outside scores
     ## -----------------------
-    ## outsideST1 ...... un-normalized outside score a(s|t)
-    ## outsideST1 ...... un-normalized outside score a(t|s)
-    ## outsideST2 ...... normalized outside score a(s|t)
-    ## outsideST2 ...... normalized outside score a(t|s)
+    ## similar as for the inside scores but for outside words
 
     ## get leafs outside of current subtrees
     my @srcout = $self->{TREES}->get_outside_leafs($srctree,$srcnode);
@@ -1113,26 +1200,44 @@ sub lex_outside_features{
     }
 
     if (exists $$FeatTypes{outsideST1}){
-	$$values{outsideST1} = 
-	    $self->zhechev_scoreXY(\@srcout,\@trgout,
+	$$values{outsideST1} = $self->zhechev_scoreXY_NULL(\@srcout,\@trgout,
 				   $self->{LEXE2F},$self->{LEXF2E},0);
     }
     if (exists $$FeatTypes{outsideTS1}){
-	$$values{outsideST1} = 
-	    $self->zhechev_scoreXY(\@trgout,\@srcout,
+	$$values{outsideST1} = $self->zhechev_scoreXY_NULL(\@trgout,\@srcout,
 				   $self->{LEXF2E},$self->{LEXE2F},0);
     }
 
     if (exists $$FeatTypes{outsideST2}){
-	$$values{outsideST2} = 
-	    $self->zhechev_scoreXY(\@srcout,\@trgout,
+	$$values{outsideST2} = $self->zhechev_scoreXY_NULL(\@srcout,\@trgout,
 				   $self->{LEXE2F},$self->{LEXF2E},1);
     }
     if (exists $$FeatTypes{outsideTS2}){
-	$$values{outsideTS2} = 
-	    $self->zhechev_scoreXY(\@trgout,\@srcout,
+	$$values{outsideTS2} = $self->zhechev_scoreXY_NULL(\@trgout,\@srcout,
 				   $self->{LEXF2E},$self->{LEXE2F},1);
     }
+
+
+    ## without NULL links
+
+    if (exists $$FeatTypes{outsideST3}){
+	$$values{outsideST3} = $self->zhechev_scoreXY(\@srcout,\@trgout,
+				   $self->{LEXE2F},$self->{LEXF2E},0);
+    }
+    if (exists $$FeatTypes{outsideTS3}){
+	$$values{outsideST3} = $self->zhechev_scoreXY(\@trgout,\@srcout,
+				   $self->{LEXF2E},$self->{LEXE2F},0);
+    }
+
+    if (exists $$FeatTypes{outsideST4}){
+	$$values{outsideST4} = $self->zhechev_scoreXY(\@srcout,\@trgout,
+				   $self->{LEXE2F},$self->{LEXF2E},1);
+    }
+    if (exists $$FeatTypes{outsideTS4}){
+	$$values{outsideTS4} = $self->zhechev_scoreXY(\@trgout,\@srcout,
+				   $self->{LEXF2E},$self->{LEXE2F},1);
+    }
+
 
 
     ## outside scores a la Dublin Tree Aligner
@@ -1142,19 +1247,16 @@ sub lex_outside_features{
 	my $outsideST1;
 	if (exists $$values{outsideST1}){$outsideST1=$$values{outsideST1};}
 	else{
-	    $outsideST1=
-		$self->zhechev_scoreXY(\@srcout,\@trgout,
+	    $outsideST1= $self->zhechev_scoreXY(\@srcout,\@trgout,
 				       $self->{LEXE2F},$self->{LEXF2E},0);
 	}
 	my $outsideTS1;
 	if (exists $$values{outsideTS1}){$outsideTS1=$$values{outsideTS1};}
 	else{
-	    $outsideTS1=
-		$self->zhechev_scoreXY(\@trgout,\@srcout,
+	    $outsideTS1=$self->zhechev_scoreXY(\@trgout,\@srcout,
 				       $self->{LEXF2E},$self->{LEXE2F},0);
 	}
 	$$values{outside1}=$outsideST1*$outsideTS1;
-#	$$values{outside1}=$outsideST1+$outsideTS1;
     }
 
     ## outside scores a la Dublin Tree Aligner
@@ -1164,19 +1266,16 @@ sub lex_outside_features{
 	my $outsideST2;
 	if (exists $$values{outsideST2}){$outsideST2=$$values{outsideST2};}
 	else{
-	    $outsideST2=
-		$self->zhechev_scoreXY(\@srcout,\@trgout,
+	    $outsideST2= $self->zhechev_scoreXY_NULL(\@srcout,\@trgout,
 				       $self->{LEXE2F},$self->{LEXF2E},1);
 	}
 	my $outsideTS2;
 	if (exists $$values{outsideTS2}){$outsideTS2=$$values{outsideTS2};}
 	else{
-	    $outsideTS2=
-		$self->zhechev_scoreXY(\@trgout,\@srcout,
+	    $outsideTS2= $self->zhechev_scoreXY_NULL(\@trgout,\@srcout,
 				       $self->{LEXF2E},$self->{LEXE2F},1);
 	}
 	$$values{outside2}=$outsideST2*$outsideTS2;
-#	$$values{outside2}=$outsideST2+$outsideTS2;
 
 
 # 	if ($$values{outside2}){
@@ -1198,6 +1297,53 @@ sub lex_outside_features{
 # 	}
 
     }
+
+
+
+
+    ## outside scores a la Dublin Tree Aligner
+    ## (without normalization)
+
+    if (exists $$FeatTypes{outside3}){
+	my $outsideST3;
+	if (exists $$values{outsideST3}){$outsideST3=$$values{outsideST3};}
+	else{
+	    $outsideST3= $self->zhechev_scoreXY(\@srcout,\@trgout,
+				       $self->{LEXE2F},$self->{LEXF2E},0);
+	}
+	my $outsideTS3;
+	if (exists $$values{outsideTS1}){$outsideTS3=$$values{outsideTS1};}
+	else{
+	    $outsideTS3=$self->zhechev_scoreXY(\@trgout,\@srcout,
+				       $self->{LEXF2E},$self->{LEXE2F},0);
+	}
+	$$values{outside3}=$outsideST3*$outsideTS3;
+    }
+
+    ## outside scores a la Dublin Tree Aligner
+    ## (with normalization)
+
+    if (exists $$FeatTypes{outside4}){
+	my $outsideST4;
+	if (exists $$values{outsideST4}){$outsideST4=$$values{outsideST4};}
+	else{
+	    $outsideST4= $self->zhechev_scoreXY(\@srcout,\@trgout,
+				       $self->{LEXE2F},$self->{LEXF2E},1);
+	}
+	my $outsideTS4;
+	if (exists $$values{outsideTS4}){$outsideTS4=$$values{outsideTS4};}
+	else{
+	    $outsideTS4= $self->zhechev_scoreXY(\@trgout,\@srcout,
+				       $self->{LEXF2E},$self->{LEXE2F},1);
+	}
+	$$values{outside4}=$outsideST4*$outsideTS4;
+
+    }
+
+
+
+    ## union of prob's
+
 
     if (exists $$FeatTypes{unionoutsideST}){
 	$$values{unionoutsideST} = 
@@ -1232,6 +1378,9 @@ sub lex_outside_features{
     }
 
 
+    ## max instead of average
+
+
     if (exists $$FeatTypes{maxoutside}){
 
 	my $ST;
@@ -1254,6 +1403,8 @@ sub lex_outside_features{
 	    $self->avgmaxscoreXY(\@trgout,\@srcout,$self->{LEXF2E});
     }
 
+
+    # average instead of product
 
     if (exists $$FeatTypes{avgmaxoutside}){
 
@@ -1588,7 +1739,160 @@ merge 2 or more feature keys and compute the average of their scores. This can e
 
 =back
 
-We can also refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation).
+We can also refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation). We can also use 'sister_' features 'children_' features which will refer to the feature with the maximum value among all sister/children nodes, respectively.
+
+
+=head2 FEATURES
+
+The following feature types are implemented in the Tree Aligner:
+
+
+
+=head3 lexical equivalence features
+
+Lexical equivalence features evaluate the relations between words dominated by the current subtree root nodes (alignment candidates). They all use lexical probabilities usually derived from automatic word alignment (other types of probabilistic lexica could be used as well). The notion of inside words refers to terminal nodes that are dominated by the current subtree root nodes and outside words refer to terminal nodes that are not dominated by the current subtree root nodes. Various variants of scores are possible:
+
+
+=over
+
+=item inside1 (insideST1*insideTS1)
+
+This is the unnormalized score of words inside of the current subtrees (see http://ventsislavzhechev.eu/Downloads/Zhechev%20MT%20Marathon%202009.pdf). Lexical probabilities are taken from automatic word alignment (lex-files). NULL links  are also taken into account. It is actually the product of insideST1 (probabilities from source-to-target lexicon) and insideTS1 (probabilities from target-to-source lexicon) which also can be used separately (as individual features).
+
+=item outside1 (outsideST1*outsideTS1)
+
+The same as inside1 but for word pairs outside of the current subtrees. NULL links are counted and scores are not normalized.
+
+=item inside2 (insideST2*insideTS2)
+
+This refers to the normalized inside scores as defined in the Dublin Subtree Aligner.
+
+=item outside2 (outsideST1*outsideTS1)
+
+The normalized scores of word pairs outside of the subtrees.
+
+=item inside3 (insideST3*insideTS3)
+
+The same as inside1 (unnormalized) but without considering NULL links (which makes feature extraction much faster)
+
+=item outside3 (outsideST1*outsideTS1)
+
+The same as outside1 but without NULL links.
+
+=item inside4 (insideST4*insideTS4)
+
+The same as inside2 but without NULL links.
+
+=item outside4 (insideST4*insideTS4)
+
+The same as outside2 but without NULL links.
+
+
+
+=item maxinside (maxinsideST*maxinsideTS)
+
+This is basically the same as inside4 but using "max P(x|y)" instead of "1/|y \SUM P(x|y)" as in the original definition. maxinsideST is using the source-to-target scores and maxinsideTS is using the target-to-source scores.
+
+=item maxoutside (maxoutsideST*maxoutsideTS)
+
+The same as maxinside but for outside word pairs
+
+=item avgmaxinside (avgmaxinsideST*avgmaxinsideTS)
+
+This is the same as maxinside but computing the average (1/|x|\SUM_x max P(x|y)) instead of the product (\PROD_x max P(x|y))
+
+=item avgmaxoutside (avgmaxoutsideST*avgmaxoutsideTS)
+
+The same as avgmaxinside but for outside word pairs
+
+=item unioninside (unioninsideST*unioninsideTS)
+
+Add all lexical probabilities using the addition rule of independent but not mutually exclusive probabilities (P(x1|y1)+P(x2|y2)-P(x1|y1)*P(x2|y2))
+
+=item unionoutside (unionoutsideST*unionoutsideTS)
+
+The same as unioninside but for outside word pairs.
+
+=back
+
+
+
+
+
+
+
+=head3 word alignment features
+
+Word alignment features use the automatic word alignment directly. Again we distinguish between words that are dominated by the current subtree root nodes (inside) and the ones that are outside. Alignment is binary (1 if two words are aligned and 0 if not) and as a score we usuallty compute the proportion of interlinked inside word pairs among all links involving either source or target inside words. One exception is the moselink feature which is only defined for terminal nodes.
+
+=over
+
+=item moses
+
+The proportion of interlinked words (from automatic word alignment) inside of the current subtree among all links involving either source or target words inside of the subtrees.
+
+=item moseslink
+
+Only for terminal nodes: is set to 1 if the twwo words are linked in the automatic word alignment derived from GIZA++/Moses.
+
+=item gizae2f
+
+Link proportion as for moses but now using the assymmetric GIZA++ alignments only (source-to-target).
+
+=item gizaf2e
+
+Link proportion as for moses but now using the assymmetric GIZA++ alignments only (target-to-source).
+
+=item giza
+
+Links from gizae2f and gizaf2e combined.
+
+=back
+
+
+
+
+=head3 sub-tree features
+
+Sub-tree features refer to features that are related to the structure and position of the current subtrees.
+
+=over 
+
+=item treespansim
+
+This is a feature for measuring the "horizontal" similarity of the subtrees under consideration. It is defined as the 1 - the relative position difference of the subtree spans. The relative position of a subtree is defined as the middle of the span of a subtree (begin+end/2) divided by the length of the sentence.
+
+=item treelevelsim
+
+This is a feature measuring the "vertical" similarity of two nodes. It is defined as 1 - the relative tree level difference. The relative tree level is defined as the distance to the sentence root node divided by the size of the tree (which is the maximum distance of any node in the tree to the sentence root).
+
+=item nrleafsratio
+
+This is the ratio of the number of leaf nodes dominated by the two candidate nodes. The ratio is defined as the minimum(nr_src_leafs/nr_trg_leafs,nr_trg_leafs/nr_src_leafs).
+
+=back
+
+
+
+
+=head3 annotation/label features
+
+=over
+
+=item C<catpos>
+
+This feature type extracts node label pairs and gives them the value 1. It uses the "cat" attribute if it exists, otherwise it uses the "pos" attribute if that one exists.
+
+=item C<edge>
+
+This feature refers to the pairs of edge labels (relations) of the current nodes to their immediate parent (only the first parent is considered if multiple exist). This is a binary feature and is set to 1 for each observed label pair.
+
+=back
+
+
+
+
+
 
 
 =head1 SEE ALSO

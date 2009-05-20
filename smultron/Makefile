@@ -7,7 +7,7 @@ MODEL = megam
 # SEARCH = wellformed
 SEARCH = greedy
 ALIGNTHR = 0.15
-EXTRAOPT = -C -S
+# EXTRAOPT = -C -S
 
 SMULTRON=${HOME}/projects/SMULTRON
 SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
@@ -40,12 +40,27 @@ sophie: moses-sophie
 		-m ${MODEL} \
 		-c ${SMULTRON}/${SOPHIE}.xml \
 		-M $< \
+		-k \
 		-f ${FEAT} \
 		-t ${NR_TRAIN} \
 		-a ${NR_TEST} \
 		-x ${ALIGNTHR} \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
+
+sophie_align_clue: moses-sophie
+	./align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-f ${FEAT} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-o treealign.clue \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+
+
+
 
 eco: moses-eco
 	./train_align.pl \
@@ -172,9 +187,9 @@ ALIGN_FEAT = moses gizae2f gizaf2e giza
 
 ALL_FEAT = ${TREE_FEAT} ${LABEL_FEAT} ${LEX_FEAT} ${ALIGN_FEAT}
 
-TESTFEAT = 	'inside2*outside2' \
-	'inside2:outside2' \
-	'inside2:outside2:inside2*outside2:inside2+outside2' \
+TESTFEAT = 	'inside4*outside4' \
+	'inside4:outside4' \
+	'inside4:outside4:inside4*outside4:inside4+outside4' \
 	'avgmaxinside*avgmaxoutside' \
 	'maxinside:maxoutside:maxinside*maxoutside:maxinside+maxoutside' \
 	'avgmaxinside:avgmaxoutside:avgmaxinside*avgmaxoutside:avgmaxinside+avgmaxoutside' \
@@ -186,9 +201,9 @@ TESTFEAT = 	'inside2*outside2' \
 	'maxinside:maxoutside:maxinside*maxoutside:maxinside+maxoutside:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza' \
 	'maxinside:maxoutside:maxinside*maxoutside:maxinside+maxoutside:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:catpos:giza.catpos:moses.catpos' \
 	'maxinside:maxoutside:maxinside*maxoutside:maxinside+maxoutside:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos' \
-	'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:moses:moseslink' \
-	'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos' \
-	'nrleafsratio:maxinside:maxoutside:maxinside*maxoutside2:parent_maxinside:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:maxinside*parent_maxinside:treelevelsim:treelevelsim*maxinside:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos:avgmaxinside:avgmaxoutside:avgmaxinside*avgmaxoutside:avgmaxinside.catpos'
+	'nrleafsratio:inside4:outside4:inside4*outside4:parent_inside4:insideST2:insideTS2:maxinsideST:maxinsideTS:inside4*parent_inside4:treelevelsim:treelevelsim*inside4:treespansim:treespansim*treelevelsim:giza:parent_giza:moses:moseslink' \
+	'nrleafsratio:inside4:outside4:inside4*outside4:parent_inside4:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside4*parent_inside4:treelevelsim:treelevelsim*inside4:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos' \
+	'nrleafsratio:maxinside:maxoutside:maxinside*maxoutside4:parent_maxinside:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:maxinside*parent_maxinside:treelevelsim:treelevelsim*maxinside:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos:avgmaxinside:avgmaxoutside:avgmaxinside*avgmaxoutside:avgmaxinside.catpos'
 
 
 

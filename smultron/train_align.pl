@@ -51,7 +51,8 @@ my $treealigner = new Lingua::Align::Trees(
     -classifier_weight_possible => 1,     # training: weight for possible links
     -classifier_weight_negative => 1,     # training: weight for non-linked
 
-    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
+#    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
+    -megam => '/storage/tiedeman/projects/align/MaxEnt/megam_i686.opt',
 
     -keep_training_data => $opt_k,             # don't remove feature file
 

@@ -1054,28 +1054,134 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align::Trees - Perl modules implementing a discriminative tree aligner
 
 =head1 SYNOPSIS
 
-  use YADWA;
+  use Lingua::Align::Trees;
+
+  my $treealigner = new Lingua::Align::Trees(
+
+    -features => 'inside2:outside2',  # features to be used
+
+    -classifier => 'megam',           # classifier used
+    -megam => '/path/to/megam',       # path to learner (megam)
+
+    -classifier_weight_sure => 3,     # training: weight for sure links
+    -classifier_weight_possible => 1, # training: weight for possible
+    -classifier_weight_negative => 1, # training: weight for non-linked
+    -keep_training_data => 1,         # don't remove feature file
+
+    -same_types_only => 1,            # link only T-T and nonT-nonT
+    #  -nonterminals_only => 1,       # link non-terminals only
+    #  -terminals_only => 1,          # link terminals only
+    -skip_unary => 1,                 # skip nodes with unary production
+
+    -linked_children => 1,            # add first-order dependency
+    -linked_subtree => 1,             # (children or all subtree nodes)
+    # -linked_parent => 0,            # dependency on parent links
+
+    # lexical prob's (src2trg & trg2src)
+    -lexe2f => 'moses/model/lex.0-0.e2f',
+    -lexf2e => 'moses/model/lex.0-0.f2e',
+
+    # for the GIZA++ word alignment features
+    -gizaA3_e2f => 'moses/giza.src-trg/src-trg.A3.final.gz',
+    -gizaA3_f2e => 'moses/giza.trg-src/trg-src.A3.final.gz',
+
+    # for the Moses word alignment features
+    -moses_align => 'moses/model/aligned.intersect',
+
+    -lex_lower => 1,                  # always convert to lower case!
+    -min_score => 0.2,                # classification score threshold
+    -verbose => 1,                    # verbose output
+  );
+
+
+  # corpus to be used for training (and testing)
+  # default input format is the 
+  # Stockholm Tree Aligner format (STA)
+
+  my %corpus = (
+      -alignfile => 'Alignments_SMULTRON_Sophies_World_SV_EN.xml',
+      -type => 'STA');
+
+  #----------------------------------------------------------------
+  # train a model on the first 20 sentences 
+  # and save it into "treealign.megam"
+  #----------------------------------------------------------------
+
+  $treealigner->train(\%corpus,'treealign.megam',20);
+
+  #----------------------------------------------------------------
+  # skip the first 20 sentences (used for training) 
+  # and align the following 10 tree pairs 
+  # with the model stored in "treealign.megam"
+  # alignment search heuristics = greedy
+  #----------------------------------------------------------------
+
+  $treealigner->align(\%corpus,'treealign.megam','greedy',10,20);
+
 
 =head1 DESCRIPTION
 
+This module implements a discriminative tree aligner based on binary classification. Alignment features are extracted for each candidate node pair to be used in a standard binary classifier. As a default we use a MaxEnt learner using a log-linerar combination of features. Feature weights are learned from a tree aligned training corpus. 
+
+=head2 Link search heuristics
+
+For alignment we actually use the conditional probability scores and link search heuristics (3rd argumnt in C<align> method). The default heuristic is a greedy one-to-one alignment best-first heuristics. Other possibilities are "intersection", "src2trg", "trg2src" and "refined" which are defined in a similar way as word alignment symmetrization heuristics are defined. The C<-min_score> parameter is used to set a threshold for the minimum score for establishing a link (default is 0)
+
+
+=head2 External resources for feature extraction
+
+Certain features require external resources. For example for lexical equivalence feature we need word alignments and lexical probabilities (see C<-lexe2f>, C<-lexf2e>, C<-gizaA3_e2f>, C<-gizaA3_f2e>, C<-moses_align> attributes). Note that you have to specify the character encoding if you use input that is not in Unicode UTF-8 (for example specify the encoding for C<-lexe2f> with the flag C<-lexe2f_encoding> in the constructor). Remember also to set the flag C<-lex_lower> if your word alignments are done on a lower cased corpus (all strings will be converted to lower case before matching them with the probabilistic lexicon)
+
+B<Note:> Word alignments are read one by one from the given files! Make sure that they match the trees that will be aligned. They have to be in the same order. Important: If you use the C<skip> parameters reading word alignments will NOT be effected. Word alignment features for the first tree pair to be aligned will still be taken from the first word alignment in the given file! However, if you use the same object instance of Lingua::Align::Trees than the read pointer will not be moved (back to the beginning) after training! That means training with the first N tree pairs and aligning the following M tree pairs after skipping N sentences is fine!
+
+The feature settings will be saved together with the model file. Hence, for aligning features do not have to be specified in the constructor of the tree aligner object. They will be read from the model file and the tree aligner will use them automatically when extracting features for alignment.
+
+One exeption are B<link dependency features>. These features are not specified as the other features because they are not directly extracted from the data when aligning. They are based on previous alignment decisions (scores) and, therefore, also influence the alignment algorithm. Link dependency features are enabled by including appropriate flags in the constructor of the tree aligner object.
+
+=over
+
+=item C<-linked_children>
+
+... adds a dependency on the average of the link scores for all (direct) child nodes of the current node pair. In training link scores are 1 for all linked nodes in the training data and 0 for non-linked nodes. In alignment the link prediction scores are used. In order to make this possible alignment will be done in a bottom-up fashion starting at the leaf nodes.
+
+=item C<-linked_subtree>
+
+... adds a dependency on the average of link scores for all descendents of the current node pair (all nodes in the subtrees dominated by the current nodes). It works in the same way as the C<-linked_children> feature and may also be combined with that feature
+
+=item C<-linked_parent>
+
+... adds a dependency on the link score of the immediate parent nodes. This causes the alignment procedure to run in a top-down fashion starting at the root nodes of the trees to be aligned. Hence, it cannot be combined with the previous two link dependency features as the alignment strategy conflicts with this one!
+
+=back
+
+Note that the use of link dependency features is not stored together with the model. Therefore, you always have to specify these flags even in the alignment mode if you want to use them and the model is trained with these features.
+
+
+=head1 Example feature settings
+
+A very simple example:
+
+  inside4:outside4:inside4*outside4
+
+This will use 3 features: inside4, outside4 and the combined (product) of inside4 and outside4. A more complex example:
+
+  nrleafsratio:inside4:outside4:insideST2:inside4*parent_inside4:treelevelsim*inside4:giza:parent_catpos:moses:moseslink:sister_giza.catpos:parent_parent_giza
+
+In the example above there are some contextual features such as C<parent_catpos> and C<sister_giza>. Note that you can also define recursive contexts such as in C<parent_parent_giza>. Combinations of features can be defined as described earlier. The product of two features is specified with '*' and the concatenation of a feature with a binary feature type such as C<catpos> is specified with '.'. (The example above is not intended to show the best setting to be used. It's only shown for explanatory reasons.)
+
+
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
+For a descriptions of features that can be used see L<Lingua::Align::Trees::Features>.
 
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>j.tiedemann@rug.nl@E<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

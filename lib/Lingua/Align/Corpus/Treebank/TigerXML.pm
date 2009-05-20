@@ -5,7 +5,11 @@ use strict;
 use Lingua::Align::Corpus::Treebank;
 
 
-## should I do something with REL (see XMLstart)
+
+# TODO:
+# - should I handle secondary edges?
+#   (like I do something about re-entry indeces in AlpinoXML)
+
 
 
 use vars qw($VERSION @ISA);
@@ -109,8 +113,9 @@ sub __XMLTagStart{
         # do I have to allow multiple parents? (->secondary edges?!)
 	push(@{$p->{NODES}->{$child}->{PARENTS}},$parent);
 	push(@{$p->{NODES}->{$parent}->{CHILDREN}},$child);
-	$p->{REL}->{$child}->{$parent}=$rel;
-	$p->{REL}->{$parent}->{$child}=$rel;
+	push(@{$p->{NODES}->{$child}->{RELATION}},$rel);
+#	$p->{REL}->{$child}->{$parent}=$rel;
+#	$p->{REL}->{$parent}->{$child}=$rel;
     }
     elsif ($e eq 'graph'){
 	$p->{ROOTNODE}=$a{root};

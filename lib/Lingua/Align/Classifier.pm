@@ -10,7 +10,7 @@ use strict;
 
 
 use Lingua::Align::Classifier::Megam;
-use Lingua::Align::Classifier::LibSVM;
+# use Lingua::Align::Classifier::LibSVM;
 use Lingua::Align::Classifier::Clues;
 
 #use Lingua::Align::Words::FeatureExtractor;
@@ -34,6 +34,7 @@ sub new{
 	    return $self=new Lingua::Align::Classifier::Clues(%attr);
 	}
 	elsif ($classifier=~/svm/i){
+	    eval { require Lingua::Align::Classifier::LibSVM };
 	    return $self=new Lingua::Align::Classifier::LibSVM(%attr);
 	}
 	elsif ($classifier=~/diag/i){

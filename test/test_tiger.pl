@@ -3,19 +3,17 @@
 
 
 use strict;
-use lib 'perl/Lingua-Align/lib';
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
 
+use Lingua::Align::Corpus::Treebank;
+# use Lingua::Align::Corpus::Treebank::TigerXML;
 
-use Lingua::Align::Corpus::Treebank::TigerXML;
-
-
-
-# my $corpus = new Lingua::Align::Corpus::Treebank::TigerXML(
-#     -file => $ENV{HOME}.'/projects/SMULTRON/SMULTRON_DE_Sophies_World.xml');
 
 my $corpus = new Lingua::Align::Corpus::Treebank(
     -type => 'tiger',
-    -file => $ENV{HOME}.'/projects/SMULTRON/SMULTRON_DE_Sophies_World.xml');
+#     -file => $FindBin::Bin.'/../smultron/SMULTRON_DE_Sophies_World.xml');
+    -file => '/storage/tiedeman/projects/SMULTRON/SMULTRON_DE_Sophies_World.xml');
 
 
 my %tree=();
