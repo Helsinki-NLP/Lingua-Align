@@ -59,14 +59,38 @@ sub train{
     #
     # $model is the name of the model-file
 
-    $self->{SENT_COUNT}=0;
-    $self->{START_EXTRACT_FEATURES}=time();
-    $self->extract_training_data($corpus,$features,$max,$skip);
-    $self->{TIME_EXTRACT_FEATURES}=time()-$self->{START_EXTRACT_FEATURES};
 
-    $self->{START_TRAIN_MODEL}=time();
-    $model = $self->{CLASSIFIER}->train($model);
-    $self->{TIME_TRAIN_MODEL} = time() - $self->{START_TRAIN_MODEL};
+
+    my $done=0;
+    my $iter=0;
+
+    do {
+	$self->{SENT_COUNT}=0;
+	$self->{START_EXTRACT_FEATURES}=time();
+	$self->{CLASSIFIER}->initialize_training();
+	$self->extract_training_data($corpus,$features,$max,$skip);
+	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+
+	$self->{START_TRAIN_MODEL}=time();
+	$model = $self->{CLASSIFIER}->train($model);
+	$self->{TIME_TRAIN_MODEL} += time() - $self->{START_TRAIN_MODEL};
+
+	$done=1;
+
+	# iterative SEARN learning --> adapt structural features
+	if (exists $self->{-searn}){
+	    if ($iter<$self->{-searn}){
+		$self->{-searn_model} = $model;
+		$self->{CLASSIFIER}->initialize_classification($model);
+		$done=0;
+	    }
+	}
+	$iter++;
+
+    }
+    until ($done);
+
+
 
     $self->store_features_used($model,$features);
     $self->{TIME_TRAINING} = time() - $self->{START_TRAINING};
@@ -85,9 +109,9 @@ sub train{
 	print STDERR "==================";
 	print STDERR "============================================\n\n";
     }
-
-
 }
+
+
 
 
 sub align{
@@ -96,6 +120,7 @@ sub align{
     $self->{START_ALIGNING}=time();
     my ($corpus,$model,$type,$max,$skip)=@_;
 
+    $self->{CLASSIFIER}->initialize_classification($model);
     my $features = $self->get_features_used($model);
 #    my $features = $_[5] || $self->{-features};
 #    my $min_score = $self->{-min_score} || 0.2;
@@ -261,7 +286,7 @@ sub extract_training_data{
 	die "please specify a corpus to be used for training!";
     }
 
-    my $corpus = new Lingua::Align::Corpus::Parallel(%{$corpus});
+    my $CorpusHandle = new Lingua::Align::Corpus::Parallel(%{$corpus});
 
     my ($weightSure,$weightPossible,$weightNegative) = (1,0,1);
     if (defined $self->{-classifier_weight_sure}){
@@ -280,8 +305,9 @@ sub extract_training_data{
 
     my $count=0;
     my $skipped=0;
+#    my $LinkProbs;
 
-    while ($corpus->next_alignment(\%src,\%trg,\$links)){
+    while ($CorpusHandle->next_alignment(\%src,\%trg,\$links)){
 
 	# this is useful to skip sentences that shouldn't been used for train
 	if (defined $skip){
@@ -291,20 +317,54 @@ sub extract_training_data{
 	    }
 	}
 
+
 	# clear the feature value cache
 	$FE->clear_cache();
 
+	#-------------------------------------------------------------------
+	# adaptive learning a la SEARN (combine true & predicted values)
+
+	if (defined $self->{-searn_model}){
+
+	    # make link prob's out of link types ....
+
+	    if (not defined $self->{LP}){
+		$self->{LP}={};
+		foreach my $s (keys %{$links}){
+		    foreach my $t (keys %{$$links{$s}}){
+			if ($$links{$s}{$t}=~/(good|S)/){
+			    $$self{LP}{$s}{$t}=1;
+			}
+			elsif ($$links{$s}{$t}=~/(fuzzy|possible|P)/){
+			    $$self{LP}{$s}{$t}=0.2;
+			}
+		    }
+		}
+	    }
+
+	    my $model = $self->{-searn_model};
+	    my @scores = $self->classify($model,\%src,\%trg);
+	    my $b=$self->{-searn_beta} || 0.3;
+
+	    for (0..$#scores){
+		my $sid = $self->{INSTANCES_SRC}->[$_];
+		my $tid = $self->{INSTANCES_TRG}->[$_];
+		$$self{LP}{$sid}{$tid}=
+		    (1-$b)*$$self{LP}{$sid}{$tid}+$b*$scores[$_];
+	    }
+	}
+
+	#-------------------------------------------------------------------
+
+
+
 	$count++;
-	if (not($count % 10)){
-	    print STDERR '.';
-	}
-	if (not($count % 100)){
-	    print STDERR " $count aligments\n";
-	}
+	if (not($count % 10)){print STDERR '.';}
+	elsif (not($count % 100)){print STDERR " $count aligments\n";}
 
 	if (defined $max){
 	    if ($count>$max){
-		$corpus->close();
+		$CorpusHandle->close();
 		last;
 	    }
 	}
@@ -376,23 +436,51 @@ sub extract_training_data{
 
 		my %values = $FE->features(\%src,\%trg,$sn,$tn);
 
-		# option: first order dependence on children links
+
+		#-----------------------------------------------------------
+		# structural dependencies
 		if ($self->{-linked_children}){
-		    $self->linked_children(\%values,\%src,\%trg,
-					   $sn,$tn,$links);
+		    if (defined $self->{LP}){
+			$self->linked_children(\%values,\%src,\%trg,
+					       $sn,$tn,$self->{LP},1);
+		    }
+		    else{
+			$self->linked_children(\%values,\%src,\%trg,
+					       $sn,$tn,$links);
+		    }
 		}
 		if ($self->{-linked_subtree}){
-		    $self->linked_subtree(\%values,\%src,\%trg,
-					   $sn,$tn,$links);
+		    if (defined $self->{LP}){
+			$self->linked_subtree(\%values,\%src,\%trg,
+					      $sn,$tn,$self->{LP},1);
+		    }
+		    else{
+			$self->linked_subtree(\%values,\%src,\%trg,
+					      $sn,$tn,$links);
+		    }
 		}
 		if ($self->{-linked_parent}){
-		    $self->linked_parent(\%values,\%src,\%trg,
-					 $sn,$tn,$links);
+		    if (defined $self->{LP}){
+			$self->linked_parent(\%values,\%src,\%trg,
+					     $sn,$tn,$self->{LP},1);
+		    }
+		    else{
+			$self->linked_parent(\%values,\%src,\%trg,
+					     $sn,$tn,$links);
+		    }
 		}
 		if ($self->{-linked_parent_distance}){
-		    $self->linked_parent_distance(\%values,\%src,\%trg,
-						  $sn,$tn,$links);
+		    if (defined $self->{LP}){
+			$self->linked_parent_distance(\%values,\%src,\%trg,
+						      $sn,$tn,$self->{LP},1);
+		    }
+		    else{
+			$self->linked_parent_distance(\%values,\%src,\%trg,
+						      $sn,$tn,$links);
+		    }
 		}
+
+#		$values{"$sn-$tn"} = 1;
 
 		# positive training events
 		# (good/sure examples && fuzzy/possible examples)
@@ -439,6 +527,7 @@ sub linked_parent{
 	if (exists $$links{$srcparent}{$trgparent}){
 	    if ($softcount){
 		$nr+=$$links{$srcparent}{$trgparent};
+#		if ($softcount>0.5){$nr++;}
 	    }
 	    else{$nr++;}
 	}
@@ -497,14 +586,17 @@ sub linked_children{
 	foreach my $t (@trgchildren){
 	    if (exists $$links{$s}){
 		if (exists $$links{$s}{$t}){
-		    if ($softcount){
-			$nr+=$$links{$s}{$t};
+		    if ($softcount){                 # prediction mode:
+			$nr+=$$links{$s}{$t};        # use prediction prob
+#			if ($softcount>0.5){$nr++;}  # use classification
 		    }
-		    else{$nr++;}
+		    else{$nr++;}                     # training mode
 		}
 	    }
 	}
     }
+    # normalize by the size of the larger subtree
+    # problem: might give us scores > 1 (is this a problem?)
     if ($nr){
 	if ($#srcchildren > $#trgchildren){
 	    if ($#srcchildren>=0){

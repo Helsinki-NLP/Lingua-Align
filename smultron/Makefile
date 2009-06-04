@@ -53,7 +53,6 @@ sophie_align_clue: moses-sophie
 		-m ${MODEL} \
 		-c ${SMULTRON}/${SOPHIE}.xml \
 		-M $< \
-		-f ${FEAT} \
 		-a ${NR_TEST} \
 		-x ${ALIGNTHR} \
 		-o treealign.clue \

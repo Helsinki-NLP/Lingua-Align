@@ -4,7 +4,6 @@
 # OPTIONS
 #
 #  -c align-file ..... aligned treebank in stockholm treealigner format
-#  -f features ....... specify features to be used in training
 #  -a nrAlign ........ max number of test sentences (default = 100)
 #  -s strategy ....... alignment search strategy (default = greedy)
 #  -m learner ........ classifier model to be used (default=megam)
@@ -12,7 +11,6 @@
 #  -S ................ enable linked-subtree-nodes feature
 #  -P ................ enable linked-parent feature
 #  -D ................ enable link distance feature (parent-current)
-#  -k ................ keep feature file for training
 #  -x threshold ...... score threshold for aligning
 #  -M dir ............ Moses data dir (giza align + lexfiles)
 #  -o model-file ..... name of the model file
@@ -23,8 +21,8 @@ use strict;
 use FindBin;
 use lib $FindBin::Bin.'/../lib';
 
-use vars qw($opt_f $opt_a $opt_s $opt_c $opt_m $opt_o
-	    $opt_C $opt_S $opt_P $opt_D $opt_k $opt_x $opt_M);
+use vars qw($opt_a $opt_s $opt_c $opt_m $opt_o
+	    $opt_C $opt_S $opt_P $opt_D $opt_x $opt_M);
 use Getopt::Std;
 
 getopts('f:a:s:c:m:SCPDkx:M:o:');
@@ -32,7 +30,6 @@ getopts('f:a:s:c:m:SCPDkx:M:o:');
 
 use Lingua::Align::Trees;
 
-my $featureStr = $opt_f || 'insideST2:insideTS2:outsideST2:outsideTS2';
 my $nrAlign = $opt_a || 100;
 my $search = $opt_s || 'greedy';
 my $model = $opt_m || 'megam';
@@ -43,8 +40,6 @@ my $algfile = $opt_c || 'Alignments_SMULTRON_Sophies_World_SV_EN.xml';
 
 
 my $treealigner = new Lingua::Align::Trees(
-
-    -features => $featureStr,             # features to be used
 
     -classifier => $model,                # classifier used
 
