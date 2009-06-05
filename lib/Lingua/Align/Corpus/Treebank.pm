@@ -31,15 +31,22 @@ sub new{
 # (here: only virtual function ....)
 sub next_sentence{}
 
+sub next_sentence_id{}            # return next sentence ID and move to next
+sub next_sentence_id_would_be{}   # return next sentence ID and stay at current
+
+
 sub distance_to_root{
     my $self=shift;
     my ($tree,$node)=@_;
+#    return 0 if (not defined $node);
+#    return 0 if ($node eq '');
     if (exists $tree->{NODES}->{$node}->{TREELEVEL}){
 	return $tree->{NODES}->{$node}->{TREELEVEL};
     }
     my $this=$node;
     my $count=0;
     while (exists $tree->{NODES}->{$this}->{PARENTS}){
+	last if (scalar @{$tree->{NODES}->{$this}->{PARENTS}} == 0);
 	$count++;
 	$this=$tree->{NODES}->{$this}->{PARENTS}->[0];
 	last if (not exists $tree->{NODES}->{$this});
@@ -286,7 +293,10 @@ sub get_leafs{
 	    }
 	}
 	else{
-	    return ($tree->{NODES}->{$node}->{$attr});
+	    if (exists $tree->{NODES}->{$node}->{$attr}){
+		return ($tree->{NODES}->{$node}->{$attr});
+	    }
+	    return ();
 	}
     }
 }

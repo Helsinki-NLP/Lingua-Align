@@ -228,7 +228,8 @@ sub treebankID{
 	    }
 	}
     }
-    return undef;
+    return $nr+1;
+#    return undef;
 }
 
 sub src_treebankID{
@@ -245,7 +246,12 @@ sub src_treebank{
     my $self=shift;
     my $id=$self->src_treebankID();
     if (defined $id){
-	return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+	if (ref($self->{__XMLHANDLE__}->{TREEBANKS}) eq 'HASH'){
+	    return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+	}
+	else{
+	    return $self->{-src_file};
+	}
     }
     return undef;
 }
@@ -254,7 +260,12 @@ sub trg_treebank{
     my $self=shift;
     my $id=$self->trg_treebankID();
     if (defined $id){
-	return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+	if (ref($self->{__XMLHANDLE__}->{TREEBANKS}) eq 'HASH'){
+	    return $self->{__XMLHANDLE__}->{TREEBANKS}->{$id};
+	}
+	else{
+	    return $self->{-trg_file};
+	}
     }
     return undef;
 }

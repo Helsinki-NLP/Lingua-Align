@@ -35,6 +35,109 @@ sub new{
 }
 
 
+sub print_header{
+    my $self=shift;
+    my $str = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<corpus xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="TigerXML.xsd"
+        id="Lingua::Align conversion">
+  <head>
+    <meta>
+      <format></format>
+      <name>testset</name>
+      <author></author>
+      <date></date>
+      <description></description>
+    </meta>
+    <annotation>
+';
+    if (ref($self->{TFEATURES}) eq 'HASH'){
+	foreach my $f (keys %{$self->{TFEATURES}}){
+	    $str.="      <feature name=\"$f\" domain=\"T\" >\n";
+	    foreach my $n (keys %{$self->{TFEATURES}->{$f}}){
+		$str.="        <value name=\"$n\">";
+		$str.="$self->{TFEATURES}->{$f}->{$n}</value>\n";
+	    }
+	    $str.="      </feature>\n";
+	}
+    }
+    if (ref($self->{NTFEATURES}) eq 'HASH'){
+	foreach my $f (keys %{$self->{NTFEATURES}}){
+	    $str.="      <feature name=\"$f\" domain=\"NT\" >\n";
+	    foreach my $n (keys %{$self->{NTFEATURES}->{$f}}){
+		$str.="        <value name=\"$n\">";
+		$str.="$self->{NTFEATURES}->{$f}->{$n}</value>\n";
+	    }
+	    $str.="      </feature>\n";
+	}
+    }
+    $str.="    <annotation>\n   </head>\n  <body>\n";
+    return $str;
+}
+
+sub print_tail{
+    return '</body>
+</corpus>
+';
+}
+
+
+sub print_tree{
+    my $self=shift;
+    my $tree=shift;
+
+    my $ids=shift || [];
+    my $node = shift || $tree->{ROOTNODE};
+
+    my $str='<s id="'.$tree->{ID}."\">\n";
+    $str.='  <graph root="'.$node."\">\n";
+    $str.="    <terminals>\n";
+    foreach my $t (@{$tree->{TERMINALS}}){
+	$str.= '      <t id="'.$t.'"';
+	foreach my $k (keys %{$tree->{NODES}->{$t}}){
+	    next if (ref($tree->{NODES}->{$t}->{$k}));
+	    # save values for the header .... (if not word|lemma|root|..)
+	    if ($k!~/(word|root|lemma|sense|id|begin|end|index)/i){
+		$self->{TFEATURES}->{$k}->{$tree->{NODES}->{$t}->{$k}}='--';
+	    }
+	    else{$self->{NTFEATURES}->{$k}={};}
+	    $str.= " $k=\"$tree->{NODES}->{$t}->{$k}\"";
+	}
+	$str.= " />\n";
+    }
+    $str.="    </terminals>\n    <nonterminals>\n";
+    foreach my $n (keys %{$tree->{NODES}}){
+	if (exists $tree->{NODES}->{$n}->{CHILDREN}){
+	    $str.= '      <nt id="'.$n.'"';
+	    foreach my $k (keys %{$tree->{NODES}->{$n}}){
+		next if (ref($tree->{NODES}->{$n}->{$k}));
+		# save values for the header ....
+		if ($k!~/(word|root|lemma|sense|id|begin|end|index)/i){
+		    $self->{NTFEATURES}->{$k}->{$tree->{NODES}->{$n}->{$k}}='--';
+		}
+		else{$self->{NTFEATURES}->{$k}={};}
+		$str.= " $k=\"$tree->{NODES}->{$n}->{$k}\"";
+	    }
+	    $str.= " />\n";
+	    for my $c (0..$#{$tree->{NODES}->{$n}->{CHILDREN}}){
+		$str.='        <edge idref="';
+		$str.=$tree->{NODES}->{$n}->{CHILDREN}->[$c];
+		$str.='" label="';
+		my $label = $tree->{NODES}->{$n}->{RELATION}->[$c];
+		$str.=$label;
+		$str.="\" />\n";
+		# save values for the header ....
+		$self->{LABELS}->{$label}='--';
+	    }
+	    $str.= "      </nt>\n";
+	}
+    }
+    $str.="    </nonterminals>\n  </graph>\n</s>\n";
+    return $str;
+}
+
+
+
 sub next_tree{
     my $self=shift;
     return $self->next_sentence(@_);
@@ -113,7 +216,8 @@ sub __XMLTagStart{
         # do I have to allow multiple parents? (->secondary edges?!)
 	push(@{$p->{NODES}->{$child}->{PARENTS}},$parent);
 	push(@{$p->{NODES}->{$parent}->{CHILDREN}},$child);
-	push(@{$p->{NODES}->{$child}->{RELATION}},$rel);
+# 	push(@{$p->{NODES}->{$child}->{RELATION}},$rel);
+	push(@{$p->{NODES}->{$parent}->{RELATION}},$rel);
 #	$p->{REL}->{$child}->{$parent}=$rel;
 #	$p->{REL}->{$parent}->{$child}=$rel;
     }

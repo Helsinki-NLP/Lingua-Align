@@ -15,6 +15,46 @@ use XML::Parser;
 
 
 
+sub read_index{
+    my $self=shift;
+    my $corpus=shift;
+    $corpus=~s/\.data(\.[dg]z)?//;
+    my $index=$corpus.'.index';
+    if (-e $index){
+	if (open F,"<$index"){
+	    while (<F>){
+		chomp;
+		my ($id,$start,$length)=split(/\s+/);
+		$id=~s/\.xml//;
+		my $longid=$id;
+		my $base=$corpus;
+		if ($id=~/^(.*)\-([^\-]+)$/){
+		    $base = $1;
+		    $id = $2;
+	    }
+		push (@{$self->{SENT_ID}},$id);
+		push (@{$self->{SENT_LONGID}},$longid);
+	    }
+	    close F;
+	}
+	else{
+	    warn "cannot open index file for $corpus\n";
+	}
+    }
+}
+
+sub next_sentence_id_would_be{
+    my $self=shift;
+    my $offset=shift;
+    if (ref($self->{SENT_ID}) eq 'ARRAY'){
+	if ($self->{NEXT_SENT}+$offset <= $#{$self->{SENT_ID}}){
+	    return $self->{SENT_ID}->[$self->{NEXT_SENT}+$offset];
+	}
+	return 'EOF';
+    }
+    return $self->{NEXT_SENT}+$offset+1;
+}
+
 
 sub next_sentence{
     my $self=shift;
@@ -37,7 +77,13 @@ sub next_sentence{
 						  Char => \&__XMLChar});
 	$self->{__XMLHANDLE__} = $self->{__XMLPARSER__}->parse_start;
 	$self->{__FIRST_SENTENCE__}=1;
+	$self->read_index($file);
+	$self->{NEXT_SENT}=0;
     }
+
+    my $sentid = $self->next_sentence_id_would_be();
+    $self->{__XMLHANDLE__}->{SENTID}=$sentid;
+    delete $self->{__XMLHANDLE__}->{SENT};
 
     my $fh=$self->{FH}->{$file};
     my $OldDel=$/;
@@ -60,11 +106,20 @@ sub next_sentence{
 	}
     }
     $/=$OldDel;
-    if (defined $self->{__XMLHANDLE__}->{SENTID}){
+    if (defined $self->{__XMLHANDLE__}->{SENT}){
 	$tree->{ROOTNODE}=$self->{__XMLHANDLE__}->{ROOTNODE};
 	$tree->{NODES}=$self->{__XMLHANDLE__}->{NODES};
 	$tree->{TERMINALS}=$self->{__XMLHANDLE__}->{TERMINALS};
-	$tree->{ID}=$self->{__XMLHANDLE__}->{SENTID};
+
+	if ($self->{__XMLHANDLE__}->{SENTID}=~/^(.*)\-([^-]+)$/){
+	    $tree->{ID}=$2;
+	    $tree->{CORPUS}=$1;
+	    $tree->{LONGID}=$self->{__XMLHANDLE__}->{SENTID};
+	}
+	else{
+	    $tree->{ID}=$self->{__XMLHANDLE__}->{SENTID};
+	}
+	$self->{NEXT_SENT}++;
 	return 1;
     }
     $self->close_file($file);
@@ -89,6 +144,9 @@ sub __XMLTagStart{
 	delete $p->{CURRENT};
     }
     elsif ($e eq 'node'){
+
+	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
+
 	if (exists $a{word}){
 	    push(@{$p->{TERMINALS}},$a{id});
 	}
@@ -104,7 +162,8 @@ sub __XMLTagStart{
 	    my $parent=$p->{CURRENT};
 	    push(@{$p->{NODES}->{$a{id}}->{PARENTS}},$parent);
 	    push(@{$p->{NODES}->{$parent}->{CHILDREN}},$a{id});
-	    push(@{$p->{NODES}->{$a{id}}->{RELATION}},$a{rel});
+#	    push(@{$p->{NODES}->{$a{id}}->{RELATION}},$a{rel});
+	    push(@{$p->{NODES}->{$parent}->{RELATION}},$a{rel});
 	}
 	$p->{CURRENT}=$a{id};
 	if (not exists $p->{ROOTNODE}){
@@ -148,8 +207,8 @@ sub __XMLTagEnd{
 		    # if n1 is a terminal node
 		    # --> add as child to n2!
 
-		    if (exists $p->{NODES}->{$n1}->{CHILDREN}){
-			@{$add{$n2}}=@{$p->{NODES}->{$n1}->{CHILDREN}};
+		    if (exists $p->{NODES}->{$n1}->{CHILDREN2}){
+			@{$add{$n2}}=@{$p->{NODES}->{$n1}->{CHILDREN2}};
 		    }
 		    elsif (exists $p->{NODES}->{$n1}->{word}){
 			@{$add{$n2}}=($n1);
@@ -162,10 +221,10 @@ sub __XMLTagEnd{
 	# (this could probably be simplified ...)
 
 	foreach my $n (keys %add){
-	    print STDERR "add ";
-	    print STDERR join(' ',@{$add{$n}});
-	    print STDERR " to $n\n";
-	    push(@{$p->{NODES}->{$n}->{CHILDREN}},@{$add{$n}});
+#	    print STDERR "add ";
+#	    print STDERR join(' ',@{$add{$n}});
+#	    print STDERR " to $n\n";
+	    push(@{$p->{NODES}->{$n}->{CHILDREN2}},@{$add{$n}});
 	}
 	
     }
@@ -175,9 +234,12 @@ sub __XMLChar{
     my ($p,$s)=@_;
 
     if (exists $p->{__COMMENT__}){
-	my ($sid)=split(/\|/,$s);
-	$sid=~s/^.*?\#//;
-	$p->{SENTID}=$sid;
+	if ($s=~/Q\#(.*?)\|/){
+	    $p->{SENT}=$1;
+	}
+#	my ($sid)=split(/\|/,$s);
+#	$sid=~s/^.*?\#//;
+#	$p->{SENTID}=$sid;
     }
 }
 

@@ -1455,7 +1455,7 @@ sub zhechev_scoreXY_NULL{
 	# --> a(s|t) is going to be zero --> just ignore
 	# (or should we return 0?)
 	if (not exists($lex->{$s})){
-	    if ($self->{-verbose}){
+	    if ($self->{-verbose}>1){
 		print STDERR "no entry in lexicon for $s! --> ignore!\n";
 	    }
 	    next;
@@ -1475,7 +1475,7 @@ sub zhechev_scoreXY_NULL{
 
 	    if (not exists($invlex->{$t})){
 		next if ($t eq 'NULL');         # this is ok for NULL links
-		if ($self->{-verbose}){
+		if ($self->{-verbose}>1){
 		    print STDERR "no entry in lexicon for $t! --> ignore!\n";
 		}
 		return 0;
@@ -1523,7 +1523,7 @@ sub zhechev_scoreXY{
 	# --> a(s|t) is going to be zero --> just ignore
 	# (or should we return 0?)
 	if (not exists($lex->{$s})){
-	    if ($self->{-verbose}){
+	    if ($self->{-verbose}>1){
 		print STDERR "no entry in lexicon for $s! --> ignore!\n";
 	    }
 	    next;
@@ -1532,7 +1532,7 @@ sub zhechev_scoreXY{
 
 	foreach my $t (@{$trg}){
 	    if (not exists($invlex->{$t})){
-		if ($self->{-verbose}){
+		if ($self->{-verbose}>1){
 		    print STDERR "no entry in lexicon for $t! --> ignore!\n";
 		}
 		next;
@@ -1574,7 +1574,7 @@ sub maxscoreXY{
 	# --> a(s|t) is going to be zero --> just ignore
 	# (or should we return 0?)
 	if (not exists($lex->{$s})){
-	    if ($self->{-verbose}){
+	    if ($self->{-verbose}>1){
 		print STDERR "no entry in lexicon for $s! --> ignore!\n";
 	    }
 	    next;
@@ -1622,7 +1622,7 @@ sub avgmaxscoreXY{
 	# --> a(s|t) is going to be zero --> just ignore
 	# (or should we return 0?)
 	if (not exists($lex->{$s})){
-	    if ($self->{-verbose}){
+	    if ($self->{-verbose}>1){
 		print STDERR "no entry in lexicon for $s! --> ignore!\n";
 	    }
 	    next;

@@ -1,0 +1,33 @@
+
+- secondary edges when converting from AlpinoXML to TigerXML
+
+- different link search (inference) for terminals and for non-terminals
+  terminals: allow many-to-many links
+  non-terminals: only 1:1 links
+
+- add word alignment links to training data to learn terminal links
+
+- word alignment = terminal links (trust them completely?
+
+- special features for terminal alignment
+  (lcsr, dice, suffix, prefix, ...
+
+- cascaded: first align terminals and then align non-terminals?
+
+
+- stanford parser: should I add dependency relations somehow when reading from
+  penn treebank format?
+- handle berkeley parser format
+
+- SEARN - without reading through training corpus several times
+  (too much hazzle?)
+
+- word alignment
+  + read sentences (with factors?) instead of trees (how general is my
+  implementation already?)
+  + features from my previous implementation (lcsr, dice etc ...)
+  
+
+- multi-threaded alignment? is it worth it?
+  (--> simpler: run on cluster!)
+

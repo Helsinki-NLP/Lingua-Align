@@ -17,6 +17,7 @@ use Lingua::Align::Corpus::Parallel::Dublin;
 use Lingua::Align::Corpus::Parallel::Giza;
 use Lingua::Align::Corpus::Parallel::Moses;
 use Lingua::Align::Corpus::Parallel::Bitext;
+use Lingua::Align::Corpus::Parallel::OPUS;
 
 
 
@@ -35,6 +36,9 @@ sub new{
     }
     if ($attr{-type}=~/moses/i){
 	return new Lingua::Align::Corpus::Parallel::Moses(%attr);
+    }
+    if ($attr{-type}=~/opus/i){
+	return new Lingua::Align::Corpus::Parallel::OPUS(%attr);
     }
     return new Lingua::Align::Corpus::Parallel::Bitext(%attr);
 }
