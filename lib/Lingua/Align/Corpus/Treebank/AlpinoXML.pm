@@ -109,7 +109,9 @@ sub next_sentence{
     if (defined $self->{__XMLHANDLE__}->{SENT}){
 	$tree->{ROOTNODE}=$self->{__XMLHANDLE__}->{ROOTNODE};
 	$tree->{NODES}=$self->{__XMLHANDLE__}->{NODES};
-	$tree->{TERMINALS}=$self->{__XMLHANDLE__}->{TERMINALS};
+
+	# sort terminals by position (ID)!!!!!!!!
+	@{$tree->{TERMINALS}}=sort @{$self->{__XMLHANDLE__}->{TERMINALS}};
 
 	if ($self->{__XMLHANDLE__}->{SENTID}=~/^(.*)\-([^-]+)$/){
 	    $tree->{ID}=$2;
@@ -148,6 +150,8 @@ sub __XMLTagStart{
 	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
 
 	if (exists $a{word}){
+	    $a{id}=500+$a{begin};            # start terminal nodes with 500
+	    $a{id}=$p->{SENTID}.'_'.$a{id};  # and the begin position!!
 	    push(@{$p->{TERMINALS}},$a{id});
 	}
 	foreach (keys %a){
@@ -205,10 +209,10 @@ sub __XMLTagEnd{
 		    # if n1 has children
 		    # --> add them to n2 as well!
 		    # if n1 is a terminal node
-		    # --> add as child to n2!
+		    # --> add child to n2!
 
-		    if (exists $p->{NODES}->{$n1}->{CHILDREN2}){
-			@{$add{$n2}}=@{$p->{NODES}->{$n1}->{CHILDREN2}};
+		    if (exists $p->{NODES}->{$n1}->{CHILDREN}){
+			@{$add{$n2}}=@{$p->{NODES}->{$n1}->{CHILDREN}};
 		    }
 		    elsif (exists $p->{NODES}->{$n1}->{word}){
 			@{$add{$n2}}=($n1);
@@ -225,6 +229,11 @@ sub __XMLTagEnd{
 #	    print STDERR join(' ',@{$add{$n}});
 #	    print STDERR " to $n\n";
 	    push(@{$p->{NODES}->{$n}->{CHILDREN2}},@{$add{$n}});
+	    foreach my $c (@{$add{$n}}){
+		push(@{$p->{NODES}->{$n}->{RELATION2}},
+		     $p->{NODES}->{$n}->{rel});
+	    }
+
 	}
 	
     }

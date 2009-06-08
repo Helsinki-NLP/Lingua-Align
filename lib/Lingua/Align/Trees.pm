@@ -372,6 +372,7 @@ sub extract_training_data{
 	$self->{SENT_COUNT}++;
 
 	foreach my $sn (keys %{$src{NODES}}){
+	    next if ($sn!~/\S/);
 	    my $s_is_terminal=$self->{TREES}->is_terminal(\%src,$sn);
 
 	    ## align only non-terminals!
@@ -398,6 +399,7 @@ sub extract_training_data{
 	    }
 	    
 	    foreach my $tn (keys %{$trg{NODES}}){
+		next if ($tn!~/\S/);
 		my $t_is_terminal=$self->{TREES}->is_terminal(\%trg,$tn);
 
 		## align ony terminals with terminals and
@@ -1051,6 +1053,7 @@ sub extract_classification_data{
     my $FE=$self->{FEATURE_EXTRACTOR};
 
     foreach my $sn (keys %{$$src{NODES}}){
+	next if ($sn!~/\S/);
 	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
 
 	## align only non-terminals!
@@ -1077,6 +1080,7 @@ sub extract_classification_data{
 	}
 
 	foreach my $tn (keys %{$$trg{NODES}}){
+	    next if ($tn!~/\S/);
 	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
 
 	    ## align ony terminals with terminals and

@@ -21,6 +21,7 @@ my $output = new Lingua::Align::Corpus(-type => 'TigerXML');
 
 
 open F,">$outfile.tmp" || die "cannot open $outfile.tmp\n";
+binmode(F, ":utf8");
 
 my %sent=();
 while ($corpus->next_sentence(\%sent)){
@@ -32,6 +33,8 @@ while ($corpus->next_sentence(\%sent)){
 close F;
 
 open F,">$outfile" || die "cannot open $outfile\n";
+binmode(F, ":utf8");
+
 print F $output->print_header();
 close F;
 
@@ -39,6 +42,7 @@ system "cat $outfile.tmp >> $outfile";
 system "rm -f $outfile.tmp";
 
 open F,">>$outfile" || die "cannot open $outfile\n";
+binmode(F, ":utf8");
 print F $output->print_tail();
 close F;
 

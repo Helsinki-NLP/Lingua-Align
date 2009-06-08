@@ -28,6 +28,13 @@ sub next_alignment{
 	$self->{__XMLPARSER__} = new XML::Parser(Handlers => 
 						 {Start => \&__XMLTagStart});
 	$self->{__XMLHANDLE__} = $self->{__XMLPARSER__}->parse_start;
+
+	# swap sentencee alignments
+	if ($self->{-swap_alignment}){
+	    $self->{__XMLHANDLE__}->{SWAP_ALIGN}=1;
+	}
+
+
     }
 
     my $fh=$self->{FH}->{$file};
@@ -223,13 +230,26 @@ sub __XMLTagStart{
 #	$p->{TREEBANKCOUNT}=0
     }
     elsif ($e eq 'linkGrp'){
-	$p->{FROMDOC}=$a{fromDoc};
-	$p->{TODOC}=$a{toDoc};
+	if ($p->{SWAP_ALIGN}){           # swap alignment direction
+# 	    print STDERR "swap direction!\n";
+	    $p->{FROMDOC}=$a{toDoc};
+	    $p->{TODOC}=$a{fromDoc};
+	}
+	else{
+	    $p->{FROMDOC}=$a{fromDoc};
+	    $p->{TODOC}=$a{toDoc};
+	}
     }
     elsif ($e eq 'link'){
 	my ($s,$t) = split(/\s*\;\s*/,$a{xtargets});
-	@{$p->{SRCSENT}} = split(/\s+/,$s);
-	@{$p->{TRGSENT}} = split(/\s+/,$t);
+	if ($p->{SWAP_ALIGN}){                       # swap alignment direction
+	    @{$p->{TRGSENT}} = split(/\s+/,$s);
+	    @{$p->{SRCSENT}} = split(/\s+/,$t);
+	}
+	else{
+	    @{$p->{SRCSENT}} = split(/\s+/,$s);
+	    @{$p->{TRGSENT}} = split(/\s+/,$t);
+	}
     }
 }
 

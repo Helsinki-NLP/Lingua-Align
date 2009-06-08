@@ -71,7 +71,7 @@ sub print_header{
 	    $str.="      </feature>\n";
 	}
     }
-    $str.="    <annotation>\n   </head>\n  <body>\n";
+    $str.="    </annotation>\n   </head>\n  <body>\n";
     return $str;
 }
 
@@ -81,6 +81,11 @@ sub print_tail{
 ';
 }
 
+sub escape_string{
+    my $string = shift;
+    $string=~s/\"/&quot;/gs;
+    return $string;
+}
 
 sub print_tree{
     my $self=shift;
@@ -92,43 +97,92 @@ sub print_tree{
     my $str='<s id="'.$tree->{ID}."\">\n";
     $str.='  <graph root="'.$node."\">\n";
     $str.="    <terminals>\n";
-    foreach my $t (@{$tree->{TERMINALS}}){
+    foreach my $t (sort @{$tree->{TERMINALS}}){
 	$str.= '      <t id="'.$t.'"';
 	foreach my $k (keys %{$tree->{NODES}->{$t}}){
 	    next if (ref($tree->{NODES}->{$t}->{$k}));
+	    next if ($k eq 'id');
 	    # save values for the header .... (if not word|lemma|root|..)
 	    if ($k!~/(word|root|lemma|sense|id|begin|end|index)/i){
 		$self->{TFEATURES}->{$k}->{$tree->{NODES}->{$t}->{$k}}='--';
 	    }
 	    else{$self->{NTFEATURES}->{$k}={};}
+	    $tree->{NODES}->{$t}->{$k}=
+		escape_string($tree->{NODES}->{$t}->{$k});
 	    $str.= " $k=\"$tree->{NODES}->{$t}->{$k}\"";
 	}
 	$str.= " />\n";
     }
     $str.="    </terminals>\n    <nonterminals>\n";
     foreach my $n (keys %{$tree->{NODES}}){
-	if (exists $tree->{NODES}->{$n}->{CHILDREN}){
+	if ($n eq '4_22'){
+	    print '';
+	}
+#	if (exists $tree->{NODES}->{$n}->{CHILDREN}){
+	if ((exists $tree->{NODES}->{$n}->{CHILDREN}) || 
+	    (exists $tree->{NODES}->{$n}->{CHILDREN2})){  # secondary edges ...
 	    $str.= '      <nt id="'.$n.'"';
+
+	    #---------------------------------------------------------
+	    # if there is not category label: make one
+	    # (stockholm tree aligner needs this .... (is this bad?)
+	    if (not exists $tree->{NODES}->{$n}->{cat}){
+		if (exists $tree->{NODES}->{$n}->{lcat}){
+		    $tree->{NODES}->{$n}->{cat} = $tree->{NODES}->{$n}->{lcat};
+		}
+		if (exists $tree->{NODES}->{$n}->{index}){
+		    $tree->{NODES}->{$n}->{cat}=
+			'[idx'.$tree->{NODES}->{$n}->{index}.']';
+		}
+		else{
+		    $tree->{NODES}->{$n}->{cat} = '--';
+		}
+	    }
+	    #---------------------------------------------------------
+
+
 	    foreach my $k (keys %{$tree->{NODES}->{$n}}){
 		next if (ref($tree->{NODES}->{$n}->{$k}));
+		next if ($k eq 'id');
 		# save values for the header ....
 		if ($k!~/(word|root|lemma|sense|id|begin|end|index)/i){
 		    $self->{NTFEATURES}->{$k}->{$tree->{NODES}->{$n}->{$k}}='--';
 		}
 		else{$self->{NTFEATURES}->{$k}={};}
+		$tree->{NODES}->{$n}->{$k}=
+		    escape_string($tree->{NODES}->{$n}->{$k});
 		$str.= " $k=\"$tree->{NODES}->{$n}->{$k}\"";
 	    }
-	    $str.= " />\n";
-	    for my $c (0..$#{$tree->{NODES}->{$n}->{CHILDREN}}){
-		$str.='        <edge idref="';
-		$str.=$tree->{NODES}->{$n}->{CHILDREN}->[$c];
-		$str.='" label="';
-		my $label = $tree->{NODES}->{$n}->{RELATION}->[$c];
-		$str.=$label;
-		$str.="\" />\n";
-		# save values for the header ....
-		$self->{LABELS}->{$label}='--';
+	    $str.= " >\n";
+
+	    if (exists $tree->{NODES}->{$n}->{CHILDREN}){
+		for my $c (0..$#{$tree->{NODES}->{$n}->{CHILDREN}}){
+		    $str.='        <edge idref="';
+		    $str.=$tree->{NODES}->{$n}->{CHILDREN}->[$c];
+		    $str.='" label="';
+		    my $label =
+			escape_string($tree->{NODES}->{$n}->{RELATION}->[$c]);
+		    $str.=$label;
+		    $str.="\" />\n";
+		    # save values for the header ....
+		    $self->{LABELS}->{$label}='--';
+		}
 	    }
+	    if (exists $tree->{NODES}->{$n}->{CHILDREN2}){
+		for my $c (0..$#{$tree->{NODES}->{$n}->{CHILDREN2}}){
+		    $str.='        <edge idref="';
+		    $str.=$tree->{NODES}->{$n}->{CHILDREN2}->[$c];
+		    $str.='" label="';
+		    my $label =
+			escape_string($tree->{NODES}->{$n}->{RELATION2}->[$c]);
+		$str.=$label;
+		    $str.="\" />\n";
+		    # save values for the header ....
+		    $self->{LABELS}->{$label}='--';
+		}
+	    }
+
+
 	    $str.= "      </nt>\n";
 	}
     }
