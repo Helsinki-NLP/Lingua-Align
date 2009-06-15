@@ -56,7 +56,7 @@ sub next_sentence_id_would_be{
 }
 
 
-sub next_sentence{
+sub read_next_sentence{
     my $self=shift;
     my $tree=shift;
 

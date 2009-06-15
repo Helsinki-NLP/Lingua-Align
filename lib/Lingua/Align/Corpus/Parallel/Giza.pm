@@ -6,34 +6,23 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw(Lingua::Align::Corpus::Parallel);
+@ISA = qw(Lingua::Align::Corpus::Parallel::Bitext);
 
 $VERSION = '0.01';
 
 use Lingua::Align::Corpus;
-use Lingua::Align::Corpus::Parallel;
-
-sub new{
-    my $class=shift;
-    my %attr=@_;
-
-    my $self={};
-    bless $self,$class;
-
-    foreach (keys %attr){
-	$self->{$_}=$attr{$_};
-    }
-
-    return $self;
-}
+use Lingua::Align::Corpus::Parallel::Bitext;
 
 
-sub next_alignment{
+	
+
+sub read_next_alignment{
     my $self=shift;
     my ($src,$trg,$links)=@_;
 
     my $file=$_[3] || $self->{-alignfile};
     my $encoding=$_[4] || $self->{-encoding};
+    my $ids=$_[5];
 
     my $fh=$self->open_file($file,$encoding);
 
@@ -57,6 +46,10 @@ sub next_alignment{
 		foreach (@wordlinks){
 		    $$links{$_}=$trgid;
 		}
+	    }
+
+	    if (ref($ids) eq 'ARRAY'){
+ 		@{$ids}=$self->next_sentence_ids();
 	    }
 	    return 1;
 	}

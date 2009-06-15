@@ -16,13 +16,14 @@ use Lingua::Align::Corpus::Parallel::STA;
 
 
 
-
-
-sub next_alignment{
+sub read_next_alignment{
     my $self=shift;
     my ($srcsent,$trgsent,$links)=@_;
 
     my $file=$_[3] || $self->{-alignfile};
+    my $readmax = $self->{-read_max_sentences} || 50;
+
+
     if (! defined $self->{FH}->{$file}){
 	$self->{FH}->{$file} = $self->open_file($file);
 	$self->{__XMLPARSER__} = new XML::Parser(Handlers => 
@@ -88,14 +89,14 @@ sub next_alignment{
 		# that we try to read
 
 		my $srcok=0;
-		for (0..50){
+		for (0..$readmax){
 		    my $id = $self->{SRC}->next_sentence_id_would_be($_);
 		    if ($id eq $src[0]){$srcok=1;}
 		    elsif (not defined $id){$srcok=1;}  # no info about IDs
 		    last if ($srcok);
 		}
 		my $trgok=0;
-		for (0..50){
+		for (1..$readmax){
 		    my $id = $self->{TRG}->next_sentence_id_would_be($_);
 		    if ($id eq $trg[0]){$trgok=1;}
 		    elsif (not defined $id){$trgok=1;}  # no info about IDs
@@ -106,20 +107,40 @@ sub next_alignment{
 		# read next sentences until I reach the aligned ones
 
 		if ($srcok && $trgok){
+		    my $count=0;
 		    do {
+			$count++;
+			last if ($count>$readmax);
 			$self->{SRC}->next_sentence($srcsent);
-			if ($$srcsent{ID}>$src[0] && $self->{-verbose}){
-			    print STDERR "$$srcsent{ID}>$src[0] -> problem?\n";
+			if ($$srcsent{ID}>$src[0]){
+			    if ($self->{-verbose}){
+				print STDERR "src: $$srcsent{ID}>$src[0]! ";
+				print STDERR "stop reading ....\n";
+			    }
+			    $self->{SRC}->add_to_buffer($srcsent);
+			    next;
 			}
 		    }
 		    until ($$srcsent{ID} eq $src[0]);
+		    next if ($$srcsent{ID} ne $src[0]);
+
+		    my $count=0;
 		    do {
+			$count++;
+			last if ($count>$readmax);
 			$self->{TRG}->next_sentence($trgsent);
-			if ($$trgsent{ID}>$trg[0] && $self->{-verbose}){
-			    print STDERR "$$trgsent{ID}>$trg[0] -> problem?\n";
+			if ($$trgsent{ID}>$trg[0]){
+			    if ($self->{-verbose}){
+				print STDERR "trg: $$trgsent{ID}>$trg[0]! ";
+				print STDERR "stop reading ....\n";
+			    }
+			    $self->{TRG}->add_to_buffer($trgsent);
+			    next;
 			}
 		    }
 		    until ($$trgsent{ID} eq $trg[0]);
+		    next if ($$trgsent{ID} ne $trg[0]);
+
 		}
 		elsif ($self->{-verbose}){
 		    print STDERR "cannot find sentences with these IDs!\n";

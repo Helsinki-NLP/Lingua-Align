@@ -25,7 +25,7 @@ sub new{
 }
 
 
-sub next_sentence{
+sub read_next_sentence{
     my $self=shift;
 
     my $file=shift || $self->{-file};

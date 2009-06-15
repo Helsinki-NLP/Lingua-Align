@@ -66,7 +66,7 @@ sub next_sentence_id{
 }
 
 
-sub next_sentence{
+sub read_next_sentence{
     my $self=shift;
     my $tree=shift;
     %{$tree}=();
@@ -213,7 +213,9 @@ sub print_tree{
     }
     # add node ID if necessary (for Dublin aligner format)
     if ($self->{-add_ids}){
-	$string.='-'.$tree->{NODES}->{$node}->{id};
+	if (not $self->{-skip_node_ids}){
+	    $string.='-'.$tree->{NODES}->{$node}->{id};
+	}
 	my $idx = scalar @{$ids} + 1;
 	$string.='-'.$idx;
 	$tree->{NODES}->{$node}->{idx}=$idx;

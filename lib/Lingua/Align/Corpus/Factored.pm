@@ -9,7 +9,7 @@ use vars qw($VERSION @ISA);
 
 $VERSION = '0.01';
 
-sub next_sentence{
+sub read_next_sentence{
     my $self=shift;
     my $factors=shift;
 

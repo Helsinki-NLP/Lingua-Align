@@ -29,7 +29,7 @@ sub new{
 }
 
 
-sub next_alignment{
+sub read_next_alignment{
     my $self=shift;
     my ($srctree,$trgtree,$links)=@_;
 
@@ -47,7 +47,7 @@ sub next_alignment{
     # if the current trees are not linked: read more trees
     # 1) no links defined for current source sentence! --> read more src
     while (not exists $self->{__XMLHANDLE__}->{SALIGN}->{$$srctree{ID}}){
-	print STDERR "skip source $$srctree{ID}\n";
+	print STDERR "skip source $$srctree{ID}\n" if ($self->{-verbose});
 	return 0 if (not $self->{SRC}->next_sentence($srctree));
     }
     # 2) target sentence is not linked to current source sentence
@@ -79,7 +79,13 @@ sub next_alignment{
     }
     # ... that's all I can do ....
 
-    $$links = $self->{__XMLHANDLE__}->{LINKS};
+
+    # this would be all links in the entire corpus:
+    #    $$links = $self->{__XMLHANDLE__}->{LINKS};
+
+    # return only links from current tree pair!
+    $$links=$self->{__XMLHANDLE__}->{NLINKS}->{"$$srctree{ID}:$$trgtree{ID}"};
+
     return 1;
 
 }
@@ -100,17 +106,6 @@ sub get_links{
 		    if ($$alllinks{$sn}{$tn} ne 'comment'){
 			$links{$sn}{$tn} = $$alllinks{$sn}{$tn};
 		    }
-
-#		    my @inside = $trees->get_leafs(\%src,$sn,'word');
-#		    my @outside = $trees->get_outside_leafs(\%src,$sn,'word');
-#		    print "  src",$sn,":",join(' ',@inside),"\n";
-##		    print "  src",$sn,":",join(' ',@outside),"\n";
-#
-#		    my @inside = $trees->get_leafs(\%trg,$tn,'word');
-#		    my @outside = $trees->get_outside_leafs(\%trg,$tn,'word');
-#		    print "  trg",$tn,":",join(' ',@inside),"\n";
-##		    print "  trg",$tn,":",join(' ',@outside),"\n";
-
 		}
 	    }
 	}
@@ -182,6 +177,11 @@ sub read_tree_alignments{
 						 {Start => \&__XMLTagStart,
 						  End => \&__XMLTagEnd});
 	$self->{__XMLHANDLE__} = $self->{__XMLPARSER__}->parse_start;
+
+	# swap sentencee alignments
+	if ($self->{-swap_alignment}){
+	    $self->{__XMLHANDLE__}->{SWAP_ALIGN}=1;
+	}
     }
 
     my $fh=$self->{FH}->{$file};
@@ -302,7 +302,8 @@ sub __XMLTagStart{
     }
     elsif ($e eq 'align'){
 	$p->{ALIGN}->{type}=$a{type};
-	$p->{ALIGN}->{comment}=$a{comment};
+	$p->{ALIGN}->{prob}=$a{prob} if (exists $a{prob});
+	$p->{ALIGN}->{comment}=$a{comment} if (exists $a{comment});
     }
     elsif ($e eq 'node'){
 	$p->{ALIGN}->{$a{treebank_id}}=$a{node_id}; # (always 1 node/id?)
@@ -324,8 +325,21 @@ sub __XMLTagEnd{
 	my ($tid)=split(/\_/,$trg);
 	$p->{SALIGN}->{$sid}=$tid;
 	$p->{TALIGN}->{$tid}=$sid;
+	# node links per tree pair
+	if (exists $p->{ALIGN}->{prob}){
+	    $p->{NLINKS}->{"$sid:$tid"}->{$src}->{$trg}=$p->{ALIGN}->{prob};
+	}
+	else{
+	    $p->{NLINKS}->{"$sid:$tid"}->{$src}->{$trg}=$p->{ALIGN}->{type};
+	}
     }
     elsif ($e eq 'treebanks'){
+	if ($p->{SWAP_ALIGN}){           # swap alignment direction
+	    print STDERR "swap alignment direction!\n";
+	    my $src = $p->{TREEBANKIDS}->[0];
+	    $p->{TREEBANKIDS}->[0] = $p->{TREEBANKIDS}->[1];
+	    $p->{TREEBANKIDS}->[1] = $src;
+	}
 	$p->{NEWTREEBANKINFO}=1;
     }
 }

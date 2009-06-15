@@ -83,6 +83,9 @@ sub print_tail{
 
 sub escape_string{
     my $string = shift;
+    $string=~s/\&/&amp;/gs;
+    $string=~s/\>/&gt;/gs;
+    $string=~s/\</&lt;/gs;
     $string=~s/\"/&quot;/gs;
     return $string;
 }
@@ -191,13 +194,43 @@ sub print_tree{
 }
 
 
+# go to a specific sentence ID
+# right now: only sequential readin is allowed!
+# --> if already open: close file and restart reading
+# better -> we should do some indexing
+# but: problem with gzipped files!
+
+
+sub go_to{
+    my $self=shift;
+    my $sentID=shift;
+
+    if (not $sentID){
+	print STDERR "Don't know where to go to! Specify a sentence ID!\n";
+	return 0;
+    }
+
+    my $file=shift || $self->{-file};
+    if (defined $self->{FH}->{$file}){
+	$self->{SRC}->close();
+    }
+    $self->{LAST_TREE}={};
+    while ($self->next_sentence($self->{LAST_TREE}={})){
+	return 1 if ($self->{LAST_TREE}->{ID} eq $sentID);
+    }
+
+    print STDERR "Could not find sentence $sentID? What can I do?\n";
+    return 0;
+
+}
+
 
 sub next_tree{
     my $self=shift;
     return $self->next_sentence(@_);
 }
 
-sub next_sentence{
+sub read_next_sentence{
     my $self=shift;
     my $tree=shift;
 
@@ -237,6 +270,9 @@ sub next_sentence{
 #    $fh->close;
     return 0;
 }
+
+
+
 
 
 ##-------------------------------------------------------------------------

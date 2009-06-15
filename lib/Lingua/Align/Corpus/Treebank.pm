@@ -27,9 +27,16 @@ sub new{
 }
 
 
+sub close{
+    my $self=shift;
+    my $file=shift || $self->{-file};
+    $self->close_file($file);
+}
+
+
 # next sentence returns a tree for the next sentence
 # (here: only virtual function ....)
-sub next_sentence{}
+sub read_next_sentence{}
 
 sub next_sentence_id{}            # return next sentence ID and move to next
 sub next_sentence_id_would_be{}   # return next sentence ID and stay at current
@@ -85,6 +92,9 @@ sub is_nonterminal{
     if (exists $tree->{NODES}){
 	if (exists $tree->{NODES}->{$node}){
 	    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+		return 1;
+	    }
+	    if (exists $tree->{NODES}->{$node}->{CHILDREN2}){
 		return 1;
 	    }
 	}

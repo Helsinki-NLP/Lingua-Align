@@ -44,6 +44,87 @@ sub new{
 }
 
 
+
+sub add_to_buffer{
+    my $self=shift;
+    my ($src,$trg,$links,$ids)=@_;
+
+    print STDERR "buffering src\n" if ($self->{-verbose}>1);
+    my $ret = $self->{SRC}->add_to_buffer($src);
+    print STDERR "buffering trg\n" if ($self->{-verbose}>1);
+    $ret += $self->{TRG}->add_to_buffer($trg);
+    
+    # also add links and ids to the buffer
+    $links = {} if (not ref($links));
+    $ids = [] if (not ref($ids));
+    print STDERR "buffering links\n" if ($self->{-verbose}>1);
+    $self->SUPER::add_to_buffer($links);
+    print STDERR "buffering ids\n" if ($self->{-verbose}>1);
+    $self->SUPER::add_to_buffer($ids);
+
+    return $ret;
+}
+
+
+
+
+sub next_alignment{
+    my $self=shift;
+    my ($src,$trg,$links,$file,$enc,$ids)=@_;
+
+    if (ref($self->{SRC}) && ref($self->{TRG})){
+	if ($self->{SRC}->read_from_buffer($src)){
+	    if ($self->{TRG}->read_from_buffer($trg)){
+		$links = {} if (not ref($links));
+		$ids = [] if (not ref($ids));
+		$self->SUPER::read_from_buffer($ids);
+		$self->SUPER::read_from_buffer($links);
+		return 1;
+	    }
+	}
+    }
+
+    return $self->read_next_alignment(@_);
+}
+
+
+
+sub read_next_alignment{
+    my $self=shift;
+    my ($src,$trg)=@_;
+    return 0 if (not $self->{SRC}->next_sentence($src));
+    return 0 if (not $self->{TRG}->next_sentence($trg));
+    return 1;
+}
+
+
+
+
+
+# read sentence ID pairs from external file
+
+sub next_sentence_ids{
+    my $self=shift;
+
+    my $fh;
+    if ($self->{-sent_id_file}){
+	$fh=$self->open_file($self->{-sent_id_file});
+
+	while (<$fh>){
+	    chomp;
+	    if (/^\#+\s+(.*)$/){
+		my $files=$1;
+		($self->{SRCFILE},$self->{TRGFILE}) = split(/\t/,$files);
+	    }
+	    else{
+		my ($srcid,$trgid) = split(/\t/);
+		return ($srcid,$trgid,$self->{SRCFILE},$self->{TRGFILE});
+	    }
+	}
+    }
+    return ();
+}
+
 sub print_alignments{}
 sub print_header{}
 sub print_tail{}

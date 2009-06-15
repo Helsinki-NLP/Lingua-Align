@@ -26,14 +26,18 @@ sub new{
 
     my %CorpusAttr=%attr;
     $CorpusAttr{-type} = 'penn';
-    $CorpusAttr{-add_ids} = 1;
+    $CorpusAttr{-add_ids} = 1;            # add node id's
+    if ($attr{-skip_node_ids}){           # but skip adding the original
+	$CorpusAttr{-skip_node_ids} = 1;  # node IDs
+    }
+
     $self->{CORPUS}=new Lingua::Align::Corpus(%CorpusAttr);
 
     return $self;
 }
 
 
-sub next_alignment{
+sub read_next_alignment{
     my $self=shift;
     my ($src,$trg)=@_;
     return 0 if (not $self->{CORPUS}->next_sentence($src));

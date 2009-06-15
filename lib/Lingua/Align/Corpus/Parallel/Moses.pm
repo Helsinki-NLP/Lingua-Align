@@ -6,20 +6,21 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw(Lingua::Align::Corpus::Parallel::Bitext);
+@ISA = qw(Lingua::Align::Corpus::Parallel::Giza);
 
 $VERSION = '0.01';
 
 use Lingua::Align::Corpus;
-use Lingua::Align::Corpus::Parallel::Bitext;
+use Lingua::Align::Corpus::Parallel::Giza;
 
 
-sub next_alignment{
+sub read_next_alignment{
     my $self=shift;
     my ($src,$trg,$links)=@_;
 
     my $file=$_[3] || $self->{-alignfile};
     my $encoding=$_[4] || $self->{-encoding};
+    my $ids=$_[5];
 
     if (exists $self->{-src_file}){
 	$self->{SRC}->next_sentence($src);
@@ -36,6 +37,9 @@ sub next_alignment{
 	foreach my $l (@align){
 	    my ($s,$t)=split(/\-/,$l);
 	    $$links{$s}{$t}=1;
+	}
+	if (ref($ids) eq 'ARRAY'){
+	    @{$ids}=$self->next_sentence_ids();
 	}
 	return 1;
     }

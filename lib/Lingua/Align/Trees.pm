@@ -141,7 +141,7 @@ sub align{
     $output{-type} = $self->{-output_format} || 'sta';
     my $alignments = new Lingua::Align::Corpus::Parallel(%output);
 
-    my %src=();my %trg=();my $links;
+    my %src=();my %trg=();my $existing_links;
 
     my $count=0;
     my $skipped=0;
@@ -154,7 +154,7 @@ sub align{
     $self->{TIME_LINK_SEARCH}=0;
     $self->{SENT_COUNT}=0;
 
-    while ($corpus->next_alignment(\%src,\%trg,\$links)){
+    while ($corpus->next_alignment(\%src,\%trg,\$existing_links)){
 
 	# this is useful to skip sentences that have been used for training
 	if (defined $skip){
@@ -167,7 +167,10 @@ sub align{
 	$count++;
 	if (not($count % 10)){print STDERR '.';}
 	if (not($count % 100)){
-	    print STDERR " $count aligments\n";
+	    print STDERR " $count aligments (";
+	    my $elapsed = time() - $self->{START_ALIGNING};
+	    print STDERR $elapsed;
+	    printf STDERR " sec, %f/sentence)\n",$elapsed/$count;
 	}
 	if (defined $max){
 	    if ($count>$max){
@@ -192,7 +195,7 @@ sub align{
 # 	my @scores = $self->{CLASSIFIER}->classify($model);
 # 	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
 
-	my @scores = $self->classify($model,\%src,\%trg,$links);
+	my @scores = $self->classify($model,\%src,\%trg,$existing_links);
 
 	my %links=();
 	$self->{START_LINK_SEARCH}=time();
@@ -203,9 +206,14 @@ sub align{
 					\%src,\%trg);
 	$self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
 
-	$correct+=$c;
-	$wrong+=$w;
-	$total+=$t;
+	# option add_links means that we keep existing links and
+	# add the new ones to the exting ones!
+	# --> don't us existing ones for evaluation!
+	if (not $self->{-add_links}){
+	    $correct+=$c;
+	    $wrong+=$w;
+	    $total+=$t;
+	}
 
 	if ((not defined $SrcId) || (not defined $TrgId)){
 	    $SrcId=$corpus->src_treebankID();
@@ -213,6 +221,17 @@ sub align{
 	    my $SrcFile=$corpus->src_treebank();
 	    my $TrgFile=$corpus->trg_treebank();
 	    print $alignments->print_header($SrcFile,$TrgFile,$SrcId,$TrgId);
+	}
+
+	if ($self->{-add_links}){
+	    foreach my $sid (keys %{$existing_links}){
+		foreach my $tid (keys %{$$existing_links{$sid}}){
+		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
+			print STDERR "link between $sid and $tid exists\n";
+		    }
+		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
+		}
+	    }
 	}
 
 	print $alignments->print_alignments(\%src,\%trg,\%links,$SrcId,$TrgId);
@@ -229,8 +248,8 @@ sub align{
     }
     print $alignments->print_tail();
 
-    ## if there were any lables
-    if ($total){
+    ## if there were any lables & we are not in 'add_links' mode
+    if ($total && (not $self->{-add_links})){
 	my $precision = 0;
 	if ($correct || $wrong){
 	    $precision = $correct/($correct+$wrong);
@@ -252,20 +271,22 @@ sub align{
     $self->{TIME_ALIGNING} = time() - $self->{START_ALIGNING};
 
     if ($self->{-verbose}){
-	print STDERR "\n================= ";
-	print STDERR "statistics for aligning trees ==============\n";
-	printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
-	$self->{TIME_EXTRACT_FEATURES},
-	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
-	printf STDERR "%30s: %f (%f/sentence)\n","time for classification",
-	$self->{TIME_CLASSIFY},$self->{TIME_CLASSIFY}/$self->{SENT_COUNT};
-	printf STDERR "%30s: %f (%f/sentence)\n","time for link search",
-	$self->{TIME_LINK_SEARCH},
-	$self->{TIME_LINK_SEARCH}/$self->{SENT_COUNT};
-	printf STDERR "%30s: %f (%f/sentence)\n","total time aligning",
-	$self->{TIME_ALIGNING},$self->{TIME_ALIGNING}/$self->{SENT_COUNT};
-	print STDERR "==================";
-	print STDERR "============================================\n\n";
+	if ($self->{SENT_COUNT}){
+	    print STDERR "\n================= ";
+	    print STDERR "statistics for aligning trees ==============\n";
+	    printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
+	    $self->{TIME_EXTRACT_FEATURES},
+	    $self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
+	    printf STDERR "%30s: %f (%f/sentence)\n","time for classification",
+	    $self->{TIME_CLASSIFY},$self->{TIME_CLASSIFY}/$self->{SENT_COUNT};
+	    printf STDERR "%30s: %f (%f/sentence)\n","time for link search",
+	    $self->{TIME_LINK_SEARCH},
+	    $self->{TIME_LINK_SEARCH}/$self->{SENT_COUNT};
+	    printf STDERR "%30s: %f (%f/sentence)\n","total time aligning",
+	    $self->{TIME_ALIGNING},$self->{TIME_ALIGNING}/$self->{SENT_COUNT};
+	    print STDERR "==================";
+	    print STDERR "============================================\n\n";
+	}
     }
 
 }
@@ -774,6 +795,32 @@ sub classify_bottom_up{
     my %srcdone=();
     my @scores=();
 
+
+    # special case: "link non-terminals only"
+    # ---> we have to start with the parents of all source terminal nodes!
+
+    foreach my $sn (@srcnodes){
+	my @parents=$self->{TREES}->parents($src,$sn);
+	foreach my $p (@parents){
+	    push(@srcnodes,$p);
+	}
+    }
+
+    # another special case:
+    # --> use existing links (mark them as "done")
+
+    if ($self->{-use_existing_links}){
+	foreach my $sn (keys %{$links}){
+	    foreach my $tn (keys %{$$links{$sn}}){
+		$srcdone{$sn}{$tn}=$$links{$sn}{$tn};
+	    }
+	}
+    }
+
+
+
+    # run as long as there are srcnodes that we haven't classified yet
+
     while (@srcnodes){
 
 	$self->{START_EXTRACT_FEATURES}=time();
@@ -922,6 +969,26 @@ sub classify_top_down{
 
     my %srcdone=();
     my @scores=();
+
+    # special case: link only terminal nodes
+    # makes only sense in combination with 'use_existing_links'
+    # and parent links exist in the input!
+
+    if ($self->{-terminals_only}){
+	@srcnodes=@{$$src{TERMINALS}};
+    }
+
+    # another special case:
+    # --> use existing links (mark them as "done")
+
+    if ($self->{-use_existing_links}){
+	foreach my $sn (keys %{$links}){
+	    foreach my $tn (keys %{$$links{$sn}}){
+		$srcdone{$sn}{$tn}=$$links{$sn}{$tn};
+	    }
+	}
+    }
+
 
     while (@srcnodes){
 

@@ -29,14 +29,6 @@ sub new{
 }
 
 
-sub next_alignment{
-    my $self=shift;
-    my ($src,$trg)=@_;
-    return 0 if (not $self->{SRC}->next_sentence($src));
-    return 0 if (not $self->{TRG}->next_sentence($trg));
-    return 1;
-}
-
 
 1;
 __END__

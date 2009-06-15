@@ -37,7 +37,70 @@ sub new{
 }
 
 
+
 sub next_sentence{
+    my $self=shift;
+    my ($sent)=@_;
+    if ($self->read_sentence_from_buffer($sent)){
+	return 1;
+    }
+    return $self->read_next_sentence(@_);
+}
+
+
+sub add_to_buffer{
+    my $self=shift;
+    my $sent=shift;
+    if (not exists $self->{__BUFFER__}){
+	$self->{__BUFFER__}=[];
+    }
+    my $idx = scalar @{$self->{__BUFFER__}};
+    if (ref($sent) eq 'ARRAY'){
+	@{$self->{__BUFFER__}->[$idx]} = @{$sent};
+	return $idx+1;
+    }
+    elsif (ref($sent) eq 'HASH'){
+	%{$self->{__BUFFER__}->[$idx]} = %{$sent};
+	return $idx+1;
+    }
+    print STDERR "no data to buffer?!\n";
+    if (not $idx){delete $self->{__BUFFER__};}
+    return 0;
+}
+
+
+sub read_sentence_from_buffer{
+    my $self=shift;
+    return $self->read_from_buffer(@_);
+}
+
+sub read_from_buffer{
+    my $self=shift;
+    my $sent=shift;
+    if (exists $self->{__BUFFER__}){
+	if (scalar @{$self->{__BUFFER__}}){
+	    if ((ref($sent) eq 'ARRAY') &&
+		(ref($self->{__BUFFER__}->[-1]) eq 'ARRAY')){
+		@{$sent} = @{$self->{__BUFFER__}->[-1]};
+	    }
+	    elsif ((ref($sent) eq 'HASH') &&
+		(ref($self->{__BUFFER__}->[-1]) eq 'HASH')){
+		%{$sent} = %{$self->{__BUFFER__}->[-1]};
+	    }
+	    else{
+		print STDERR "buffered data is not compatible!\n";
+		return 0;
+	    }
+	    pop(@{$self->{__BUFFER__}});
+	    return 1;
+	}
+	delete $self->{__BUFFER__};
+    }
+    return 0;
+}
+
+
+sub read_next_sentence{
     my $self=shift;
     my $words=shift;
 

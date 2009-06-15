@@ -657,7 +657,8 @@ sub gizae2f{
 	$self->{LASTGIZA_SRC_ID} = $src->{ID};
 	$self->read_next_giza_links($src,$trg,'GIZA_E2F',
 				    $self->{-gizaA3_e2f},
-				    $self->{-gizaA3_e2f_encoding});
+				    $self->{-gizaA3_e2f_encoding},
+				    $self->{-gizaA3_e2f_ids});
     }
 
     # get leaf nodes dominated by the given node in the tree
@@ -705,7 +706,8 @@ sub gizaf2e{
 	$self->{LASTGIZA_TRG_ID} = $trg->{ID};
 	$self->read_next_giza_links($src,$trg,'GIZA_F2E',
 				    $self->{-gizaA3_f2e},
-				    $self->{-gizaA3_f2e_encoding});
+				    $self->{-gizaA3_f2e_encoding},
+				    $self->{-gizaA3_f2e_ids});
     }
 
     # get leaf nodes dominated by the given node in the tree
@@ -746,19 +748,54 @@ sub gizaf2e{
 
 sub read_next_giza_links{
     my $self=shift;
-    my ($src,$trg,$key,$file,$encoding)=@_;
+    my ($src,$trg,$key,$file,$encoding,$idfile)=@_;
 
     if (not exists $self->{$key}){
 	$self->{$key} = new Lingua::Align::Corpus::Parallel::Giza(
 				 -alignfile => $file,
-				 -encoding => $encoding);
+				 -encoding => $encoding,
+				 -sent_id_file => $idfile);
     }
 
     my @srcwords=();
     my @trgwords=();
     my %wordlinks=();
+    my @ids=();
 
-    $self->{$key}->next_alignment(\@srcwords,\@trgwords,\%wordlinks);
+    # read GIZA++ Viterbi word alignment for next sentence pair
+    # (check IDs if there is an ID file to do that!)
+    do {
+	if (not $self->{$key}->next_alignment(\@srcwords,\@trgwords,
+					      \%wordlinks,
+					      undef,undef,\@ids)){
+	    if ($self->{-verbose}){
+		print STDERR "reached EOF (looking for $$src{ID}:$$trg{ID})\n";
+	    }
+	    return 0;
+	}
+
+	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	    if ($self->{-verbose}>1){
+		print STDERR "gone too far? (looking for $$src{ID}:$$trg{ID}";
+		print STDERR " - found ($ids[0]:$ids[1])\n";
+	    }
+	    $self->{$key}->add_to_buffer(\@srcwords,\@trgwords,
+					 \%wordlinks,\@ids);
+	    # I just assume that IDs are ordered --> do not try to read further
+	    return 0;
+	}
+
+	if ($self->{-verbose}>1){
+	    if (@ids){
+		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+		    print STDERR "skip this GIZA++ alignment!";
+		    print STDERR " ($$src{ID}/$ids[0] $$trg{ID}/$ids[1])\n";
+		}
+	    }
+	}
+    }
+    until ((not defined $ids[0]) || 
+	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])));
 
     # get terminal node IDs
 
@@ -801,8 +838,9 @@ sub moses_links{
     if ($src->{ID} ne $self->{LASTMOSES_SRC_ID}){
 	$self->{LASTMOSES_SRC_ID} = $src->{ID};
 	$self->read_next_moses_links($src,$trg,'MOSES',
-				    $self->{-moses_align},
-				    $self->{-moses_align_encoding});
+				     $self->{-moses_align},
+				     $self->{-moses_align_encoding},
+				     $self->{-moses_align_ids});
     }
 
     # get leaf nodes dominated by the given node in the tree
@@ -844,19 +882,58 @@ sub moses_links{
 
 sub read_next_moses_links{
     my $self=shift;
-    my ($src,$trg,$key,$file,$encoding)=@_;
+    my ($src,$trg,$key,$file,$encoding,$idfile)=@_;
 
     if (not exists $self->{$key}){
 	$self->{$key} = new Lingua::Align::Corpus::Parallel::Moses(
 				 -alignfile => $file,
-				 -encoding => $encoding);
+				 -encoding => $encoding,
+                                 -sent_id_file => $idfile);
     }
 
     my @srcwords=();
     my @trgwords=();
     my %wordlinks=();
+    my @ids=();
 
-    $self->{$key}->next_alignment(\@srcwords,\@trgwords,\%wordlinks);
+    $self->{$key}->{S2T} = {};
+    $self->{$key}->{T2S} = {};
+
+    # read Moses word alignment for next sentence pair
+    # (check IDs if there is an ID file to do that!)
+    do {
+	if (not $self->{$key}->next_alignment(\@srcwords,\@trgwords,
+					      \%wordlinks,
+					      undef,undef,\@ids)){
+	    if ($self->{-verbose}){
+		print STDERR "reached EOF (looking for $$src{ID}:$$trg{ID})\n";
+	    }
+	    return 0;
+	    
+	}
+
+	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	    if ($self->{-verbose}>1){
+		print STDERR "gone too far? (looking for $$src{ID}:$$trg{ID}";
+		print STDERR " - found ($ids[0]:$ids[1])\n";
+	    }
+	    $self->{$key}->add_to_buffer(\@srcwords,\@trgwords,
+					 \%wordlinks,\@ids);
+	    # I just assume that IDs are ordered --> do not try to read further
+	    return 0;
+	}
+
+	if ($self->{-verbose}>1){
+	    if (@ids){
+		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+		    print STDERR "skip this MOSES alignment!";
+		    print STDERR "($$src{ID}/$ids[0] $$trg{ID}/$ids[1])\n";
+		}
+	    }
+	}
+    }
+    until ((not defined $ids[0]) || 
+	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])));
 
     # get terminal node IDs
 
@@ -878,9 +955,6 @@ sub read_next_moses_links{
 
     # save word links with node IDs
 
-    $self->{$key}->{S2T} = {};
-    $self->{$key}->{T2S} = {};
-
     foreach my $s (keys %wordlinks){
 	my $sid = $srcPos2ID{$s};
 	foreach my $t (keys %{$wordlinks{$s}}){
@@ -889,6 +963,7 @@ sub read_next_moses_links{
 	    $self->{$key}->{S2T}->{$tid}->{$sid}=1;
 	}
     }
+    return 1;
 }
 
 
