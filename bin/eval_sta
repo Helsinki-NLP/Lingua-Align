@@ -27,8 +27,6 @@ my $sta2=new Lingua::Align::Corpus::Parallel::STA;
 my $SystemLinks;
 my $totalSystem = $sta2->read_tree_alignments($system,\$SystemLinks);
 
-my ($correct,$wrong,$correctGood,$totalGood)= (0,0,0,0);
-
 # keep a hash of source sentence IDs which we actually have aligned
 # this is a it tricky because we will not count sentences for which the
 # aligner didn't find any alignments ... hmmm ...
@@ -37,8 +35,12 @@ my %srcIDs=();
 my $s_is_term;
 my $t_is_term;
 
+my ($correct,$wrong,$correctGood,$totalGood)= (0,0,0,0);
+
 my %CorrectTypes=();
-my %WrongTypes=();
+my %TotalSystemTypes=();
+my $TotalSystem=0;
+
 
 
 foreach my $s (keys %{$SystemLinks}){
@@ -58,36 +60,41 @@ foreach my $s (keys %{$SystemLinks}){
 	    else{$t_is_term=0;}
 	}
 
+	my $typeS = $$SystemLinks{$s}{$t};
+	if ($typeS!~/(fuzzy|good)/){
+	    if ($typeS>0.5){$typeS = 'good';}
+	    else{$typeS = 'fuzzy';}
+	}
+
+	$TotalSystemTypes{$typeS}{$s_is_term}{$t_is_term}++;
+	$TotalSystemTypes{ALL}{$s_is_term}{$t_is_term}++;
+	$TotalSystem++;
+
 	if (exists $$GoldLinks{$s}){
 	    if (exists $$GoldLinks{$s}{$t}){
 
-		$CorrectTypes{$$GoldLinks{$s}{$t}}{$s_is_term}{$t_is_term}++;
-		$CorrectTypes{ALL}{$s_is_term}{$t_is_term}++;
+		my $typeG = $$GoldLinks{$s}{$t};
 
 		$correct++;
-		if ($$GoldLinks{$s}{$t} eq 'good'){
-		    $correctGood++;
+		$CorrectTypes{ALL}{$s_is_term}{$t_is_term}++;
+		if ($typeG eq 'good'){$correctGood++;}
+		if ($typeS == $typeG){
+		    $CorrectTypes{$typeG}{$s_is_term}{$t_is_term}++;
 		}
 	    }
-	    else{
-		$WrongTypes{$s_is_term}{$t_is_term}++;
-		$wrong++;
-	    }
-	}
-	else{
-	    $WrongTypes{$s_is_term}{$t_is_term}++;
-	    $wrong++;
 	}
     }
 }
+
 
 # go through gold standard links
 # - we have to count good alignments
 # - we might want to skip some sentences 
 #   (which we haven't aligned with the system to be evaluated)
 
-my $total=0;
-my %TotalTypes=();
+my %TotalGoldTypes=();
+my $TotalGold=0;
+
 
 foreach my $s (keys %{$GoldLinks}){
     if ($s=~/^(s[0-9]+)\_/){
@@ -106,44 +113,47 @@ foreach my $s (keys %{$GoldLinks}){
 	    else{$t_is_term=0;}
 	}
 
-	$TotalTypes{$$GoldLinks{$s}{$t}}{$s_is_term}{$t_is_term}++;
-	$TotalTypes{ALL}{$s_is_term}{$t_is_term}++;
-
-	$total++;
-	next if ($$GoldLinks{$s}{$t} ne 'good');
-	$totalGood++;
+	$TotalGold++;
+	$TotalGoldTypes{$$GoldLinks{$s}{$t}}{$s_is_term}{$t_is_term}++;
+	$TotalGoldTypes{ALL}{$s_is_term}{$t_is_term}++;
+	$totalGood++ if ($$GoldLinks{$s}{$t} eq 'good');
     }
 }
 
-if ($total != $totalGold){
+
+
+if ($TotalGold != $totalGold){
     print "\nTotal links in gold standard = $totalGold\n";
-    print "I will only use $total links from sentences";
+    print "I will only use $TotalGold links from sentences";
     print " for which we actually have alignments!\n\n";
 }
 
 #----------------------------------------------------------------
 # print scores per type (T:T, NT:NT, all, good, fuzzy)
 
-foreach my $type (sort keys %TotalTypes){
+foreach my $type (sort keys %TotalGoldTypes){
     next if ($type eq 'comment');
-    foreach my $s (sort keys %{$TotalTypes{$type}}){
-	foreach my $t (sort keys %{$TotalTypes{$type}}){
+    foreach my $s (sort keys %{$TotalGoldTypes{$type}}){
+	foreach my $t (sort keys %{$TotalGoldTypes{$type}}){
+
 
 	    ## only if there is anything to say ....
-	    next if ((not $CorrectTypes{$type}{$s}{$t}) &&
-		     (not $WrongTypes{$s}{$t}));
+	    next if (not $CorrectTypes{$type}{$s}{$t});
 
 	    print "--------------------------------------------------------\n";
 
 	    my $precision=0;
-	    if ($CorrectTypes{$type}{$s}{$t} || $WrongTypes{$s}{$t}){
-		$precision = $CorrectTypes{$type}{$s}{$t}/
-		    ($CorrectTypes{$type}{$s}{$t}+$WrongTypes{$s}{$t});
+	    if ($TotalSystemTypes{$type}{$s}{$t}){
+		$precision = 
+		    $CorrectTypes{$type}{$s}{$t}/
+		    $TotalSystemTypes{$type}{$s}{$t};
 	    }
+
 	    my $recall=0;
-	    if ($TotalTypes{$type}{$s}{$t}){
-		$recall=$CorrectTypes{$type}{$s}{$t}/
-		    $TotalTypes{$type}{$s}{$t};
+	    if ($TotalGoldTypes{$type}{$s}{$t}){
+		$recall = 
+		    $CorrectTypes{$type}{$s}{$t}/
+		    $TotalGoldTypes{$type}{$s}{$t};
 	    }
 
 	    my $st = 'NT';
@@ -155,13 +165,13 @@ foreach my $type (sort keys %TotalTypes){
 	    "precision ($type/$st:$tt)",
 	    $precision*100,
 	    $CorrectTypes{$type}{$s}{$t},
-	    $CorrectTypes{$type}{$s}{$t}+$WrongTypes{$s}{$t};
+	    $TotalSystemTypes{$type}{$s}{$t};
 
 	    printf "%30s = %5.2f (%d/%d)\n",
 	    "recall ($type/$st:$tt)",
 	    $recall*100,
 	    $CorrectTypes{$type}{$s}{$t},
-	    $TotalTypes{$type}{$s}{$t};
+	    $TotalGoldTypes{$type}{$s}{$t};
 
 	    my $F=0;
 	    if ($recall || $precision){
@@ -179,42 +189,38 @@ print "\n\n";
 # print total numbers
 
 
-print "=======================================\n";
-my $recallG;
-if ($totalGood){
-    my $precisionG = $correctGood/($correctGood+$wrong);
-    $recallG = $correctGood/$totalGood;
+if ($TotalGold && $TotalSystem){
+    my $precision = $correct/$TotalSystem;
+    my $recall = $correct/$TotalGold;
+    my $recallGood = 0;
+    my $recallFuzzy = 0;
 
-    printf " precision (good) = %5.2f (%d/%d)\n",
-    $precisionG*100,$correctGood,$correctGood+$wrong;
-    printf "    recall (good) = %5.2f (%d/%d)\n",
-    $recallG*100,$correctGood,$totalGood;
-    my $F = 0;
-    if ($precisionG || $recallG){
-	$F = 2*$precisionG*$recallG/($precisionG+$recallG);
+    if ($totalGood){
+	$recallGood = $correctGood/$totalGood;
     }
-    printf "balanced F (good) = %5.2f\n",100*$F;
+    if (($TotalGold - $totalGood) > 0){
+	$recallFuzzy = ($correct - $correctGood)/($TotalGold - $totalGood);
+    }
+
     print "=======================================\n";
-    
-}
+    printf "  precision (all) = %5.2f (%d/%d)\n",
+    $precision*100,$correct,$TotalSystem;
+    printf "     recall (all) = %5.2f (%d/%d)\n",
+    $recall*100,$correct,$TotalGold;
+    printf "    recall (good) = %5.2f (%d/%d)\n",
+    $recallGood*100,$correctGood,$totalGood;
+    printf "   recall (fuzzy) = %5.2f (%d/%d)\n",
+    $recallFuzzy*100,($correct - $correctGood),($TotalGold - $totalGood);
+    print "=======================================\n";
 
-if ($total && $totalSystem){
-    my $precision = $correct/$totalSystem;
-    my $recall = $correct/$total;
-
-    printf "        precision = %5.2f (%d/%d)\n",
-    $precision*100,$correct,$totalSystem;
-    printf "           recall = %5.2f (%d/%d)\n",
-    $recall*100,$correct,$total;
     my $F = 0;
     if ($precision || $recall){
 	$F = 2*$precision*$recall/($precision+$recall);
     }
-    printf "       balanced F = %5.2f\n",100*$F;
-    print "=======================================\n";
+    printf "F (P_all & R_all)  = %5.2f\n",100*$F;
 
-    if ($precision || $recallG){
-	$F = 2*$precision*$recallG/($precision+$recallG);
+    if ($precision || $recallGood){
+	$F = 2*$precision*$recallGood/($precision+$recallGood);
     }
     printf "F (P_all & R_good) = %5.2f\n",100*$F;
     print "=======================================\n";

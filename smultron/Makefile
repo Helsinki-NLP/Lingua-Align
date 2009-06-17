@@ -11,6 +11,7 @@ ALIGNTHR = 0.15
 
 SMULTRON=${HOME}/projects/SMULTRON
 SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
+SOPHIE_DEEN=Alignments_SMULTRON_Sophies_World_DE_EN
 ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
 
 TRAIN=${SOPHIE}
@@ -31,6 +32,12 @@ FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_cat
 # FEAT = 'nrleafsratio:maxinside:maxoutside:maxinside*maxoutside2:parent_maxinside:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:maxinside*parent_maxinside:treelevelsim:treelevelsim*maxinside:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos:avgmaxinside:avgmaxoutside:avgmaxinside*avgmaxoutside:avgmaxinside.catpos'
 
 
+LANG_INDEPENDENT = 'nrleafsratio:inside4:outside4:inside4*outside4:parent_inside4:insideST2:insideTS2:maxinsideST:maxinsideTS:inside4*parent_inside4:treelevelsim:treelevelsim*inside4:treespansim:treespansim*treelevelsim:giza:parent_giza:moses:sister_giza:sister_moses:moseslink:maxinside:children_giza'
+
+NO_MOSES = 'nrleafsratio:inside4:outside4:inside4*outside4:parent_inside4:parent_catpos:catpos.parent_catpos:insideST4:insideTS4:maxinsideST:maxinsideTS:inside4*parent_inside4:treelevelsim:treelevelsim*inside4:treespansim:treespansim*treelevelsim:moseslink:treelevelsim.catpos:maxinside.catpos:'
+
+
+
 all: sophie
 
 
@@ -47,6 +54,48 @@ sophie: moses-sophie
 		-x ${ALIGNTHR} \
 		-s ${SEARCH} ${EXTRAOPT} > $@.alg
 	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
+
+
+sophie_deen: moses-sophie_deen
+	./train_align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE_DEEN}.xml \
+		-M $< \
+		-k \
+		-f ${FEAT} \
+		-t ${NR_TRAIN} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE_DEEN}.xml $@.alg
+
+
+sophie_lang_independent: moses-sophie
+	./train_align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-k \
+		-f ${LANG_INDEPENDENT} \
+		-t ${NR_TRAIN} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
+
+sophie_no_moses: moses-sophie
+	./train_align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-k \
+		-f ${NO_MOSES} \
+		-t ${NR_TRAIN} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
+
 
 sophie_align_clue: moses-sophie
 	./align.pl \
@@ -119,14 +168,71 @@ eco_sophie: moses-sophie moses-eco
 
 
 
+
+sophie_sven_deen: moses-sophie moses-sophie_deen
+	./train.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE}.xml \
+		-M moses-sophie \
+		-f ${LANG_INDEPENDENT} \
+		-t ${NR_TRAIN} \
+		-x ${ALIGNTHR} \
+		-o sophie.megam \
+		${EXTRAOPT} > $@.alg
+	./align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE_DEEN}.xml \
+		-M moses-sophie_deen \
+		-f ${LANG_INDEPENDENT} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-o sophie.megam \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE_DEEN}.xml $@.alg
+
+
+
+sophie_deen_sven: moses-sophie moses-sophie_deen
+	./train.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE_DEEN}.xml \
+		-M moses-sophie_deen \
+		-f ${LANG_INDEPENDENT} \
+		-t ${NR_TRAIN} \
+		-x ${ALIGNTHR} \
+		-o sophie.megam \
+		${EXTRAOPT} > $@.alg
+	./align.pl \
+		-m ${MODEL} \
+		-c ${SMULTRON}/${SOPHIE}.xml \
+		-M moses-sophie \
+		-f ${LANG_INDEPENDENT} \
+		-a ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-o sophie.megam \
+		-s ${SEARCH} ${EXTRAOPT} > $@.alg
+	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@.alg
+
+
+
+
+
+
+
+
+
 MOSES_SYM=intersect
 # MOSES_SYM=grow-diag-final-and
 
 moses-sophie: moses-sophie/model/aligned.${MOSES_SYM}
+moses-sophie_deen: moses-sophie_deen/model/aligned.${MOSES_SYM}
 moses-eco: moses-eco/model/aligned.${MOSES_SYM}
 moses-all: moses-all/model/aligned.${MOSES_SYM}
 
 ${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
+	../bin/sta2moses $<
+
+${SOPHIE_DEEN}.${SRC}: ${SMULTRON}/${SOPHIE_DEEN}.xml
 	../bin/sta2moses $<
 
 moses-sophie/model/aligned.%: ${SOPHIE}.${SRC} # ${SOPHIE}.${TRG}
@@ -137,6 +243,18 @@ moses-sophie/model/aligned.%: ${SOPHIE}.${SRC} # ${SOPHIE}.${TRG}
 	    -alignment `echo '$@'|sed 's/^.*\.//'` \
 	    --parallel \
 	    --last-step 4
+
+
+moses-sophie_deen/model/aligned.%: ${SOPHIE_DEEN}.${SRC} # ${SOPHIE}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${SOPHIE_DEEN} \
+	    -root-dir moses-sophie_deen \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+
 
 ${ECO}.${SRC}: ${SMULTRON}/${ECO}.xml
 	../bin/sta2moses $<

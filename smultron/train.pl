@@ -25,7 +25,7 @@ use vars qw($opt_f $opt_t $opt_c $opt_m $opt_o
 	    $opt_C $opt_S $opt_P $opt_D $opt_k $opt_M);
 use Getopt::Std;
 
-getopts('f:t:c:m:SCPDkMo:');
+getopts('f:t:c:m:SCPDkM:o:x:');
 
 
 use Lingua::Align::Trees;
