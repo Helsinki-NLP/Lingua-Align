@@ -1,62 +1,167 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #-*-perl-*-
 #
+# OPTIONS
 #
+#
+# INPUT
+#----------------------------------------------------------------------------
+#  -a align-file ....... aligned treebank
+#  -A format ........... treebank alignment format (default = STA)
+#
+#  -s source-treebank .. source language treebank file (taken from align-file)
+#  -S src-format ....... format of the source language treebank (default: tiger)
+#  -s target-treebank .. target language treebank file (taken from align-file)
+#  -T trg-format ....... format of the target language treebank (default: tiger)
+#  -w .................. swap alignment direction
+#
+#
+# TRAINING
+#----------------------------------------------------------------------------
+#  -f features ......... features to be used in the model
+#  -n nrSent ........... nr of sentences to be used for training (default: all)
+#  -c classifier ....... classifier to be used (default = megam)
+#  -m modelfile ........ file in which the model will be stored (treealign.$opt_c)
+#  -M moses-dir ........ directory with Moses alignments & models
+#  -L -N ............... align nodes of the same type only
+#  -N .................. align non-terminals only
+#  -L .................. align terminal nodes only (leafs)
+#  -k .................. keep feature file extracted for training
+#
+#  -d lexe2f ........... Moses lex.e2f file ($opt_M/model/lex.0-0.e2f)
+#  -D lexf2e ........... Moses lex.f2e file ($opt_M/model/lex.0-0.f2e)
+#  -g giza.e2f ......... GIZA++ alignments ($opt_M/giza.src-trg/src-trg.A3.final.gz)
+#  -G giza.f2e ......... GIZA++ alignments ($opt_M/giza.trg-src/trg-src.A3.final.gz)
+#  -y SymAlign ......... Moses symmetrized alignment ($opt_M/model/aligned.intersect)
+#  -I id-file .......... file with sentence IDs for reading Moses/Giza align
+#
+#  -C .................. enable linked-children feature
+#  -U .................. enable linked-subtree-nodes feature
+#  -P .................. enable linked-parent feature
+#  -J .................. enable link distance feature (parent <-> current)
+#  -R nr_iter .......... SEARN adaptive learning (repeat nr_iter)
+#
+#
+# ALIGNMENT
+#---------------------------------------------------------------------------
+#  -e nrSent ........... nr of sentences to be aligned
+#  -l linksearch ....... link search strategy (default = greedy)
+#  -x threshold ........ alignment score threshold
+#
+#
+#  -v .................. verbose output
+
+
 
 use strict;
 use FindBin;
 use lib $FindBin::Bin.'/../lib';
 
-use vars qw($opt_E $opt_F $opt_G $opt_I $opt_A 
-	    $opt_l $opt_m $opt_v $opt_t $opt_f 
-	    $opt_x $opt_a $opt_M $opt_o
-	    $opt_S $opt_P $opt_N $opt_k $opt_T);
+use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
+            $opt_w $opt_f $opt_n $opt_e $opt_x $opt_l $opt_c $opt_m
+            $opt_M $opt_N $opt_L $opt_k $opt_R
+            $opt_d $opt_D $opt_g $opt_G $opt_y
+            $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
+            $opt_1 $opt_2 $opt_3 $opt_u);
 
 
 use Getopt::Std;
-
-getopts('E:F:G:I:A:lm:vtf:x:a:M:o:S:P:N:k:T:');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:u');
 
 
 use Lingua::Align::Trees;
 
-my $mosesHome = $opt_M || 'moses';
+my $featureStr = $opt_f || 'insideST2:insideTS2:outsideST2:outsideTS2';
+my $nrTrain = $opt_n;
+my $classifier = $opt_c || 'megam';
+my $modelfile = $opt_m || 'treealign.'.$classifier;
 
-# lexical probabilities
 
-my $lexe2f = $opt_E || $mosesHome.'/model/lex.0-0.e2f';
-my $lexf2e = $opt_F || $mosesHome.'/model/lex.0-0.f2e';
+my $nrEval = $opt_e;
+my $search = $opt_l || 'greedy';
 
-# GIZA++ alignments
+my $MosesDir = $opt_M || 'moses';
 
-my $gizae2f = $opt_G || $mosesHome.'/giza.src-trg/src-trg.A3.final.gz';
-my $gizaf2e = $opt_I || $mosesHome.'/giza.trg-src/trg-src.A3.final.gz';
-my $gizaalg = $opt_A || $mosesHome.'/model/aligned.grow-diag-final-and';
+my $WeightS = $opt_1 || '3';
+my $WeightP = 1;
+if (defined $opt_2){$WeightP=$opt_2;}
+my $WeightN = $opt_3 || '1';
 
-my $model = $opt_o || 'treealign.megam';
+#--------------------------------------------------------
+# if -L && -N ... align nodes of the same type only
+# else if -L .... align terminals (leafs) only
+# else if -N .... align non-terminals only
+# else .......... no restriction
+
+my ($SameType,$NTonly,$Tonly)=(0,0,0);
+if ($opt_L && $opt_N){
+    $SameType = 1;
+}
+elsif ($opt_L){
+    $Tonly=1;
+}
+elsif ($opt_N){
+    $NTonly=1;
+}
+
+# features from Moses/Giza
+
+my $lexe2f = $opt_d || $MosesDir.'/model/lex.0-0.e2f';
+my $lexf2e = $opt_D || $MosesDir.'/model/lex.0-0.f2e';
+
+my $gizaA3_e2f = $opt_g || $MosesDir.'/giza.src-trg/src-trg.A3.final.gz';
+my $gizaA3_f2e = $opt_G || $MosesDir.'/giza.trg-src/trg-src.A3.final.gz';
+
+my $moses_align = $opt_y || $MosesDir.'/model/aligned.intersect';
+
 
 
 
 my $treealigner = new Lingua::Align::Trees(
 
-    -same_types_only => 1,                # link only T&T and nonT&nonT
-#    -nonterminals_only => 1,              # link non-terminals only
-#    -terminals_only => 1,                 # link terminals only
+    -features => $featureStr,             # features to be used
+
+    -classifier => $classifier,            # classifier used
+    -classifier_weight_sure => $WeightS,   # training: weight for sure links
+    -classifier_weight_possible=>$WeightP, # training: weight for possible links
+    -classifier_weight_negative=>$WeightN, # training: weight for non-linked
+
+#    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
+    -megam => '/storage/tiedeman/projects/align/MaxEnt/megam_i686.opt',
+
+    -keep_training_data => $opt_k,        # don't remove feature file
+
+    -same_types_only => $SameType,        # link only T&T and nonT&nonT
+    -nonterminals_only => $NTonly,        # link non-terminals only
+    -terminals_only => $Tonly,            # link terminals only
     -skip_unary => 1,                     # skip nodes with unary productions
+
+    -add_links => $opt_u,                 # "add links" mode
+
+    # add first-order dependency:
+    -linked_children => $opt_C,           # (proportion of linked children)
+    -linked_subtree => $opt_U,            # (proportion of linked descendents)
+    -linked_parent => $opt_P,             # linked parent feature
+    -linked_parent_distance => $opt_J,    # distance of parent link
+
+    -searn => $opt_R,                     # adaptive SEARN training
 
     -lexe2f => $lexe2f,
     -lexf2e => $lexf2e,
-    -lex_lower => $opt_l,                 # always convert to lower case!
 
     ## for the GIZA++ word alignment features
-    -gizaA3_e2f => $gizae2f,
-    -gizaA3_f2e => $gizaf2e,
+    -gizaA3_e2f => $gizaA3_e2f,
+    -gizaA3_f2e => $gizaA3_f2e,
+
+    -gizaA3_e2f_ids => $opt_I,
+    -gizaA3_f2e_ids => $opt_I,
 
     ## for the Moses word alignment features
-    -moses_align => $gizaalg,
+    -moses_align => $moses_align,
+    -moses_align_ids => $opt_I,
 
-#    -output_format => 'dublin',          # Dublin format (default = sta)
-    -min_score => $opt_m,                 # classification score threshold
+    -lex_lower => 1,                      # always convert to lower case!
+    -min_score => $opt_x,
     -verbose => $opt_v,
 
     );
@@ -64,206 +169,260 @@ my $treealigner = new Lingua::Align::Trees(
 
 
 
+# corpus to be used for training
+
+my $AlignFile = $opt_a || 'Alignments_SMULTRON_Sophies_World_SV_EN.xml';
+my $AlignFormat = $opt_A || 'sta';
+
+my %corpus = (-alignfile => $AlignFile,
+	      -type => $AlignFormat,
+ 	      -swap_alignment => $opt_w);
+
+# check if source and target files/types are given 
+# (can overwrite the ones specified in the sentence alignment file)
+# --> for example: can use OPUS sentence alignment file but still
+#                  the corresponding treebank files somewhere else!
+
+$corpus{-src_file} = $opt_s if ($opt_s);
+$corpus{-src_type} = $opt_S if ($opt_S);
+
+$corpus{-trg_file} = $opt_t if ($opt_t);
+$corpus{-trg_type} = $opt_T if ($opt_T);
+
+
 
 #-------------------------------------------------------------------
-# training mode!
+# train a model if nrTrain is given
 #-------------------------------------------------------------------
 
-if ($opt_t){
+if ((! -e $modelfile) || ($nrTrain)){
+    $treealigner->train(\%corpus,$modelfile,$nrTrain);
+}
 
-    # training data: I should test correct input .....
+#-------------------------------------------------------------------
+# align trees if modelfile exists
+#-------------------------------------------------------------------
 
-    my $file = shift(@ARGV);
-    my $format = $opt_T || 'STA';
-
-    my %corpus = ( -alignfile => $file,    # should be in STA format
-		   -type => $format );
-
-    my @DefaultFeatures = default_features();
-    my $featureStr = $opt_f || join(':',@DefaultFeatures);
-
-    # weights for training items
-
-    my $weightSure = $opt_S || 3;         # good links
-    my $weightPossible = $opt_P || 0;     # fuzzy links
-    my $weightNegative = $opt_N || 1;     # non-linked items
-
-    $treealigner->set_attr(-features => $featureStr,
-			   -classifier => 'megam',
-			   -classifier_weight_sure => $weightSure,
-			   -classifier_weight_possible => $weightPossible,
-			   -classifier_weight_negative => $weightNegative,
-			   -keep_training_data => $opt_k);
-
-    $treealigner->train(\%corpus,$model,$opt_x);
-    exit 1;
+if (-e $modelfile){
+    $treealigner->align(\%corpus,$modelfile,$search,$nrEval,$nrTrain);
 }
 
 
 
-
-#-------------------------------------------------------------------
-# alignment mode!
-#-------------------------------------------------------------------
-
-
-my $format = $opt_T || 'STA';    # default: STA format
-my %corpus = (-type => $format);
-
-if ($format=~/STA/){
-    $corpus{-alignfile} = shift(@ARGV);
-}
-
-$treealigner->align(\%corpus,$model,'greedy',$opt_x);
-
-
-
-
-
-
-
-
-
-sub default_features{
-    return (
-    'nrleafsratio',          # ratio of nr_leafs in both subtrees
-    'inside2',                 # non-normalized inside score
-    'outside2',                # non-normalized outside score
-    'inside2*outside2',        # product of the 2 above
-    'parent_inside2',          # inside score of parent nodes
-#    'catpos',                  # cat OR pos attribute pair
-    'parent_catpos',           # labels of the parent nodes
-    'catpos.parent_catpos',     # label plus parent's label
-    'insideST2',               # inside1 score for lex.e2f only
-    'insideTS2',               # inside1 score for lex.f2e only
-    'maxinsideST',          # disjunction of prob's (lexe2f)
-    'maxinsideTS',          # disjunction of prob's (lexf2e)
-#    'maxinside*inside2',
-#    'maxinside',           # disjunction of prob's (lexe2f & lexf2e)
-#    'maxoutside',          # the same for outside word pairs
-    'inside2*parentinside2',  # current * parent's inside score
-    'treelevelsim',          # similarity in relative tree level
-    'treelevelsim*inside2',
-    'treespansim',           # similarity of subtree positions
-    'treespansim*treelevelsim',
-#    'gizae2f',                 # proportion of word links inside/outside
-#    'gizaf2e',                 # the same for the other direction
-    'giza',                    # both alignment directions combined
-    'parent_giza',
-#    'parent_giza*giza',
-#    'gizae2f*gizaf2e'
-    'giza.catpos',              # catpos with giza score
-#    'parent_giza.parent_catpos',
-    'moses',
-    'moses.catpos',
-	    );
-}
 
 
 __END__
 
 =head1 NAME
 
-treealign.pl - a simple frontend for training and applying a tree aligner model
+treealign - a simple frontend for training and applying a tree aligner model using Lingua::Align::Trees and a standard binary classifier
 
 =head1 SYNOPSIS
 
-    # training a model from tree aligned data
-    treealign.pl -t -o treealign.model train-data.xml
+    treealign [OPTIONS]
+
+    # train a model from tree aligned data
+    treealign -n 100 -m treealign.model -a train-data.xml
 
     # aligning a parallel treebank
-    treealign.pl -o treealign.model parallel-treebank.xml > tree-aligned.xml
+    treealign -m treealign.model -a parallel-treebank.xml > aligned.xml
 
 
 =head1 DESCRIPTION
 
-Currently, training data has to be in Stockholm Tree Aligner format.
+Currently, training data has to be in Stockholm Tree Aligner format. The output format is the same format.
 
-OPTIONS
+=head2 OPTIONS
 
-=item -t
+There is a number of options that can be specified on the command line.
 
-Run in training mode
+=head3 Input options
 
-=item -f features
+=over
 
-Define features to be used in training. (For alignment, features are taken from the modelfile.feat file!!) <features> is a string with feature types separated by ':'. There are various features that can be used and combined. For more details look at L<Lingua::Align::Trees::Features>. The default is 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos' 
+=item -a parallel-treebank-file
 
-=item -o model-file
+Name of the file that contains the parallel treebank. Default format is Stockholm Tree Aligner format (where the sentence alignment is implicitely given by tree node alignments). To use a different format use the option -A
 
-Name of the file to store model parameters
+=item -A format
 
-=item -m threshold
+Format of the parallel treebank/corpus. Default is sta (Stockholm Tree Aligner format). Other options are, for example, 'opus' (CES XML format as it is used in the OPUS corpus)
 
-Score threshold used for tree alignment.
+=item -s source-treebank-file
+
+Name of the files that contains the source language treebank. This is useful to sepcify a file that is different from the one that is specified in the 'parallel-treebank-file'. For example, sentence alignment files from OPUS usually refer to non-parsed XML files. With -s we can overwrite this and refer to the parsed corpus instead. However, be aware that the same sentences have to be covered in the same order and appropriate IDs of these sentences have to be found when reading through the treebank files.
+
+=item -S format
+
+Format of the source language treebank. Default is TigerXML (which is used in the Stockholm Tree Aligner)
+
+=item -t target-treebank-file
+
+Name of the target language treebank file (similar to -s but for the target language)
 
 =item -T format
 
-Input format. Default = STA (Stockholm Tree Aligner)
+Format of the target language treebank (similar to -S)
+
+=item -w
+
+Swap alignment direction when reading through the parallel treebank
+
+=back
+
+
+
+=head3 Training options
+
+
+Training will be enabled if a positive number of training sentences iss specified with the -n option OR the modelfile does not exist.
+
+
+=over
+
+=item -n nr_sent
+
+Specify how many sentence (tree) pairs will be used for training a new tree-aligner model.
+
+=item -f features
+
+Define features to be used in training. (For alignment, features are taken from the modelfile.feat file!!) 'features' is a string with feature types separated by ':'. There are various features that can be used and combined. For more details look at L<Lingua::Align::Trees::Features>. The default is 'insideST2:insideTS2:outsideST2:outsideTS2'
+
+=item -m model-file
+
+Name of the file to store model parameters / read model parameters
+
+=item -c classifier
+
+Classifier to be used. Default is 'megam'. Another possiblity is 'clue' which refers to a noisy-or like classifier with independent precision-weighted features (requires probabilistic values for each feature and supports only positive features). Other classifiers may be supported in future releases of Lingua::Align.
+
+=item -M moses-dir
+
+Directory with the GIZA++ and Moses word alignment files that will be used for extracting certain features. Default is 'moses' and the treealigner expects to find files with the following names
+
+ <moses-dir>/model/lex.0-0.e2f
+ <moses-dir>/model/lex.0-0.f2e
+ <moses-dir>/giza.src-trg/src-trg.A3.final.gz
+ <moses-dir>/giza.trg-src/trg-src.A3.final.gz
+ <moses-dir>/model/aligned.intersect
+
+An alterantive way of specifying the location of word alignment files is to use the options (-d -D -g -G -y), see below.
+
+=item -d lexe2f
+
+Path to the probabilistic source-to-target lexicon created by Moses from the word aligned corpus. Of course, it could be any kind of bilingual dictionary as long as it provides a score for each entry and it uses the same format as the one created by Moses. Default is C<moses/model/lex.0-0.e2f>.
+
+=item -D lexf2e
+
+Similar to -d but for the target-to-source lexicon. Default is C<moses/model/lex.0-0.f2e>
+
+=item -g giza.e2f.A3
+
+Path to the Viterbi word alignment (source-to-target) created by GIZA++ (or other word aligners producing aligments in the same format). Default is C<moses/giza.trg-src/trg-src.A3.final.gz>.
+
+=item -G giza.f2e.A3
+
+Similar to -g but for the other alignment direction. Default = C<moses/giza.trg-src/trg-src.A3.final.gz>
+
+=item -y symal-file
+
+Path to the symmetrized word alignment format created by Moses (or other tools). Default = C<moses/model/aligned.intersect>
+
+
+=item -I id-file
+
+Name of the file that contains pairs of IDs for all sentences that have been word aligned with GIZA++/Moses. This is useful to match sentences when reading word alignment files for feature extraction (sometimes not all sentences are included in both, the parsed collection and the word aligned data!). Note that word aligments and parallel treebanks have still to be stored in the same order but sentences may be skipped if they do not appear in one of them. The format is like follows:
+
+ ## source-file-name    target-file-name
+ src-id1   trg-id1
+ src-id2   trg-id2
+ ....
+
+The delimiter is one TAB character! n:m alignments are possible (IDs separated by spaces) but only 1:1 alignments will be used in the treealigner anyway.
+
+=item -C
+
+Switch on the linked-children feature (depending on the links between children nodes of the current node pair). This flag has to be specified in both, train and align mode!
+
+=item -U
+
+Switch on the linked-subtree-nodes feature (depending on the links between all descendent nodes of the current node pair). This flag has to be specified in both, train and align mode!
+
+=item -P
+
+Switch on the linked-parent feature (depending on the links between parent nodes of the current node pair). This flag has to be specified in both, train and align mode! This flag should NOT be used together with -U or -C!
+
+=item -R iter
+
+Use <iter> number of iterations for adaptive SEARN style learning. This is only useful in connection with (any of) the link depedency features from above (-C -U -P). Instead of learning from the given true link depedency feature extracted from the training data, this option will run the training several times and adjust these features acoording to the predicted link likelihoods from the previously trained classifier. This is currently very slow because it re-runs the feature extraction procedure (which should not be necessary when re-running the classifier). This should be improved later but the effect of SEARN seems to be very little anyway ....
+
+=item -L
+
+Align terminal nodes only (leaf nodes). It is possible to use this flag together with -N which then forces the aligner to align corresponding node types only (terminals with terminals and non-terminals with non-terminals)
+
+=item -N
+
+Align non-terminal nodes only. If specified together with -L: align corresponding nodes as explained above.
+
+
+=item -1 weight
+
+Training weight for good (sure) alignments
+
+=item -2 weight
+
+Training weight for fuzzy (possible) alignments
+
+=item -3 weight
+
+Training weight for negative examples (non-aligned nodes)
+
+
+=item -k
+
+Keep the feature file extracted for training which usually is removed to save storage space. The features are stored in __train.$$ (where $$ corresponds to the process ID)
+
+=back
+
+
+=head3 Alignment options
+
+=over
+
+=item -x threshold
+
+Score threshold used for tree alignment. Node pairs obtaining scores below this threshold will not be considered in the alignment process.
+
+=item -l LinkSearch
+
+Link strategy used to extract the node aligments after classification. Default strategy is 'greedy'. Other possible strategies are 'wellformed' (greedy + wellformedness criteria) and threshold (allow all links above the threshold score).
+
+=item -u
+
+Switch to add-links mode (union). Existing links between nodes will be kept in the output file and new ones will be added. (In the default mode, existing links will be considered for evaluation only). This option is espcially useful if one wants to use a pipeline of alignments, for example, terminal node alignment first and non-terminal nodes in the next step.
+
+=back
+
+=head3 Runtime options
+
+=over
 
 =item -v
 
 Verbose output
 
-
-=item -M MosesModelHomeDir
-
-Name of the directory where your Moses model can be found (GIZA++ alignments, lexical probabilities, symmetrization files)
-
-=item -E /path/to/lex.e2f
-
-Path to lexical probabilities estimated from word aligned corpora (Moses); source to target. Default = <MosesModelHomeDir>/model/lex.0-0.e2f'
-
-=item -F /path/to/lex.f2e
-
-Path to lexical probabilities estimated from word aligned corpora (Moses); target to source. Default = <MosesModelHomeDir>/model/lex.0-0.f2e'
-
-=item -l
-
-Use lower case for all words when matching with items in the lexicon.
-
-=item -G /path/to/giza.A3.final.gz
-
-Path to Viterbi word alignments (GIZA++); source to target. Default = <MosesModelHomeDir>/giza.src-trg/src-trg.A3.final.gz
-
-=item -I /path/to/giza.A3.final.gz
-
-Path to Viterbi word alignments (GIZA++); target to source. Default = <MosesModelHomeDir>/giza.trg-src/trg-src.A3.final.gz
-
-=item -I /path/to/aligned.heuristics
-
-Path to symmetrized alignment files (Moses). Default = <MosesModelHomeDir>/model/aligned.grow-diag-final-and
-
-=item -S weight
-
-Training weight for good (sure) alignments
-
-=item -P weight
-
-Training weight for fuzzy (possible) alignments
-
-=item -N weight
-
-Training weight for negative examples (non-aligned nodes)
-
-=item -k
-
-Keep feature file created for training (__train.PID)
-
-=item -x max
-
-Use at most max sentence pairs for training/alignment.
-
-
+=back
 
 
 
 =head1 SEE ALSO
 
+Lingua::Align::Trees, Lingua::Align::Trees::FeatureExtractor
+ 
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

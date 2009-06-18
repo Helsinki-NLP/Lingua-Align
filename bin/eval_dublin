@@ -90,6 +90,7 @@ while(<>){
 	    }
 	    else{$wrong++;}
 	}
+	else{$wrong++;}
     }
     $count++;
     last if (not <>);
@@ -100,35 +101,30 @@ while(<>){
 
 
 print "=======================================\n";
-my $recallG;
-if ($TotalGood){
-    my $precisionG = $correctGood/($correctGood+$wrong);
-    $recallG = $correctGood/($TotalGood);
-
-    printf " precision (good) = %5.2f (%d/%d)\n",
-    $precisionG*100,$correctGood,$correctGood+$wrong;
-    printf "    recall (good) = %5.2f (%d/%d)\n",
-    $recallG*100,$correctGood,$TotalGood;
-    printf "balanced F (good) = %5.2f\n",
-    200*$precisionG*$recallG/($precisionG+$recallG);
-    print "=======================================\n";
-    
-}
 
 if ($total){
     my $precision = $correct/($correct+$wrong);
     my $recall = $correct/($total);
+    my $recallG = 0;
 
     printf "        precision = %5.2f (%d/%d)\n",
     $precision*100,$correct,$correct+$wrong;
     printf "           recall = %5.2f (%d/%d)\n",
     $recall*100,$correct,$total;
-    printf "       balanced F = %5.2f\n",
-    200*$precision*$recall/($precision+$recall);
+    if ($TotalGood){
+	$recallG = $correctGood/($TotalGood);
+	printf "    recall (good) = %5.2f (%d/%d)\n",
+	$recallG*100,$correctGood,$TotalGood;
+    }
+
     print "=======================================\n";
 
-    printf "F (P_all & R_good) = %5.2f\n",
-    200*$precision*$recallG/($precision+$recallG);
+    if ($TotalGood){
+	printf "F (P_all & R_good) = %5.2f\n",
+	200*$precision*$recallG/($precision+$recallG);
+    }
+    printf "F (P_all & R_all)  = %5.2f\n",
+    200*$precision*$recall/($precision+$recall);
     
 }
 

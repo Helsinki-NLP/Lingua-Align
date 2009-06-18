@@ -63,28 +63,25 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align - Perl modules for the alignment of parallel corpora
 
 =head1 SYNOPSIS
 
-  use YADWA;
+  use Lingua::Align;
 
 =head1 DESCRIPTION
 
+This module doesn't do anything. Look at Lingua::Align::Trees for the Tree Aligner. Other modules might follow later.
+
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
+L<Lingua::Align::Trees>,
+L<Lingua::Align::Trees::FeatureExtractor>
 
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>j.tiedemanh@rug.nlE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

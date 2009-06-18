@@ -78,7 +78,7 @@ foreach my $s (keys %{$SystemLinks}){
 		$correct++;
 		$CorrectTypes{ALL}{$s_is_term}{$t_is_term}++;
 		if ($typeG eq 'good'){$correctGood++;}
-		if ($typeS == $typeG){
+		if ($typeS eq $typeG){
 		    $CorrectTypes{$typeG}{$s_is_term}{$t_is_term}++;
 		}
 	    }
