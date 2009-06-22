@@ -137,7 +137,7 @@ ${CORPUS}.wordalign: ${SRCTIGER} ${TRGTIGER} ${CORPUS}.wordalign-intersect
 		-t ${TRGTIGER} -T tiger \
 		-x 0.2 \
 		-u -v -L \
-		-y moses-ep/model/aligned.grow-diag \
+		-y moses/model/aligned.grow-diag \
 		-m words-grow.clue \
 		-I ep.sentids \
 		-l threshold ${EXTRAOPT} > $@
@@ -149,7 +149,7 @@ ${CORPUS}.wordalign-intersect: ${SRCTIGER} ${TRGTIGER}
 		-s ${SRCTIGER} -S tiger \
 		-t ${TRGTIGER} -T tiger \
 		-x 0.2 -v -L \
-		-y moses-ep/model/aligned.intersect \
+		-y moses/model/aligned.intersect \
 		-m words-intersect.clue \
 		-I ep.sentids \
 		-l threshold ${EXTRAOPT} > $@

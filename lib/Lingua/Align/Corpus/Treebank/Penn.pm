@@ -103,8 +103,8 @@ sub read_next_sentence{
 #	next if ($_!~/\S/);
 #	return 1 if ($self->__parse($_,$tree));
 #    }
+#    return 0;
 
-    return 0;
 }
 
 sub __initialize_parser{

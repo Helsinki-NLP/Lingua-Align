@@ -236,8 +236,9 @@ sub read_next_sentence{
 
     my $file=shift || $self->{-file};
     if (! defined $self->{FH}->{$file}){
-	$self->{FH}->{$file} = new FileHandle;
-	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
+	$self->open_file($file);
+#	$self->{FH}->{$file} = new FileHandle;
+#	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
 	$self->{__XMLPARSER__} = new XML::Parser(Handlers => 
 						 {Start => \&__XMLTagStart,
 						  End => \&__XMLTagEnd});

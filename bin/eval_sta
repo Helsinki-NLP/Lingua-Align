@@ -4,11 +4,21 @@
 # simple evaluation script to evaluate tree alignment output in
 # Stockholm Tree Aligner format
 #
-# USAGE: eval_sta gold-file tree-alignments
+# USAGE: eval_sta [OPTIONS] gold-file tree-alignments
 #
 # both files (gold-file & tree-alignments) 
 # have to be in Stockholm Tree Aligner format!
 #
+# OPTIONS
+#
+# -b first-id ........ start evaluating at this sentence
+# -e last-id ......... stop evaluating after this sentence
+#
+#
+# If -b and -e are not given: all sentences that have at least one
+# proposed link will be considered. 
+# Problem: if the system doesn't suggest any links --> it will not be
+#          considered and, therefore, the scores might be to high!
 #---------------------------------------------------------------------
 #
 
@@ -16,6 +26,11 @@ use strict;
 use FindBin;
 use lib $FindBin::Bin.'/../lib';
 use Lingua::Align::Corpus::Parallel::STA;
+
+use vars qw($opt_b $opt_e);
+use Getopt::Std;
+getopts('b:e:');
+
 
 my $gold=shift(@ARGV);
 my $sta1=new Lingua::Align::Corpus::Parallel::STA;
@@ -41,12 +56,22 @@ my %CorrectTypes=();
 my %TotalSystemTypes=();
 my $TotalSystem=0;
 
-
+my $EvalThis=1;
+if ($opt_b){$EvalThis=0;}
 
 foreach my $s (keys %{$SystemLinks}){
-    if ($s=~/^(s[0-9]+)\_/){
-	$srcIDs{$1}=1;
+
+    if ($s=~/^s([0-9]+)\_/){           # check sentence IDs
+	my $id=$1;
+	if ($opt_b){                   # if start ID is given
+	    next if ($id<$opt_b);      # --> skip the ones before
+	}
+	if ($opt_e){                   # if end ID given
+	    next if ($id>$opt_e);      # skip the ones after
+	}
+	$srcIDs{$id}=1;                # otherwise: use all proposed links
     }
+
 
     if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
 	if ($1 < 500){$s_is_term=1;}       # are terminal nodes
@@ -95,10 +120,20 @@ foreach my $s (keys %{$SystemLinks}){
 my %TotalGoldTypes=();
 my $TotalGold=0;
 
-
 foreach my $s (keys %{$GoldLinks}){
-    if ($s=~/^(s[0-9]+)\_/){
-	next if (not exists $srcIDs{$1});
+
+    if ($s=~/^s([0-9]+)\_/){             # check sentence IDs in gold standard
+	my $id=$1;
+	if ($opt_b){                     # if start ID is given:
+	    next if ($id<$opt_b);        # skip the ones before
+	}
+	if ($opt_e){                     # if end ID is given:
+	    next if ($id>$opt_e);        # skip the ones after
+	}
+	if ((not $opt_b) && (not $opt_e)){     # otherwise: use all sentences
+	    next if (not exists $srcIDs{$id}); # with at least 1 proposed link!
+	}
+	$srcIDs{$id}=1;
     }
 
     if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
@@ -123,9 +158,10 @@ foreach my $s (keys %{$GoldLinks}){
 
 
 if ($TotalGold != $totalGold){
+    my $nrSent = scalar keys %srcIDs;
     print "\nTotal links in gold standard = $totalGold\n";
-    print "I will only use $TotalGold links from sentences";
-    print " for which we actually have alignments!\n\n";
+    print "I will only use $TotalGold links from $nrSent sentence pairs\n";
+    print "for which we actually have alignments!\n\n";
 }
 
 #----------------------------------------------------------------
