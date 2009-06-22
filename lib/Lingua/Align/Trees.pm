@@ -164,6 +164,10 @@ sub align{
 	    }
 	}
 
+#	if ($src{NODES}{'12_9'}{'word'} eq 'Evans'){
+#	    print '';
+#	}
+
 	$count++;
 	if (not($count % 10)){print STDERR '.';}
 	if (not($count % 100)){
@@ -199,6 +203,33 @@ sub align{
 
 	my %links=();
 	$self->{START_LINK_SEARCH}=time();
+
+	# add existing links if necessary --> good to inlcude here already
+	# because they may influence the link search (wellformedness ...)
+
+	# "compete" --> let the existing links compete with the new ones
+	if ($self->{-add_links}=~/compet/){
+	    foreach my $sid (keys %{$existing_links}){
+		foreach my $tid (keys %{$$existing_links{$sid}}){
+		    push(@{$self->{INSTANCES_SRC}},$sid);
+		    push(@{$self->{INSTANCES_TRG}},$tid);
+		    push(@{$self->{LABELS}},1);
+		    push(@scores,$$existing_links{$sid}{$tid});
+		}
+	    }
+	}
+	# otherwise: just leave the existing links as they are and just add new
+	elsif ($self->{-add_links}){
+	    foreach my $sid (keys %{$existing_links}){
+		foreach my $tid (keys %{$$existing_links{$sid}}){
+		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
+			print STDERR "link between $sid and $tid exists\n";
+		    }
+		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
+		}
+	    }
+	}
+
 	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
 					$self->{INSTANCES_SRC},
 					$self->{INSTANCES_TRG},
@@ -223,16 +254,16 @@ sub align{
 	    print $alignments->print_header($SrcFile,$TrgFile,$SrcId,$TrgId);
 	}
 
-	if ($self->{-add_links}){
-	    foreach my $sid (keys %{$existing_links}){
-		foreach my $tid (keys %{$$existing_links{$sid}}){
-		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
-			print STDERR "link between $sid and $tid exists\n";
-		    }
-		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
-		}
-	    }
-	}
+# 	if ($self->{-add_links}){
+# 	    foreach my $sid (keys %{$existing_links}){
+# 		foreach my $tid (keys %{$$existing_links{$sid}}){
+# 		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
+# 			print STDERR "link between $sid and $tid exists\n";
+# 		    }
+# 		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
+# 		}
+# 	    }
+# 	}
 
 	print $alignments->print_alignments(\%src,\%trg,\%links,$SrcId,$TrgId);
 

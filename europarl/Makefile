@@ -35,7 +35,7 @@ CORPUS     = ep-00-01-17
 SENTALIGN  = ${CORPUS}.ces.gz
 
 SRCTREES   = ${CORPUS}.stanford.gz
-SRCFORMAT  = penn
+SRCFORMAT  = stanford
 TRGTREES   = ${CORPUS}.data.dz
 TRGFORMAT  = alpino
 
@@ -106,11 +106,10 @@ align: ${CORPUS}.align.gz
 
 ${CORPUS}.align.gz: ${SRCTIGER} ${TRGTIGER} treealign.megam ${CORPUS}.wordalign
 	../bin/treealign \
-	${TREEALIGN} \
 		-a ${CORPUS}.wordalign -A sta \
 		-s ${SRCTIGER} -S tiger \
 		-t ${TRGTIGER} -T tiger \
-		-N -v -u \
+		-N -v -u -K \
 		-m treealign.megam \
 		-I ep.sentids \
 		-x ${ALIGNTHR} \
@@ -128,29 +127,29 @@ ${CORPUS}.align.gz: ${SRCTIGER} ${TRGTIGER} treealign.megam ${CORPUS}.wordalign
 
 align_words: ${CORPUS}.wordalign
 
-${CORPUS}.wordalign: ${SRCTIGER} ${TRGTIGER} ${CORPUS}.wordalign-intersect
+${CORPUS}.wordalign: ${SRCTIGER} ${TRGTIGER} ${CORPUS}.wordalign-grow
 	../bin/treealign \
 		-c clue \
-		-a ${CORPUS}.wordalign-intersect \
+		-a ${CORPUS}.wordalign-grow \
 		-A sta \
 		-s ${SRCTIGER} -S tiger \
 		-t ${TRGTIGER} -T tiger \
 		-x 0.2 \
 		-u -v -L \
-		-y moses/model/aligned.grow-diag \
-		-m words-grow.clue \
+		-y moses/model/aligned.intersect \
+		-m words-intersect.clue \
 		-I ep.sentids \
 		-l threshold ${EXTRAOPT} > $@
 
-${CORPUS}.wordalign-intersect: ${SRCTIGER} ${TRGTIGER} 
+${CORPUS}.wordalign-grow: ${SRCTIGER} ${TRGTIGER} 
 	../bin/treealign \
 		-c clue \
 		-a ${SENTALIGN} -A opus \
 		-s ${SRCTIGER} -S tiger \
 		-t ${TRGTIGER} -T tiger \
 		-x 0.2 -v -L \
-		-y moses/model/aligned.intersect \
-		-m words-intersect.clue \
+		-y moses/model/aligned.grow-diag \
+		-m words-grow.clue \
 		-I ep.sentids \
 		-l threshold ${EXTRAOPT} > $@
 

@@ -765,6 +765,10 @@ sub read_next_giza_links{
     # read GIZA++ Viterbi word alignment for next sentence pair
     # (check IDs if there is an ID file to do that!)
     do {
+	@srcwords=();
+	@trgwords=();
+	%wordlinks=();
+	@ids=();
 	if (not $self->{$key}->next_alignment(\@srcwords,\@trgwords,
 					      \%wordlinks,
 					      undef,undef,\@ids)){
@@ -902,6 +906,10 @@ sub read_next_moses_links{
     # read Moses word alignment for next sentence pair
     # (check IDs if there is an ID file to do that!)
     do {
+	@srcwords=();
+	@trgwords=();
+	%wordlinks=();
+	@ids=();
 	if (not $self->{$key}->next_alignment(\@srcwords,\@trgwords,
 					      \%wordlinks,
 					      undef,undef,\@ids)){
@@ -960,7 +968,7 @@ sub read_next_moses_links{
 	foreach my $t (keys %{$wordlinks{$s}}){
 	    my $tid = $trgPos2ID{$t};
 	    $self->{$key}->{S2T}->{$sid}->{$tid}=1;
-	    $self->{$key}->{S2T}->{$tid}->{$sid}=1;
+	    $self->{$key}->{T2S}->{$tid}->{$sid}=1;
 	}
     }
     return 1;

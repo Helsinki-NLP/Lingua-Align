@@ -16,7 +16,7 @@ sub new{
     my %attr=@_;
 
     if (defined $attr{-type}){
-	if ($attr{-type}=~/(tiger|penn|alpino)/i){
+	if ($attr{-type}=~/(tiger|penn|alpino|stanford)/i){
 	    return new Lingua::Align::Corpus::Treebank(%attr);
 	}
 	elsif ($attr{-type}=~/factored/i){

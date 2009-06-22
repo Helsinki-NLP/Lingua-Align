@@ -33,6 +33,7 @@ sub read_next_alignment{
 
     if ($_=<$fh>){
 	chomp;
+#	print STDERR $_;
 	my @align = split(/\s+/);
 	foreach my $l (@align){
 	    my ($s,$t)=split(/\-/,$l);

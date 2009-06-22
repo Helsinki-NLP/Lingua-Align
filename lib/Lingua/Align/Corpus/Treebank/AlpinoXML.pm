@@ -147,13 +147,19 @@ sub __XMLTagStart{
     }
     elsif ($e eq 'node'){
 
-	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
+#	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
 
 	if (exists $a{word}){
-	    $a{id}=500+$a{begin};            # start terminal nodes with 500
+#	    $a{id}=500+$a{begin};            # start terminal nodes with 500
+	    $a{id}=$a{begin};
 	    $a{id}=$p->{SENTID}.'_'.$a{id};  # and the begin position!!
 	    push(@{$p->{TERMINALS}},$a{id});
 	}
+	else{
+	    $a{id}+=500;                      # add 500 to non-terminal nodes
+	    $a{id}=$p->{SENTID}.'_'.$a{id};   # add sentence ID to node ID
+	}
+
 	foreach (keys %a){
 	    $p->{NODES}->{$a{id}}->{$_}=$a{$_};
 	}

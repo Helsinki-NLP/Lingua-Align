@@ -100,7 +100,14 @@ sub print_tree{
     my $str='<s id="'.$tree->{ID}."\">\n";
     $str.='  <graph root="'.$node."\">\n";
     $str.="    <terminals>\n";
-    foreach my $t (sort @{$tree->{TERMINALS}}){
+
+    my %begin=();
+    foreach (@{$tree->{TERMINALS}}){
+	my ($id,$b)=split(/\_/);
+	$begin{$_}=$b;
+    }
+#    foreach my $t (sort @{$tree->{TERMINALS}}){
+    foreach my $t (sort { $begin{$a} <=> $begin{$b} } keys %begin){
 	$str.= '      <t id="'.$t.'"';
 	foreach my $k (keys %{$tree->{NODES}->{$t}}){
 	    next if (ref($tree->{NODES}->{$t}->{$k}));

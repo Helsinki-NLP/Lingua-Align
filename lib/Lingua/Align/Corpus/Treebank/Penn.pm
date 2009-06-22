@@ -128,7 +128,8 @@ sub __parse{
 	    $string=$3;
 
 	    $self->{NODECOUNT}++;
-	    my $node = 500+$self->{NODECOUNT};
+#	    my $node = 500+$self->{NODECOUNT};
+	    my $node = $self->{NODECOUNT};
 	    $node=$tree->{ID}.'_'.$node;
 	    $tree->{NODES}->{$node}->{pos} = $pos;
 	    $tree->{NODES}->{$node}->{word} = $word;
@@ -149,15 +150,13 @@ sub __parse{
 
 	    $self->{NODECOUNT}++;
 	    $self->{OPEN_BRACKETS}++;
-	    my $node = $self->{NODECOUNT};
+#	    my $node = $self->{NODECOUNT};
+	    my $node = 500+$self->{NODECOUNT};
 	    $node=$tree->{ID}.'_'.$node;
 	    $tree->{NODES}->{$node}->{cat} = $cat;
 	    $tree->{NODES}->{$node}->{id} = $node;
 
 	    if ($self->{NODECOUNT} == 1){
-		if ($cat!~/ROOT/){
-		    print '';
-		}
 		$tree->{ROOTNODE} = $node;
 	    }
 	    else{
