@@ -1,0 +1,34 @@
+NAME
+    Lingua::Align::Corpus::Parallel - Perl extension for reading a simple
+    parallel corpus (two corpus files, one for the source language, one for
+    the target language); text on corresponding lines are aligned with each
+    other
+
+SYNOPSIS
+      use Lingua::Align::Corpus::Parallel;
+
+      my $corpus = new Lingua::Align::Corpus::Parallel(-srcfile => $srcfile,
+                                                       -trgfile => $trgfile);
+
+      my @src=();
+      my @trg=();
+      while ($corpus->next_alignment(\@src,\@trg)){
+         print "src> ";
+         print join(' ',@src);
+         print "\ntrg> ";
+         print join(' ',@trg);
+         print "============================\n";
+      }
+
+DESCRIPTION
+SEE ALSO
+AUTHOR
+    Joerg Tiedemann, <j.tiedemann@rug.nl>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2009 by Joerg Tiedemann
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8.8 or, at
+    your option, any later version of Perl 5 you may have available.
+

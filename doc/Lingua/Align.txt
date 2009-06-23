@@ -1,0 +1,23 @@
+NAME
+    Lingua::Align - Perl modules for the alignment of parallel corpora
+
+SYNOPSIS
+      use Lingua::Align;
+
+DESCRIPTION
+    This module doesn't do anything. Look at Lingua::Align::Trees for the
+    Tree Aligner. Other modules might follow later.
+
+SEE ALSO
+    Lingua::Align::Trees, Lingua::Align::Trees::FeatureExtractor
+
+AUTHOR
+    Joerg Tiedemann, <j.tiedemanh@rug.nl>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2009 by Joerg Tiedemann
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8.8 or, at
+    your option, any later version of Perl 5 you may have available.
+
