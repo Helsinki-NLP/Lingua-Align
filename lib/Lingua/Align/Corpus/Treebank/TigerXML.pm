@@ -6,11 +6,6 @@ use Lingua::Align::Corpus::Treebank;
 
 
 
-# TODO:
-# - should I handle secondary edges?
-#   (like I do something about re-entry indeces in AlpinoXML)
-
-
 
 use vars qw($VERSION @ISA);
 $VERSION = '0.01';
@@ -71,6 +66,25 @@ sub print_header{
 	    $str.="      </feature>\n";
 	}
     }
+
+    if (ref($self->{EDGELABELS}) eq 'HASH'){
+	$str.="      <edgelabel>\n";
+	foreach my $e (keys %{$self->{EDGELABELS}}){
+	    $str.="        <value name=\"$e\">";
+	    $str.="$self->{EDGELABELS}->{$e}</value>\n";
+	}
+	$str.="      </edgelabel>\n";
+    }
+
+    if (ref($self->{SECEDGELABELS}) eq 'HASH'){
+	$str.="      <secedgelabel>\n";
+	foreach my $e (keys %{$self->{SECEDGELABELS}}){
+	    $str.="        <value name=\"$e\">";
+	    $str.="$self->{SECEDGELABELS}->{$e}</value>\n";
+	}
+	$str.="      </secedgelabel>\n";
+    }
+
     $str.="    </annotation>\n   </head>\n  <body>\n";
     return $str;
 }
@@ -116,7 +130,7 @@ sub print_tree{
 	    if ($k!~/(word|root|lemma|sense|id|begin|end|index)/i){
 		$self->{TFEATURES}->{$k}->{$tree->{NODES}->{$t}->{$k}}='--';
 	    }
-	    else{$self->{NTFEATURES}->{$k}={};}
+	    else{$self->{TFEATURES}->{$k}={};}
 	    $tree->{NODES}->{$t}->{$k}=
 		escape_string($tree->{NODES}->{$t}->{$k});
 	    $str.= " $k=\"$tree->{NODES}->{$t}->{$k}\"";
@@ -125,9 +139,6 @@ sub print_tree{
     }
     $str.="    </terminals>\n    <nonterminals>\n";
     foreach my $n (keys %{$tree->{NODES}}){
-	if ($n eq '4_22'){
-	    print '';
-	}
 #	if (exists $tree->{NODES}->{$n}->{CHILDREN}){
 	if ((exists $tree->{NODES}->{$n}->{CHILDREN}) || 
 	    (exists $tree->{NODES}->{$n}->{CHILDREN2})){  # secondary edges ...
@@ -172,6 +183,7 @@ sub print_tree{
 		    $str.='" label="';
 		    my $label =
 			escape_string($tree->{NODES}->{$n}->{RELATION}->[$c]);
+		    $self->{EDGELABELS}->{$label}='--';
 		    $str.=$label;
 		    $str.="\" />\n";
 		    # save values for the header ....
@@ -180,12 +192,15 @@ sub print_tree{
 	    }
 	    if (exists $tree->{NODES}->{$n}->{CHILDREN2}){
 		for my $c (0..$#{$tree->{NODES}->{$n}->{CHILDREN2}}){
+#		    $str.='        <secedge idref="';
 		    $str.='        <edge idref="';
 		    $str.=$tree->{NODES}->{$n}->{CHILDREN2}->[$c];
 		    $str.='" label="';
 		    my $label =
 			escape_string($tree->{NODES}->{$n}->{RELATION2}->[$c]);
-		$str.=$label;
+		    $self->{EDGELABELS}->{$label}='--';
+#		    $self->{SECEDGELABELS}->{$label}='--';
+		    $str.=$label;
 		    $str.="\" />\n";
 		    # save values for the header ....
 		    $self->{LABELS}->{$label}='--';
