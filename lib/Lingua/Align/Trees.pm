@@ -1375,7 +1375,7 @@ For a descriptions of features that can be used see L<Lingua::Align::Trees::Feat
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

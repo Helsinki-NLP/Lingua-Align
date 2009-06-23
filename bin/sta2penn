@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
-# USAGE: sta2moses.pl sta-align-file.xml
+# USAGE: sta2penn sta-align-file.xml
 #
 #
 

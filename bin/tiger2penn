@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
-# USAGE: sta2tiger tiger.xml
+# USAGE: tiger2penn tiger.xml
 #
 #
 
