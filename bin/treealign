@@ -404,6 +404,10 @@ Link strategy used to extract the node aligments after classification. Default s
 
 Switch to add-links mode (union). Existing links between nodes will be kept in the output file and new ones will be added. (In the default mode, existing links will be considered for evaluation only). This option is espcially useful if one wants to use a pipeline of alignments, for example, terminal node alignment first and non-terminal nodes in the next step.
 
+=item -K
+
+Similar to -u: switches to 'add-link' mode but now forces the aligner to use existing links to compete with the new ones. This means that the scores of existing links will be used in the link search algorithm applied for aligning tree nodes. This may also cause some existing links to disappear, for example, because they are not conform to the wellformedness criteria anymore.
+
 =back
 
 =head3 Runtime options
