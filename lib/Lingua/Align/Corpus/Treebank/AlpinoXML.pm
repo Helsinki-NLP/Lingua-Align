@@ -31,7 +31,7 @@ sub read_index{
 		if ($id=~/^(.*)\-([^\-]+)$/){
 		    $base = $1;
 		    $id = $2;
-	    }
+		}
 		push (@{$self->{SENT_ID}},$id);
 		push (@{$self->{SENT_LONGID}},$longid);
 	    }
@@ -138,11 +138,17 @@ sub print_tree{
 
     my $str= "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     $str .= "<alpino_ds version=\"1.2\">\n";
+    $str .= $self->print_sub_tree($tree,$node,'  ','top');
 
-    do {
-
-    }
-    until (! defined $node);
+    $str .= '  <sentence>';
+    my @words = $self->get_all_leafs($tree);
+    $str .= join(' ',@words);
+    $str .= "</sentence>\n";
+    $str .= "  <comments>\n    <comment>Q#";
+    $str .= $tree->{ID};
+    $str .= '|';
+    $str .= join(' ',@words);
+    $str.="|||</comment>\n  </comments>\n</alpino_ds>\n";
     return $str;
 }
 
@@ -151,25 +157,36 @@ sub print_sub_tree{
     my $tree=shift;
     my $node=shift;
     my $indent=shift;
+    my $rel=shift;
 
-    $str.= $indent.'<node';
+    if ($rel && (! exists $tree->{NODES}->{$node}->{rel})){
+	$tree->{NODES}->{$node}->{rel}=$rel;
+    }
+
+    my $str.= $indent.'<node';
     foreach my $k (keys %{$tree->{NODES}->{$node}}){
+	next if (ref($tree->{NODES}->{$node}->{$k}));
 	my $val = escape_string($tree->{NODES}->{$node}->{$k});
 	if ($k eq 'id'){
 	    $val =~s/^.*\_([0-9]+)$/$1/;
-#		if ($val>500){$val-=500;}
+	    if ($val>500){$val-=500;}
 	}
 	$str .= ' '.$k.'="';
-	$str .= $val
-	    $str .= '"';
+	$str .= $val;
+	$str .= '"';
     }
-    $str .= ">\n";
     if (exists $tree->{NODES}->{$node}->{CHILDREN}){
-	foreach my $n (@{$tree->{NODES}->{$node}->{CHILDREN}}){
-	    
+	$str .= ">\n";
+	foreach my $i (0..$#{$tree->{NODES}->{$node}->{CHILDREN}}){
+	    my $n = $tree->{NODES}->{$node}->{CHILDREN}->[$i];
+	    my $nrel = $tree->{NODES}->{$node}->{RELATION}->[$i];
+	    $str .= $self->print_sub_tree($tree,$n,$indent.'  ',$nrel);
 	}
+	$str.= $indent."</node>\n";
     }
+    else{$str.= " />\n";}
 
+    return $str;
 }
 
 
