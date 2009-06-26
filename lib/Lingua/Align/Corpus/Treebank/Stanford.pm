@@ -100,8 +100,19 @@ sub add_dependency_relations{
 		    print STDERR "for node $node (rel = ";
 		    print STDERR $tree->{NODES}->{$node}->{rel}.")\n";
 		}
+		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}->[0]}){
+		    print STDERR "node $node doesn't have a parent?\n";
+		    print STDERR "(shouldn't be dependent ($rel)!)\n";
+		    last;
+		}
 
-		my $p = $tree->{NODES}->{$node}->{PARENTS}->[0]; # only first!?
+		my $p = $tree->{NODES}->{$node}->{PARENTS}->[0]; # only first?
+
+		if (not exists $tree->{NODES}->{$p}){
+		    print STDERR "parent node $p of node $node) not found?\n";
+		    last;
+		}
+
 		my @leafs = $self->get_leafs($tree,$p,'id');     # all leafs
 		if (grep ($_ eq $headNode,@leafs)){              # incl head?
 		    $self->add_relation($tree,$node,$p,$rel);
@@ -128,6 +139,13 @@ sub add_dependency_relations{
 
 		my @leafs = $self->get_leafs($tree,$node,'id');
 		last if (grep ($_ eq $depNode,@leafs));
+
+		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}->[0]}){
+		    print STDERR "node $node doesn't have a parent?\n";
+		    print STDERR "(cannot move up anymore ($rel)!)\n";
+		    last;
+		}
+
 		my $p = $tree->{NODES}->{$node}->{PARENTS}->[0];
 		$self->add_relation($tree,$node,$p,'hd');
 #		$tree->{NODES}->{$node}->{rel} = 'hd';
