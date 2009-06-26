@@ -20,8 +20,9 @@ sub read_next_sentence{
     if ($self->SUPER::read_next_sentence(@_)){
 
 	$self->{DEPENDENCIES}={};
-	$self->read_dependency_relations($self->{DEPENDENCIES});
-	$self->add_dependency_relations($self->{DEPENDENCIES},$tree);
+	if ($self->read_dependency_relations($self->{DEPENDENCIES})){
+	    $self->add_dependency_relations($self->{DEPENDENCIES},$tree);
+	}
 	return 1;
 
     }
@@ -46,15 +47,24 @@ sub read_dependency_relations{
     }
     my $fh=$self->{FH}->{$file};
 
-
-    # look for a possible tree start
+    my $found=0;
     while(<$fh>){
-	last if (/^\s*$/);
+
+	# assume that first line will contain dep rel
+	return $found if (/^\s*$/);
+
+	# if we allow empty lines before dep-rel's: uncomment this instead:
+	# if (/^\s*$/){
+	#     return $found if $found;
+	# }
+
 	if (/^([^\(]+)\(([^\)]+)\-([0-9]+)\s*,\s*([^\)]+)\-([0-9]+)\)\s*$/){
 	    my ($rel,$head,$headID,$dep,$depID)=($1,$2,$3,$4,$5);
 	    $$deprel{$depID}{$headID}=$rel;
+	    $found++;
 	}
     }
+    return $found;
 }
 
 
@@ -74,9 +84,16 @@ sub add_dependency_relations{
 	    # walk up the tree to find the node where the parent dominates
 	    # both, head & dependent ...
 
+	    my %done=();
+
 	    # for dependent:
 	    my $node = $depNode;
 	    while (exists $tree->{NODES}->{$node}->{PARENTS}){
+
+		if ($done{$node}){
+		    print STDERR "I've been here before ($node) - loop?\n";
+		    last;
+		}
 
 		if (exists $tree->{NODES}->{$node}->{rel}){
 		    print STDERR "relation attribute exists already ";
@@ -93,18 +110,28 @@ sub add_dependency_relations{
 		}                                                # otherwise:
 		$self->add_relation($tree,$node,$p,'hd');
 #		$tree->{NODES}->{$node}->{rel} = 'hd';           # = head (?!)
+		$done{$node}=1;
 		$node = $p;
 	    }
+
+
+	    %done=();
 
 	    # similar for head, but add 'hd' for all nodes
 	    my $node = $headNode;
 	    while (exists $tree->{NODES}->{$node}->{PARENTS}){
+
+		if ($done{$node}){
+		    print STDERR "I've been here before ($node) - loop?\n";
+		    last;
+		}
 
 		my @leafs = $self->get_leafs($tree,$node,'id');
 		last if (grep ($_ eq $depNode,@leafs));
 		my $p = $tree->{NODES}->{$node}->{PARENTS}->[0];
 		$self->add_relation($tree,$node,$p,'hd');
 #		$tree->{NODES}->{$node}->{rel} = 'hd';
+		$done{$node}=1;
 		$node=$p;
 	    }
 	}

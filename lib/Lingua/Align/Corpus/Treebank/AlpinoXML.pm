@@ -129,6 +129,59 @@ sub read_next_sentence{
 }
 
 
+sub print_tree{
+    my $self=shift;
+    my $tree=shift;
+
+    my $ids=shift || [];
+    my $node = shift || $tree->{ROOTNODE};
+
+    my $str= "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    $str .= "<alpino_ds version=\"1.2\">\n";
+
+    do {
+
+    }
+    until (! defined $node);
+    return $str;
+}
+
+sub print_sub_tree{
+    my $self=shift;
+    my $tree=shift;
+    my $node=shift;
+    my $indent=shift;
+
+    $str.= $indent.'<node';
+    foreach my $k (keys %{$tree->{NODES}->{$node}}){
+	my $val = escape_string($tree->{NODES}->{$node}->{$k});
+	if ($k eq 'id'){
+	    $val =~s/^.*\_([0-9]+)$/$1/;
+#		if ($val>500){$val-=500;}
+	}
+	$str .= ' '.$k.'="';
+	$str .= $val
+	    $str .= '"';
+    }
+    $str .= ">\n";
+    if (exists $tree->{NODES}->{$node}->{CHILDREN}){
+	foreach my $n (@{$tree->{NODES}->{$node}->{CHILDREN}}){
+	    
+	}
+    }
+
+}
+
+
+sub escape_string{
+    my $string = shift;
+    $string=~s/\&/&amp;/gs;
+    $string=~s/\>/&gt;/gs;
+    $string=~s/\</&lt;/gs;
+    $string=~s/\"/&quot;/gs;
+    return $string;
+}
+
 
 
 ##-------------------------------------------------------------------------

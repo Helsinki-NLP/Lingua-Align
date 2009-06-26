@@ -95,6 +95,7 @@ sub print_tail{
 ';
 }
 
+
 sub escape_string{
     my $string = shift;
     $string=~s/\&/&amp;/gs;
@@ -103,6 +104,7 @@ sub escape_string{
     $string=~s/\"/&quot;/gs;
     return $string;
 }
+
 
 sub print_tree{
     my $self=shift;
