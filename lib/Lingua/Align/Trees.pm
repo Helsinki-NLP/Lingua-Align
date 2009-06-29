@@ -276,6 +276,7 @@ sub align{
 # 	    }
 # 	}
 
+
     }
     print $alignments->print_tail();
 

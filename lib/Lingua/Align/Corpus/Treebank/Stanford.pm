@@ -49,6 +49,7 @@ sub read_dependency_relations{
 
     my $found=0;
     while(<$fh>){
+#	chomp;
 
 	# assume that first line will contain dep rel
 	return $found if (/^\s*$/);
@@ -100,7 +101,7 @@ sub add_dependency_relations{
 		    print STDERR "for node $node (rel = ";
 		    print STDERR $tree->{NODES}->{$node}->{rel}.")\n";
 		}
-		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}->[0]}){
+		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}}){
 		    print STDERR "node $node doesn't have a parent?\n";
 		    print STDERR "(shouldn't be dependent ($rel)!)\n";
 		    last;
@@ -140,7 +141,7 @@ sub add_dependency_relations{
 		my @leafs = $self->get_leafs($tree,$node,'id');
 		last if (grep ($_ eq $depNode,@leafs));
 
-		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}->[0]}){
+		if (! scalar @{$tree->{NODES}->{$node}->{PARENTS}}){
 		    print STDERR "node $node doesn't have a parent?\n";
 		    print STDERR "(cannot move up anymore ($rel)!)\n";
 		    last;

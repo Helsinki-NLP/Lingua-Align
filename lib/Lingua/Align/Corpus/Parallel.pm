@@ -18,6 +18,7 @@ use Lingua::Align::Corpus::Parallel::Giza;
 use Lingua::Align::Corpus::Parallel::Moses;
 use Lingua::Align::Corpus::Parallel::Bitext;
 use Lingua::Align::Corpus::Parallel::OPUS;
+use Lingua::Align::Corpus::Parallel::OrderedIds;
 
 
 
@@ -39,6 +40,9 @@ sub new{
     }
     if ($attr{-type}=~/opus/i){
 	return new Lingua::Align::Corpus::Parallel::OPUS(%attr);
+    }
+    if ($attr{-type}=~/(ordered|id)/i){
+	return new Lingua::Align::Corpus::Parallel::OrderedIds(%attr);
     }
     return new Lingua::Align::Corpus::Parallel::Bitext(%attr);
 }
@@ -154,6 +158,24 @@ sub close{
     if (exists $self->{TRG}){
 	$self->{TRG}->close();
     }
+}
+
+
+sub src_treebankID{
+    return 1;
+}
+
+sub trg_treebankID{
+    return 2;
+}
+
+
+sub src_treebank{
+    return $_[0]->{SRC}->{-file};
+}
+
+sub trg_treebank{
+    return $_[0]->{TRG}->{-file};
 }
 
 

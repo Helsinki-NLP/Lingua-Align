@@ -83,7 +83,13 @@ sub read_next_sentence{
 
     # look for a possible tree start
     while(<$fh>){
-	$_=<$fh>;
+	next if (/Sentence skipped: /);             # stanford parser: skips
+	if (/SENTENCE_SKIPPED_OR_UNPARSABLE/){      # some sentences ...
+	    $self->__initialize_parser($tree);      # -> return next sentences!
+	    $tree->{ID}=$self->next_sentence_id();  # (with next ID)
+	    next;
+#	    return $self->read_next_sentence($tree,$file,@_); # return next!!!
+	}
 	last if (/^\s*\(/)
     }
 
