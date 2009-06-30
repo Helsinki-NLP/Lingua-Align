@@ -187,6 +187,7 @@ sub close_file{
 	if (defined $self->{FH}->{$file}){
 	    if (ref($self->{FH}->{$file})=~/FileHandle/){
 		$self->{FH}->{$file}->close;
+		delete $self->{FH}->{$file};
 	    }
 	}
     }
@@ -215,6 +216,10 @@ sub close{
     }
 }
 
+sub open{
+    my $self=shift;
+    return $self->open_file(@_);
+}
 
 
 1;

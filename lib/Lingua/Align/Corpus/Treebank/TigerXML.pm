@@ -254,6 +254,7 @@ sub next_tree{
     return $self->next_sentence(@_);
 }
 
+
 sub read_next_sentence{
     my $self=shift;
     my $tree=shift;
@@ -273,6 +274,9 @@ sub read_next_sentence{
     $self->{__XMLHANDLE__}->{SENT_ENDED}=0;
 
     my $fh=$self->{FH}->{$file};
+    my $header;
+    my $tail;
+
     my $OldDel=$/;
     $/='>';
     while (<$fh>){
@@ -281,9 +285,17 @@ sub read_next_sentence{
 	    warn $@;
 	    print STDERR $_;
 	}
+	if (not $self->{__XMLHANDLE__}->{SENT}){
+	    if (not $self->{HEADER}){$header .= $_;}
+	    elsif (not $self->{TAIL}){$tail .= $_;}
+	}
 	last if ($self->{__XMLHANDLE__}->{SENT_ENDED});
     }
     $/=$OldDel;
+
+    if (defined $header){$self->{HEADER} = $header;}
+    if (defined $tail){$self->{HEADER} = $tail;}
+
     if (defined $self->{__XMLHANDLE__}->{SENTID}){
 	$tree->{ROOTNODE}=$self->{__XMLHANDLE__}->{ROOTNODE};
 	$tree->{NODES}=$self->{__XMLHANDLE__}->{NODES};
