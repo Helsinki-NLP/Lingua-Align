@@ -188,6 +188,9 @@ sub align{
 	$self->{INSTANCES}=[];
 	$self->{INSTANCES_SRC}=[];
 	$self->{INSTANCES_TRG}=[];
+	# clear the feature value cache
+	$self->{FEATURE_EXTRACTOR}->clear_cache();
+
 
 # 	# extract features
 # 	$self->{START_EXTRACT_FEATURES}=time();
