@@ -209,7 +209,8 @@ sub __XMLTagStart{
     my ($p,$e,%a)=@_;
 
     if ($e eq 'alpino_ds'){
-	$p->{NODES}={};        # need better clean-up?! (memory leak?)
+#	$p->{NODES}={};        # need better clean-up?! (memory leak?)
+	Lingua::Align::Corpus::__clean_delete($p->{NODES});  # better (?!)
 	$p->{TERMINALS}=[];
 	$p->{INDEX}={};
 	delete $p->{ROOTNODE};

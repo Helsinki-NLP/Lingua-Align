@@ -41,6 +41,7 @@ sub new{
 sub next_sentence{
     my $self=shift;
     my ($sent)=@_;
+    __clean_delete($sent);    # make a perfectly clean new structure (?!)
     if ($self->read_sentence_from_buffer($sent)){
 	return 1;
     }
@@ -91,9 +92,11 @@ sub read_from_buffer{
 		print STDERR "buffered data is not compatible!\n";
 		return 0;
 	    }
+	    __clean_delete($self->{__BUFFER__}->[-1]);
 	    pop(@{$self->{__BUFFER__}});
 	    return 1;
 	}
+	__clean_delete($self->{__BUFFER__});
 	delete $self->{__BUFFER__};
     }
     return 0;
@@ -220,6 +223,29 @@ sub open{
     my $self=shift;
     return $self->open_file(@_);
 }
+
+
+
+# try to delete complex structures
+# without circular references behind causing any memory leaks
+
+sub __clean_delete{
+    my $data=shift;
+    if (ref($data) eq 'ARRAY'){
+	foreach my $e (@{$data}){
+	    __clean_delete($e);
+	}
+	@{$data}=();
+    }
+    elsif (ref($data) eq 'HASH'){
+	foreach my $e (%{$data}){
+	    __clean_delete($e);
+	}
+	%{$data}=();
+    }
+    $data = undef;
+}
+
 
 
 1;

@@ -2,6 +2,7 @@ package Lingua::Align::Corpus::Treebank::TigerXML;
 
 use 5.005;
 use strict;
+use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Treebank;
 
 
@@ -262,8 +263,6 @@ sub read_next_sentence{
     my $file=shift || $self->{-file};
     if (! defined $self->{FH}->{$file}){
 	$self->open_file($file);
-#	$self->{FH}->{$file} = new FileHandle;
-#	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
 	$self->{__XMLPARSER__} = new XML::Parser(Handlers => 
 						 {Start => \&__XMLTagStart,
 						  End => \&__XMLTagEnd});
@@ -315,13 +314,15 @@ sub read_next_sentence{
 ##-------------------------------------------------------------------------
 ## 
 
+
 sub __XMLTagStart{
     my ($p,$e,%a)=@_;
 
     if ($e eq 's'){
 	$p->{SENT}=1;
 	$p->{SENTID}=$a{id};
-	$p->{NODES}={};        # need better clean-up?! (memory leak?)
+#	$p->{NODES}={};               # need better clean-up?! (memory leak?)
+	Lingua::Align::Corpus::__clean_delete($p->{NODES});  # better (?!)
 	$p->{TERMINALS}=[];
     }
     elsif ($e eq 't'){

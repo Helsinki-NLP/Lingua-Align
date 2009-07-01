@@ -52,6 +52,9 @@
 #  -v .................. verbose output
 
 
+# use Devel::Leak::Object;
+use Devel::Leak::Object qw(GLOBAL_bless);
+
 
 use strict;
 use FindBin;
@@ -170,6 +173,7 @@ my $treealigner = new Lingua::Align::Trees(
     );
 
 
+# Devel::Leak::Object::track($treealigner);
 
 
 # corpus to be used for training

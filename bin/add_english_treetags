@@ -31,10 +31,10 @@ my $ADDTAGS = "$FindBin::Bin/add_treetags";
 my $command = "$TIGER2TEXT $INPUT | sed 's/\$/ <s>/' | tr ' ' \"\\n\"";
 $command .= " | ${TREETAGGER} ${TREEOPTIONS} ${TREEMODEL}";
 
-print STDERR "call tree tagger\n";
+print STDERR "call tree tagger for '$INPUT'\n";
 system ("$command > /tmp/treetagged.$$");
 
-print STDERR "add tags to TigerXML\n";
+print STDERR "add tags to TigerXML (and write '$OUTPUT')\n";
 system ("$ADDTAGS $INPUT /tmp/treetagged.$$ $OUTPUT");
 unlink("/tmp/treetagged.$$");
 
