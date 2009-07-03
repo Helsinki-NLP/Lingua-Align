@@ -114,17 +114,34 @@ sub is_terminal{
  sub is_descendent{
     my $self=shift;
     my ($tree,$desc,$anc)=@_;
+
+    # look at ancestor relation cache first
+    if (exists $tree->{__IS_ANCESTOR__}){
+	if (exists $tree->{__IS_ANCESTOR__}->{$anc}){
+	    if (exists $tree->{__IS_ANCESTOR__}->{$anc}->{$desc}){
+		return $tree->{__IS_ANCESTOR__}->{$anc}->{$desc};
+	    }
+	}
+    }
+
     my @parents=();
     if (exists $tree->{NODES}->{$desc}->{PARENTS}){
 	@parents = @{$tree->{NODES}->{$desc}->{PARENTS}};
     }
     while (@parents){
 	my $p=shift(@parents);
-	return 1 if ($p eq $anc);
-	if ($self->is_descendent($tree,$p,$anc)){
+	if ($p eq $anc){
+	    $tree->{__IS_ANCESTOR__}->{$anc}->{$desc}=1; # add relation to cache
 	    return 1;
 	}
+	if ($self->is_descendent($tree,$p,$anc)){
+	    $tree->{__IS_ANCESTOR__}->{$anc}->{$desc}=1;
+	    $tree->{__IS_ANCESTOR__}->{$anc}->{$p}=1;
+	    return 1;
+	}
+	$tree->{__IS_ANCESTOR__}->{$anc}->{$p}=0;
     }
+    $tree->{__IS_ANCESTOR__}->{$anc}->{$desc}=0;
     return 0;
 }
 

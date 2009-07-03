@@ -4,7 +4,7 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw();
+@ISA = qw(Lingua::Align::LinkSearch);
 $VERSION = '0.01';
 
 sub new{

@@ -11,6 +11,8 @@ use FileHandle;
 use Lingua::Align::LinkSearch::Threshold;
 use Lingua::Align::LinkSearch::Greedy;
 use Lingua::Align::LinkSearch::GreedyWellFormed;
+use Lingua::Align::LinkSearch::GreedyFinal;
+use Lingua::Align::LinkSearch::GreedyFinalAnd;
 use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
@@ -23,6 +25,12 @@ sub new{
 #    my $type = $attr{-link_search} || 'greedy';
     my $type = $attr{-link_search} || 'threshold';
 
+    if ($type=~/and/i){
+	return new Lingua::Align::LinkSearch::GreedyFinalAnd(%attr);
+    }
+    if ($type=~/final/i){
+	return new Lingua::Align::LinkSearch::GreedyFinal(%attr);
+    }
     if ($type=~/src2trg/i){
 	return new Lingua::Align::LinkSearch::Src2Trg(%attr);
     }

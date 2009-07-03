@@ -53,7 +53,7 @@
 
 
 # use Devel::Leak::Object;
-use Devel::Leak::Object qw(GLOBAL_bless);
+# use Devel::Leak::Object qw(GLOBAL_bless);
 
 
 use strict;
