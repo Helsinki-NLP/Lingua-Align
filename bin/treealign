@@ -402,7 +402,7 @@ Score threshold used for tree alignment. Node pairs obtaining scores below this 
 
 =item -l LinkSearch
 
-Link strategy used to extract the node aligments after classification. Default strategy is 'greedy'. Other possible strategies are 'wellformed' (greedy + wellformedness criteria) and threshold (allow all links above the threshold score).
+Link strategy used to extract the node aligments after classification. Default strategy is 'greedy'. Other possible strategies are 'wellformed' (greedy + wellformedness criteria) and threshold (allow all links above the threshold score). You can also add the option 'final' (by adding the string '_final') to the selected strategy. In that case the aligner will first do the basic link search and then add links between nodes that obey the well-formedness criteria if either source or target language node is not linked yet. In other words, this final step makes 1:many links in the data that do not violate wellformedness. Yet another option is 'and' (which can be added as the string '_and' to the selected strategy, also in combination with '_final'). Using this option unlinked nodes (source and target) will be aligned in a last step in a greedy way even if they violate well-formedness. For example: 'wellformed_final_and' will force the aligner to, first, look for 1:1 links that are well-formed (multiple links are not allowed), then add well-formed links between nodes where one of them is already linked to another one, and, finally, adds links between still unlinked nodes.
 
 =item -u
 

@@ -16,6 +16,7 @@ use Lingua::Align::LinkSearch::GreedyFinalAnd;
 use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
+use Lingua::Align::LinkSearch::NTFirst;
 
 
 sub new{
@@ -30,6 +31,9 @@ sub new{
     }
     if ($type=~/final/i){
 	return new Lingua::Align::LinkSearch::GreedyFinal(%attr);
+    }
+    if ($type=~/nt.*first/i){
+	return new Lingua::Align::LinkSearch::NTFirst(%attr);
     }
     if ($type=~/src2trg/i){
 	return new Lingua::Align::LinkSearch::Src2Trg(%attr);
@@ -57,7 +61,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch - Perl extension for 
+Lingua::Align::LinkSearch - Perl extension for tree link search
 
 =head1 SYNOPSIS
 
