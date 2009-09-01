@@ -35,7 +35,7 @@ sub initialize_classification{
     my $self=shift;
     my $model=shift;
 
-    my $arguments = "-fvals -predict $model binary";
+    my $arguments = "-fvals -predict $model $self->{MEGAM_MODEL}";
     my $command = "$self->{MEGAM} $arguments -";
 
     $self->{MEGAM_PROC} = open3($self->{MEGAM_IN}, 
@@ -140,8 +140,17 @@ sub classify{
 	print $in $label,' ',$data,"\n";            # send input
 	my $line=<$out>;                            # read classification
 	chomp $line;
-	my ($label,$score)=split(/\s+/,$line);
-	push (@scores,$score);
+	my @parts=split(/\s+/,$line);
+	my $label = shift(@parts);
+	if ($#parts){               # more than 1 score --> multiclass!
+	    my $idx = scalar @scores;
+	    push(@{$scores[$idx]},@parts);
+	}
+	else{
+	    push (@scores,$parts[0]);
+	}
+#	my ($label,$score)=split(/\s+/,$line);
+#	push (@scores,$score);
     }
 
     delete $self->{TEST_DATA};
