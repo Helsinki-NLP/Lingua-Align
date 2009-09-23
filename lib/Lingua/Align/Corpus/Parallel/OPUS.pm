@@ -21,7 +21,7 @@ sub read_next_alignment{
     my ($srcsent,$trgsent,$links)=@_;
 
     my $file=$_[3] || $self->{-alignfile};
-    my $readmax = $self->{-read_max_sentences} || 50;
+    my $readmax = $self->{-read_max_sentences} || 1000;
 
 
     if (! defined $self->{FH}->{$file}){
