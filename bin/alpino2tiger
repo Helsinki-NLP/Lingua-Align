@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
-# USAGE: alpino2tiger
+# USAGE: alpino2tiger [-i]
 #
+#  -i .... skip indexed
 #
 
 use strict;
@@ -10,12 +11,17 @@ use FindBin;
 use lib $FindBin::Bin.'/../lib';
 use Lingua::Align::Corpus;
 
+use vars qw($opt_i);
+use Getopt::Std;
+getopts('i');
+
 my $infile = $ARGV[0];
 my $outfile = $ARGV[1];
 
 
 my $corpus = new Lingua::Align::Corpus(-file => $infile,
-				       -type => 'AlpinoXML');
+				       -type => 'AlpinoXML',
+				       -skip_indexed => $opt_i);
 
 my $output = new Lingua::Align::Corpus(-type => 'TigerXML');
 

@@ -79,6 +79,9 @@ sub read_next_sentence{
 	$self->{__FIRST_SENTENCE__}=1;
 	$self->read_index($file);
 	$self->{NEXT_SENT}=0;
+	if ($self->{-skip_indexed}){
+	    $self->{__XMLHANDLE__}->{-skip_indexed}=1;
+	}
     }
 
     my $sentid = $self->next_sentence_id_would_be();
@@ -274,7 +277,7 @@ sub __XMLTagEnd{
 	delete $p->{__COMMENT__};
     }
 
-    elsif ($e eq 'alpino_ds'){
+    elsif (($e eq 'alpino_ds') && (not $p->{-skip_indexed})){
 
 	# solve index links ...
 	my %add=();
