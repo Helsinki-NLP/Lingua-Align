@@ -1,4 +1,9 @@
 
+SMULTRON=${HOME}/projects/SMULTRON
+SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
+SOPHIE_DEEN=Alignments_SMULTRON_Sophies_World_DE_EN
+ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
+
 
 #-------------------------------------------------------------------------
 # nr sentences used for training and testing
@@ -30,13 +35,9 @@ CLASSIFIER = megam
 
 SEARCH = wellformed
 # SEARCH = greedy
+# SEARCH = assign
 ALIGNTHR = 0.1
-# EXTRAOPT = -C -S
-
-SMULTRON=${HOME}/projects/SMULTRON
-SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
-SOPHIE_DEEN=Alignments_SMULTRON_Sophies_World_DE_EN
-ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
+# EXTRAOPT = -C -U
 
 MOSES = ${SMTHOME}/moses-irstlm/moses-cmd/src/moses
 MOSESTRAINING = ${SCRIPTS_ROOTDIR}/training
@@ -44,9 +45,8 @@ MOSESTRAINING = ${SCRIPTS_ROOTDIR}/training
 SRC=src
 TRG=trg
 
-
-PACO            = /storage3/data/PACO-MT
-TREEALIGNERHOME = ${PACO}/tools/Lingua-Align
+PACO            = ${HOME}/projects/PACO-MT
+TREEALIGNERHOME = ${PACO}/tools/Lingua-Align-dev
 TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
 STA2MOSES       = ${TREEALIGNERHOME}/bin/sta2moses
 ALIGNEVAL       = ${TREEALIGNERHOME}/bin/eval_sta
@@ -55,6 +55,81 @@ ALIGNEVAL       = ${TREEALIGNERHOME}/bin/eval_sta
 FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
 
 
+
+
+NEWTEST = 'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS' \
+	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio' \
+	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink' \
+	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:moses.catpos:giza.catpos:catpos:treelevelsim.catpos:maxinside.catpos' \
+	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:moses.catpos:giza.catpos:children_catpos:children_catpos.catpos:treelevelsim.catpos:maxinside.catpos' \
+	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:moses.catpos:giza.catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos:parent_giza:sister_giza.catpos:sister_moses.catpos:children_giza.catpos:treelevelsim.catpos:maxinside.catpos'
+
+all: sophie
+
+newtest: newtest1 newtest2
+
+newtest1:
+	for f in ${NEWTEST}; do \
+		make SEARCH=greedy FEAT=$$f sophie >> $@.greedy; \
+	done
+	for f in ${NEWTEST}; do \
+		make SEARCH=wellformed FEAT=$$f sophie >> $@.wellformed; \
+	done
+	for f in ${NEWTEST}; do \
+		make SEARCH=assign FEAT=$$f sophie >> $@.assign; \
+	done
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-R 3' SEARCH=wellformed FEAT=$$f sophie >> $@.searn; \
+	done
+
+
+
+newtest2:
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-C -U' SEARCH=greedy FEAT=$$f sophie >> $@.greedy; \
+	done
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-C -U' SEARCH=wellformed FEAT=$$f sophie >> $@.wellformed; \
+	done
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-C -U' SEARCH=assign FEAT=$$f sophie >> $@.assign; \
+	done
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-C -U -R 3' SEARCH=wellformed FEAT=$$f sophie >> $@.searn; \
+	done
+
+
+newtest3:
+	for f in ${NEWTEST}; do \
+		make EXTRAOPT='-C -U' SEARCH=wellformed FEAT=$$f \
+			WEIGHTG=10 WEIGHTP=8 WEIGHTN=1 \
+			sophie >> $@.wellformed; \
+	done
+
+
+
+#	for ((t=5; t <= 100 ; t+=5)); do \
+#
+DATASIZES=1 2 4 8 16 32 64 128 256
+# DATASIZEFEAT='maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS'
+# DATASIZEFEAT='maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:moses.catpos:giza.catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos:parent_giza:sister_giza.catpos:sister_moses.catpos:children_giza.catpos:treelevelsim.catpos:maxinside.catpos'
+# DATASIZEFEAT='treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos:treelevelsim.catpos'
+DATASIZEFEAT='maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:parent_giza:children_giza:srcparent_giza:trgparent_giza:srcparent_giza*trgparent_giza:sister_giza:srcsister_giza:trgsister_giza:sister_giza:srcsister_giza*trgsister_giza:srcchildren_giza:trgchildren_giza:children_giza:srcchildren_giza*trgchildren_giza'
+
+
+datasize4:
+	for t in ${DATASIZES}; do \
+	   make FEAT=${DATASIZEFEAT} \
+		EXTRAOPT='-C -U' SEARCH=wellformed \
+		STARTEVAL=337 \
+		NR_TRAIN=$$t sophie >> $@; \
+	done
+
+
+
+WEIGHTG=3
+WEIGHTP=1
+WEIGHTN=1
 
 # train model on NR_TRAIN sentences and align the following NR_TEST sentences
 
@@ -66,6 +141,9 @@ sophie: moses-sophie
 		-n ${NR_TRAIN} \
 		-e ${NR_TEST} \
 		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
 		-N -L -v \
 		-l ${SEARCH} ${EXTRAOPT} > $@.alg
 	${ALIGNEVAL} -b ${STARTEVAL} -e ${ENDEVAL} \
@@ -157,6 +235,7 @@ sophie.wordalign-grow: moses-sophie/model/aligned.grow-diag-final-and \
 		-x ${ALIGNTHR} \
 		-l threshold ${EXTRAOPT} > $@
 	../bin/eval_sta ${SMULTRON}/${SOPHIE}.xml $@
+
 
 
 

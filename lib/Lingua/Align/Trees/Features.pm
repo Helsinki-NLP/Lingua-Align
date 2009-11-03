@@ -480,7 +480,7 @@ sub get_features{
 
 #-------------------------------------------------------------------
 # sub routines for the different feature types 
-# (this is time cinsuming and should be optimized!?)
+# (this is time consuming and should be optimized!?)
 
 
 sub label_features{

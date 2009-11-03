@@ -6,6 +6,7 @@ use strict;
 
 use FileHandle;
 use IPC::Open3;
+use FindBin;
 
 $VERSION='0.1';
 @ISA = qw( Lingua::Align::Classifier );
@@ -19,8 +20,18 @@ sub new{
     my $self={};
     bless $self,$class;
 
-    $self->{MEGAM} = $attr{-megam} || 
-	$ENV{HOME}.'/projects/align/MaxEnt/megam_i686.opt';
+
+    if (defined $attr{-megam}){
+	$self->{MEGAM} = $attr{-megam};
+    }
+    elsif (-f "$FindBin::Bin/megam"){
+	$self->{MEGAM} = "$FindBin::Bin/megam";
+    }
+    else{
+	$self->{MEGAM} = "megam";
+    }
+    # $ENV{HOME}.'/projects/PACO-MT/tools/megam_i686.opt';
+
     $self->{MEGAM_ARGUMENTS} = $attr{-megam_arguments} || '';
     $self->{MEGAM_MODEL} = $attr{-megam_model_type} || 'binary';
 

@@ -1,0 +1,9 @@
+
+jorg.tiedemann@lingfil.uu.se
+
+CPAN perl module
+Algorithm::Munkres
+http://search.cpan.org/~tpederse/Algorithm-Munkres-0.08/lib/Algorithm/Munkres.pm
+
+I just included this module in the TreeAligner package in order to
+avoid the requirement of installing it otherwise.

@@ -1215,7 +1215,6 @@ sub extract_classification_data{
 		}
 	    }
 
-
 	    my $label=0;
 	    if ((ref($$links{$sn}) eq 'HASH') && 
 		(exists $$links{$sn}{$tn})){

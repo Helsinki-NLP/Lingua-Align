@@ -133,7 +133,7 @@ my $treealigner = new Lingua::Align::Trees(
     -classifier_weight_negative=>$WeightN, # training: weight for non-linked
 
 #    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
-    -megam => '/storage3/data/PACO-MT/tools/megam_i686.opt',
+#    -megam => '/storage3/data/PACO-MT/tools/megam_i686.opt',
 
     -keep_training_data => $opt_k,        # don't remove feature file
 

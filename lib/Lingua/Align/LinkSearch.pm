@@ -17,6 +17,7 @@ use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
 use Lingua::Align::LinkSearch::NTFirst;
+use Lingua::Align::LinkSearch::Assignment;
 
 
 sub new{
@@ -49,6 +50,9 @@ sub new{
     }
     if ($type=~/greedy/i){
 	return new Lingua::Align::LinkSearch::Greedy(%attr);
+    }
+    if ($type=~/(assign|munkres)/i){
+	return new Lingua::Align::LinkSearch::Assignment(%attr);
     }
     return new Lingua::Align::LinkSearch::Threshold(%attr);
 }
