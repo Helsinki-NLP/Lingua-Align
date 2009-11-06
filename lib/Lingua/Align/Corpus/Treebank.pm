@@ -77,6 +77,12 @@ sub tree_size{
     return $size;
 }
 
+sub get_all_nodes{
+    my $self=shift;
+    my $tree=shift;
+    return sort keys %{$tree->{NODES}};
+}
+
 sub get_all_leafs{
     my $self=shift;
     my ($tree,$attr)=@_;

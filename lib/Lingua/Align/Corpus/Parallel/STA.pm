@@ -171,8 +171,9 @@ sub read_tree_alignments{
     my $links=shift;
 
     if (! defined $self->{FH}->{$file}){
-	$self->{FH}->{$file} = new FileHandle;
-	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
+#	$self->{FH}->{$file} = new FileHandle;
+#	$self->{FH}->{$file}->open("<$file") || die "cannot open file $file\n";
+	$self->{FH}->{$file}=$self->open_file($file);
 	$self->{__XMLPARSER__} = new XML::Parser(Handlers => 
 						 {Start => \&__XMLTagStart,
 						  End => \&__XMLTagEnd});
