@@ -221,6 +221,14 @@ sub __XMLTagStart{
     }
     elsif ($e eq 'node'){
 
+	if (exists $a{index}){
+	    $p->{IS_INDEX_NODE}=1;
+	    if ($p->{-skip_indexed}){      # skip all index nodes!
+		return 1;
+	    }
+	}
+	else{ $p->{IS_INDEX_NODE}=0; }
+
 #	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
 
 	if (exists $a{word}){
@@ -238,10 +246,6 @@ sub __XMLTagStart{
 	    $p->{NODES}->{$a{id}}->{$_}=$a{$_};
 	}
 
-	# save indeces ...
-	if (exists $a{index}){
-	    push(@{$p->{INDEX}->{$a{index}}},$a{id});
-	}
 	if (exists $p->{CURRENT}){
 	    my $parent=$p->{CURRENT};
 	    push(@{$p->{NODES}->{$a{id}}->{PARENTS}},$parent);
@@ -249,6 +253,11 @@ sub __XMLTagStart{
 #	    push(@{$p->{NODES}->{$a{id}}->{RELATION}},$a{rel});
 	    push(@{$p->{NODES}->{$parent}->{RELATION}},$a{rel});
 	}
+
+	if (exists $a{index}){
+	    push(@{$p->{INDEX}->{$a{index}}},$a{id});
+	}
+
 	$p->{CURRENT}=$a{id};
 	if (not exists $p->{ROOTNODE}){
 	    $p->{ROOTNODE}=$a{id};
@@ -265,6 +274,13 @@ sub __XMLTagEnd{
     my ($p,$e)=@_;
 
     if ($e eq 'node'){
+
+	if ($p->{-skip_indexed}){       # check if we skip index nodes; yes?
+	    if ($p->{IS_INDEX_NODE}){   # do nothing if this is an index node
+		return 1;
+	    }
+	}
+
 	my $id = $p->{CURRENT};
 	if (exists $p->{NODES}->{$id}->{PARENTS}){
 	    $p->{CURRENT} = $p->{NODES}->{$id}->{PARENTS}->[0];
