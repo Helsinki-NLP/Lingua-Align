@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+# USAGE: sta2phrases sta-align-file.xml
+#
+# simple script to extract all aligned phrases from the tree alignments
+#
+
+use strict;
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
+use Lingua::Align::Corpus::Parallel::STA;
+use File::Basename;
+
+use vars qw($opt_v $opt_x);
+use Getopt::Std;
+getopts('vx:');
+
+
+my $algfile = shift(@ARGV);
+my $corpus=new Lingua::Align::Corpus::Parallel::STA(-alignfile => $algfile);
+binmode(STDOUT,":encoding(utf8)");
+
+my %srctree=();
+my %trgtree=();
+my $links;
+
+while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
+
+    foreach my $sn ($corpus->{SRC}->get_all_nodes(\%srctree)){
+	if (exists $links->{$sn}){
+	    foreach my $tn (keys %{$links->{$sn}}){
+		print "($sn,$tn) " if ($opt_v);
+		my @src = $corpus->{SRC}->get_leafs(\%srctree,$sn);
+		next if ($opt_x && (@src > $opt_x));
+		my @trg = $corpus->{TRG}->get_leafs(\%trgtree,$tn);
+		next if ($opt_x && (@trg > $opt_x));
+		print join (" ",@src);
+		print ' ||| ';
+		print join (" ",@trg);
+		print "\n";
+	    }
+	}
+    }
+    print '';
+}
+
