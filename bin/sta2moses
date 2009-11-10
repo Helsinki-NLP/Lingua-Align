@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
-# USAGE: sta2phrases sta-align-file.xml
+# USAGE: sta2moses.pl sta-align-file.xml
 #
-# simple script to extract all aligned phrases from the tree alignments
+# simple script to get the aligned sentences from Stockholm Treealigner files
 #
 
 use strict;
@@ -12,51 +12,29 @@ use lib $FindBin::Bin.'/../lib';
 use Lingua::Align::Corpus::Parallel::STA;
 use File::Basename;
 
-use vars qw($opt_a $opt_v $opt_x);
-use Getopt::Std;
-getopts('avx:');
-
-
 my $algfile = shift(@ARGV);
 my $corpus=new Lingua::Align::Corpus::Parallel::STA(-alignfile => $algfile);
-binmode(STDOUT,":encoding(utf8)");
+my $base=basename($algfile);
+$base=~s/\.xml//;
+
+my $srcfile=$base.'.src';
+my $trgfile=$base.'.trg';
+
+open SRC,">$srcfile" || die "cannot open $srcfile\n";
+open TRG,">$trgfile" || die "cannot open $trgfile\n";
+binmode(SRC,":encoding(utf8)");
+binmode(TRG,":encoding(utf8)");
 
 my %srctree=();
 my %trgtree=();
 my $links;
 
 while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
-
-    foreach my $sn ($corpus->{SRC}->get_all_nodes(\%srctree)){
-	next if (not exists $links->{$sn});
-	my @src = $corpus->{SRC}->get_leafs(\%srctree,$sn);
-	next if ($opt_x && (@src > $opt_x));
-	my @srcid = $corpus->{SRC}->get_leafs(\%srctree,$sn,'id');
-	foreach my $tn (keys %{$links->{$sn}}){
-	    print "($sn,$tn) " if ($opt_v);
-	    my @trg = $corpus->{TRG}->get_leafs(\%trgtree,$tn);
-	    next if ($opt_x && (@trg > $opt_x));
-	    my @trgid = $corpus->{TRG}->get_leafs(\%trgtree,$tn,'id');
-	    print join (" ",@src);
-	    print ' ||| ';
-	    print join (" ",@trg);
-	    print ' ||| ';
-	    if ($opt_a){
-		my @alg=();
-		for my $s (0..$#srcid){
-		    for my $t (0..$#trgid){
-			if (exists $links->{$srcid[$s]}){
-			    if (exists $links->{$srcid[$s]}->{$trgid[$t]}){
-				push(@alg,$s.'-'.$t);
-			    }
-			}
-		    }
-		}
-		print join (" ",@alg);
-	    }
-	    print "\n";
-	}
-    }
-    print '';
+    print SRC lc(join(' ',$corpus->{SRC}->get_all_leafs(\%srctree)));
+    print SRC "\n";
+    print TRG lc(join(' ',$corpus->{TRG}->get_all_leafs(\%trgtree)));
+    print TRG "\n";
 }
 
+close SRC;
+close TRG;
