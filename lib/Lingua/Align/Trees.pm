@@ -66,6 +66,9 @@ sub train{
 
     do {
 	$self->{SENT_COUNT}=0;
+	$self->{NODE_COUNT}=0;
+	$self->{SRCNODE_COUNT}=0;
+	$self->{TRGNODE_COUNT}=0;
 	$self->{START_EXTRACT_FEATURES}=time();
 	$self->{CLASSIFIER}->initialize_training();
 	$self->extract_training_data($corpus,$features,$max,$skip);
@@ -99,9 +102,19 @@ sub train{
 	print STDERR "\n============ ";
 	print STDERR "statistics for training an alignment model ";
 	print STDERR "======\n";
-	printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
+
+	printf STDERR "%30s: %d (%d source nodes, %d target nodes)\n",
+	"link candidates",
+	$self->{NODE_COUNT},
+	$self->{SRCNODE_COUNT},
+	$self->{TRGNODE_COUNT};
+
+	printf STDERR "%30s: %f (%f/sent, %f/node pair)\n",
+	"time for feature extraction",
 	$self->{TIME_EXTRACT_FEATURES},
-	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
+	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT},
+	$self->{TIME_EXTRACT_FEATURES}/$self->{NODE_COUNT};
+
 	printf STDERR "%30s: %f\n","time for training classifier",
 	$self->{TIME_TRAIN_MODEL};
 	printf STDERR "%30s: %f\n","total time training",
@@ -153,6 +166,9 @@ sub align{
     $self->{TIME_CLASSIFICATION}=0;
     $self->{TIME_LINK_SEARCH}=0;
     $self->{SENT_COUNT}=0;
+    $self->{NODE_COUNT}=0;
+    $self->{SRCNODE_COUNT}=0;
+    $self->{TRGNODE_COUNT}=0;
 
     while ($corpus->next_alignment(\%src,\%trg,\$existing_links)){
 
@@ -184,6 +200,8 @@ sub align{
 	}
 
 	$self->{SENT_COUNT}++;
+	$self->{SRCNODE_COUNT}+=scalar keys %{$src{NODES}};
+	$self->{TRGNODE_COUNT}+=scalar keys %{$trg{NODES}};
 
 	$self->{INSTANCES}=[];
 	$self->{INSTANCES_SRC}=[];
@@ -309,9 +327,19 @@ sub align{
 	if ($self->{SENT_COUNT}){
 	    print STDERR "\n================= ";
 	    print STDERR "statistics for aligning trees ==============\n";
-	    printf STDERR "%30s: %f (%f/sentence)\n","time for feature extraction",
+
+	    printf STDERR "%30s: %d (%d source nodes, %d target nodes)\n",
+	    "link candidates",
+	    $self->{NODE_COUNT},
+	    $self->{SRCNODE_COUNT},
+	    $self->{TRGNODE_COUNT};
+
+	    printf STDERR "%30s: %f (%f/sent, %f/node pair)\n",
+	    "time for feature extraction",
 	    $self->{TIME_EXTRACT_FEATURES},
-	    $self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT};
+	    $self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT},
+	    $self->{TIME_EXTRACT_FEATURES}/$self->{NODE_COUNT};
+
 	    printf STDERR "%30s: %f (%f/sentence)\n","time for classification",
 	    $self->{TIME_CLASSIFY},$self->{TIME_CLASSIFY}/$self->{SENT_COUNT};
 	    printf STDERR "%30s: %f (%f/sentence)\n","time for link search",
@@ -426,6 +454,8 @@ sub extract_training_data{
 	}
 
 	$self->{SENT_COUNT}++;
+	$self->{SRCNODE_COUNT}+=scalar keys %{$src{NODES}};
+	$self->{TRGNODE_COUNT}+=scalar keys %{$trg{NODES}};
 
 	foreach my $sn (keys %{$src{NODES}}){
 	    next if ($sn!~/\S/);
@@ -441,10 +471,20 @@ sub extract_training_data{
 		next if (not $s_is_terminal);
 	    }
 	    # skip nodes with unary productions
-	    if ($self->{-skip_unary}){
-		if ($self->{-nonterminals_only} ||  # special treatment for
-		    $self->{-same_types_only}){     # unary subtrees with
-		    my $c=undef;                    # a terminal as child
+	    if ((not $s_is_terminal) && $self->{-skip_unary}){
+
+		# IF "nonterminals_only" is switched on OR
+		#    "same_types_only" is switched on THEN
+		# do NOT skip unary subtrees 
+		# IF the only child is a terminal node!
+		# Why? --> "nonterminals_only" --> we want to link those nodes!
+		#          down at the end of branches
+		#      --> "same_types_only" --> there might be a non-unary
+		#          subtree in the target language to be linked to!
+
+		if ($self->{-nonterminals_only} ||
+		    $self->{-same_types_only}){
+		    my $c=undef;
 		    if ($self->{TREES}->is_unary_subtree(\%src,$sn,\$c)){
 			next if ($self->{TREES}->is_nonterminal(\%src,$c));
 		    }
@@ -455,6 +495,7 @@ sub extract_training_data{
 	    }
 	    
 	    foreach my $tn (keys %{$trg{NODES}}){
+
 		next if ($tn!~/\S/);
 		my $t_is_terminal=$self->{TREES}->is_terminal(\%trg,$tn);
 
@@ -475,10 +516,10 @@ sub extract_training_data{
 		    next if (not $t_is_terminal);
 		}
 		# skip nodes with unary productions
-		if ($self->{-skip_unary}){
-		    if ($self->{-nonterminals_only} ||  # special treatment for
-			$self->{-same_types_only}){     # unary subtrees with
-			my $c=undef;                    # a terminal as child
+		if ((not $t_is_terminal) && $self->{-skip_unary}){
+		    if ($self->{-nonterminals_only} ||
+			$self->{-same_types_only}){
+			my $c=undef;
 			if ($self->{TREES}->is_unary_subtree(\%trg,$tn,\$c)){
 			    next if ($self->{TREES}->is_nonterminal(\%trg,$c));
 			}
@@ -487,13 +528,10 @@ sub extract_training_data{
 			next if ($self->{TREES}->is_unary_subtree(\%trg,$tn));
 		    }
 		}
-		# skip nodes with unary productions
-		if ($self->{-skip_unary}){
-		    next if ($self->{TREES}->is_unary_subtree(\%trg,$tn));
-		}
 
 		my %values = $FE->features(\%src,\%trg,$sn,$tn);
-
+#		print STDERR "train: $sn:$tn\n";
+		$self->{NODE_COUNT}++;
 
 		#-----------------------------------------------------------
 		# structural dependencies
@@ -1153,6 +1191,7 @@ sub extract_classification_data{
 
     $self->{LABELS}=[];
     my $FE=$self->{FEATURE_EXTRACTOR};
+    $FE->clear_cache();
 
     foreach my $sn (keys %{$$src{NODES}}){
 	next if ($sn!~/\S/);
@@ -1168,10 +1207,20 @@ sub extract_classification_data{
 	    next if (not $s_is_terminal);
 	}
 	# skip nodes with unary productions
-	if ($self->{-skip_unary}){
-	    if ($self->{-nonterminals_only} ||  # special treatment for
-		$self->{-same_types_only}){     # unary subtrees with
-		my $child=undef;                # a terminal as child node
+	if ((not $s_is_terminal) && $self->{-skip_unary}){
+
+	    # IF "nonterminals_only" is switched on OR
+	    #    "same_types_only" is switched on THEN
+	    # do NOT skip unary subtrees 
+	    # IF the only child is a terminal node!
+	    # Why? --> "nonterminals_only" --> we want to link those nodes!
+	    #          down at the end of branches
+	    #      --> "same_types_only" --> there might be a non-unary subtree
+	    #          in the target language to be linked to!
+
+	    if ($self->{-nonterminals_only} ||
+		$self->{-same_types_only}){
+		my $child=undef;
 		if ($self->{TREES}->is_unary_subtree($src,$sn,\$child)){
 		    next if ($self->{TREES}->is_nonterminal($src,$child));
 		}
@@ -1193,6 +1242,7 @@ sub extract_classification_data{
 		}
 		elsif ($t_is_terminal){next;}
 	    }
+
 	    ## align only non-terminals!
 	    if ($self->{-nonterminals_only}){
 		next if ($t_is_terminal);
@@ -1201,8 +1251,8 @@ sub extract_classification_data{
 	    if ($self->{-terminals_only}){
 		next if (not $t_is_terminal);
 	    }
-	    # skip nodes with unary productions
-	    if ($self->{-skip_unary}){              
+	    # skip nodes with unary productions (same as above)
+	    if ((not $t_is_terminal) && $self->{-skip_unary}){
 		if ($self->{-nonterminals_only} ||  # special treatment for
 		    $self->{-same_types_only}){     # unary subtrees with
 		    my $child=undef;                # a terminal as child node
@@ -1227,7 +1277,9 @@ sub extract_classification_data{
 	    }
 	    push(@{$self->{LABELS}},$label);
 	    my %values = $FE->features($src,$trg,$sn,$tn);
+#           print STDERR "test: $sn:$tn\n";
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+	    $self->{NODE_COUNT}++;
 
 #	    print STDERR $label,' ';
 #	    print STDERR join(':',%values);
