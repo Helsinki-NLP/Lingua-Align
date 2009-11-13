@@ -99,6 +99,7 @@ sub train{
     $self->{TIME_TRAINING} = time() - $self->{START_TRAINING};
 
     if ($self->{-verbose}){
+    if ($self->{SENT_COUNT} && $self->{NODE_COUNT}){
 	print STDERR "\n============ ";
 	print STDERR "statistics for training an alignment model ";
 	print STDERR "======\n";
@@ -121,6 +122,7 @@ sub train{
 	$self->{TIME_TRAINING};
 	print STDERR "==================";
 	print STDERR "============================================\n\n";
+    }
     }
 }
 
@@ -324,7 +326,7 @@ sub align{
     $self->{TIME_ALIGNING} = time() - $self->{START_ALIGNING};
 
     if ($self->{-verbose}){
-	if ($self->{SENT_COUNT}){
+	if ($self->{SENT_COUNT} && $self->{NODE_COUNT}){
 	    print STDERR "\n================= ";
 	    print STDERR "statistics for aligning trees ==============\n";
 
@@ -910,7 +912,8 @@ sub classify_bottom_up{
 	    next if (not $s_is_terminal);
 	}
 	# skip nodes with unary productions
-	if ($self->{-skip_unary}){
+	if ((not $s_is_terminal) && $self->{-skip_unary}){
+#	if ($self->{-skip_unary}){
 	    if ($self->{-nonterminals_only} ||  # special treatment for
 		$self->{-same_types_only}){     # unary subtrees with
 		my $child=undef;                # a terminal as child node
@@ -944,7 +947,8 @@ sub classify_bottom_up{
 		next if (not $t_is_terminal);
 	    }
 	    # skip nodes with unary productions
-	    if ($self->{-skip_unary}){              
+	    if ((not $t_is_terminal) && $self->{-skip_unary}){
+#	    if ($self->{-skip_unary}){              
 		if ($self->{-nonterminals_only} ||  # special treatment for
 		    $self->{-same_types_only}){     # unary subtrees with
 		    my $child=undef;                # a terminal as child node
@@ -978,6 +982,7 @@ sub classify_bottom_up{
 	    }
 
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+	    $self->{NODE_COUNT}++;
 
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
 	    push(@{$self->{INSTANCES_SRC}},$sn);
@@ -1079,7 +1084,8 @@ sub classify_top_down{
 	    next if (not $s_is_terminal);
 	}
 	# skip nodes with unary productions
-	if ($self->{-skip_unary}){
+	if ((not $s_is_terminal) && $self->{-skip_unary}){
+#	if ($self->{-skip_unary}){
 	    if ($self->{-nonterminals_only} ||  # special treatment for
 		$self->{-same_types_only}){     # unary subtrees with
 		my $child=undef;                # a terminal as child node
@@ -1113,7 +1119,8 @@ sub classify_top_down{
 		next if (not $t_is_terminal);
 	    }
 	    # skip nodes with unary productions
-	    if ($self->{-skip_unary}){              
+	    if ((not $t_is_terminal) && $self->{-skip_unary}){
+#	    if ($self->{-skip_unary}){              
 		if ($self->{-nonterminals_only} ||  # special treatment for
 		    $self->{-same_types_only}){     # unary subtrees with
 		    my $child=undef;                # a terminal as child node
@@ -1147,6 +1154,7 @@ sub classify_top_down{
 	    }
 
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+	    $self->{NODE_COUNT}++;
 
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
 	    push(@{$self->{INSTANCES_SRC}},$sn);
