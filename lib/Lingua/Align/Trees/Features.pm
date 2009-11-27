@@ -568,17 +568,29 @@ sub tree_features{
 
     if (exists $$FeatTypes{nrleafsratio}){
 
-	my @srcleafs = $self->{TREES}->get_leafs($srctree,$srcnode);
-	my @trgleafs = $self->{TREES}->get_leafs($trgtree,$trgnode);
+	my $nrsrcleafs = $self->{TREES}->get_nr_leafs($srctree,$srcnode);
+	my $nrtrgleafs = $self->{TREES}->get_nr_leafs($trgtree,$trgnode);
 
-	if (@srcleafs && @trgleafs){
-	    if ($#srcleafs>$#trgleafs){
-		$$values{nrleafsratio}=($#trgleafs+1)/($#srcleafs+1);
+	if ($nrsrcleafs && $nrtrgleafs){
+	    if ($nrsrcleafs>$nrtrgleafs){
+		$$values{nrleafsratio}=$nrtrgleafs/$nrsrcleafs;
 	    }
 	    else{
-		$$values{nrleafsratio}=($#srcleafs+1)/($#trgleafs+1);
+		$$values{nrleafsratio}=$nrsrcleafs/$nrtrgleafs;
 	    }
 	}
+
+	# my @srcleafs = $self->{TREES}->get_leafs($srctree,$srcnode);
+	# my @trgleafs = $self->{TREES}->get_leafs($trgtree,$trgnode);
+
+	# if (@srcleafs && @trgleafs){
+	#     if ($#srcleafs>$#trgleafs){
+	# 	$$values{nrleafsratio}=($#trgleafs+1)/($#srcleafs+1);
+	#     }
+	#     else{
+	# 	$$values{nrleafsratio}=($#srcleafs+1)/($#trgleafs+1);
+	#     }
+	# }
     }
 }
 

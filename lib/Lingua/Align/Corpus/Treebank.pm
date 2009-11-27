@@ -69,11 +69,13 @@ sub distance_to_root{
 sub tree_size{
     my $self=shift;
     my $tree=shift;
+    return $tree->{TREESIZE} if (exists $tree->{TREESIZE});
     my $size=0;
     foreach my $n (keys %{$tree->{NODES}}){
 	my $level=$self->distance_to_root($tree,$n);
 	if ($level>$size){$size=$level;}
     }
+    $tree->{TREESIZE} = $size;   # cache tree size for later calls!
     return $size;
 }
 
@@ -285,6 +287,34 @@ sub get_outside_leafs{
 
 
 
+sub get_nr_leafs{
+    my $self=shift;
+    my ($tree,$node)=@_;
+
+    if (exists $tree->{NODES}->{$node}){
+
+	# leaf nodes --> just one alone ....
+	return 1 if (! exists $tree->{NODES}->{$node}->{CHILDREN});
+
+	# check cached value
+	if (exists($tree->{NODES}->{$node}->{NR_LEAFS})){
+	    return $tree->{NODES}->{$node}->{NR_LEAFS};
+	}
+	if (exists($tree->{NODES}->{$node}->{LEAFS})){
+	    my ($key,$val)=each %{$tree->{NODES}->{$node}->{LEAFS}};
+	    if (ref($tree->{NODES}->{$node}->{LEAFS}->{$key}) eq 'ARRAY'){
+		$tree->{NODES}->{$node}->{NR_LEAFS} = 
+		    scalar @{$tree->{NODES}->{$node}->{LEAFS}->{$key}};
+		return $tree->{NODES}->{$node}->{NR_LEAFS};
+	    }
+	}
+	my @leafs = $self->get_leafs($tree,$node);
+	$tree->{NODES}->{$node}->{NR_LEAFS} = scalar @leafs;
+	return $tree->{NODES}->{$node}->{NR_LEAFS};
+    }
+    return 0;
+}
+
 
 
 sub get_leafs{
@@ -297,8 +327,17 @@ sub get_leafs{
 
     if (exists $tree->{NODES}->{$node}){
 
-	## check if subtree leafs with the specified attr are already stored
-	if (exists($tree->{NODES}->{$node}->{LEAFS})){
+	# I am a leaf! --> return my attr
+	if (! exists $tree->{NODES}->{$node}->{CHILDREN}){
+	    if (exists $tree->{NODES}->{$node}->{$attr}){
+		return ($tree->{NODES}->{$node}->{$attr});
+	    }
+	    return ();
+	}
+
+	## check if subtree leafs with the specified attr 
+	## are already stored in cache
+	elsif (exists($tree->{NODES}->{$node}->{LEAFS})){
 	    if (exists($tree->{NODES}->{$node}->{LEAFS}->{$attr})){
 		if (ref($tree->{NODES}->{$node}->{LEAFS}->{$attr}) eq 'ARRAY'){
 		    return @{$tree->{NODES}->{$node}->{LEAFS}->{$attr}};
@@ -312,28 +351,22 @@ sub get_leafs{
 		    foreach my $i (@ids){
 			push (@val,$tree->{NODES}->{$i}->{$attr});
 		    }
+		    @{$tree->{NODES}->{$node}->{LEAFS}->{$attr}} = @val;
 		    return @val;
 		}
 	    }
 	}
 
 	## otherwise: go through all children
-	if (exists $tree->{NODES}->{$node}->{CHILDREN}){
-	    if (ref($tree->{NODES}->{$node}->{CHILDREN}) eq 'ARRAY'){
-		my @leafs=();
-		foreach my $c (@{$tree->{NODES}->{$node}->{CHILDREN}}){
-		    push(@leafs,$self->get_leafs($tree,$c,$attr));
-		}
-		## cache subtree leafs ....
-		@{$tree->{NODES}->{$node}->{LEAFS}->{$attr}}=@leafs;
-		return @leafs;
+	elsif (ref($tree->{NODES}->{$node}->{CHILDREN}) eq 'ARRAY'){
+	    my @leafs=();
+	    foreach my $c (@{$tree->{NODES}->{$node}->{CHILDREN}}){
+		push(@leafs,$self->get_leafs($tree,$c,$attr));
 	    }
-	}
-	else{
-	    if (exists $tree->{NODES}->{$node}->{$attr}){
-		return ($tree->{NODES}->{$node}->{$attr});
-	    }
-	    return ();
+	    ## cache subtree leafs ....
+	    @{$tree->{NODES}->{$node}->{LEAFS}->{$attr}} = @leafs;
+	    $tree->{NODES}->{$node}->{NR_LEAFS} = scalar @leafs;
+	    return @leafs;
 	}
     }
 }
