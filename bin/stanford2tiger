@@ -9,16 +9,15 @@ use strict;
 use FindBin;
 use lib $FindBin::Bin.'/../lib';
 use Lingua::Align::Corpus;
-use Lingua::Align::Corpus::Treebank::Stanford;
+
 
 my $infile = $ARGV[0];
 my $outfile = $ARGV[1];
 
+# use Lingua::Align::Corpus::Treebank::Stanford;
+# my $corpus = new Lingua::Align::Corpus::Treebank::Stanford(-file => $infile);
 
-# my $corpus = new Lingua::Align::Corpus(-file => $infile,
-# 				       -type => 'Penn');
-
-my $corpus = new Lingua::Align::Corpus::Treebank::Stanford(-file => $infile);
+my $corpus = new Lingua::Align::Corpus(-file => $infile,-type => 'stanford');
 my $output = new Lingua::Align::Corpus(-type => 'TigerXML');
 
 
