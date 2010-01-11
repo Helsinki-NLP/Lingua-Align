@@ -170,6 +170,19 @@ sub add_relation{
 	for my $i (0..$#{$tree->{NODES}->{$parent}->{CHILDREN}}){
 	    if ($tree->{NODES}->{$parent}->{CHILDREN}->[$i] eq $child){
 
+		# same relation stored already? --> nothing to be done
+		return if ($tree->{NODES}->{$parent}->{RELATION}->[$i] eq $rel);
+
+		# don't overwrite existing non-head relation types
+		# with hd-relations! This is for nodes with > 2 daughters and
+		# multiple relations between duaghter nodes 
+		# (only one head relation per NT!)
+		if ($rel eq 'hd'){
+		    if ($tree->{NODES}->{$parent}->{RELATION}->[$i] ne '--'){
+			return 0;
+		    }
+		}
+
 #		print STDERR "replace relation $i of $parent ";
 #		print STDERR "($tree->{NODES}->{$parent}->{RELATION}->[$i]) ";
 #		print STDERR "with $rel\n";
