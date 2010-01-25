@@ -21,10 +21,10 @@ CLASSIFIER  = megam
 # alignment score threshold
 
 SEARCH      = wellformed
-ALIGNTHR    = 0
+ALIGNTHR    = 0.15
 
 # extra options to be passed to the tree aligner (e.g. link dependencies -C -U)
-# EXTRAOPT    = -C -U
+EXTRAOPT    = -C -U
 
 # name of the test corpus
 

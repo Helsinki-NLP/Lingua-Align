@@ -357,8 +357,7 @@ sub get_leafs{
 	    }
 	}
 
-	## otherwise: go through all children
-	elsif (ref($tree->{NODES}->{$node}->{CHILDREN}) eq 'ARRAY'){
+	if (ref($tree->{NODES}->{$node}->{CHILDREN}) eq 'ARRAY'){
 	    my @leafs=();
 	    foreach my $c (@{$tree->{NODES}->{$node}->{CHILDREN}}){
 		push(@leafs,$self->get_leafs($tree,$c,$attr));
@@ -368,7 +367,14 @@ sub get_leafs{
 	    $tree->{NODES}->{$node}->{NR_LEAFS} = scalar @leafs;
 	    return @leafs;
 	}
+
+	print STDERR "WARNING: Something must be wrong here!\n";
+
+	if (exists $tree->{NODES}->{$node}->{$attr}){
+	    return ($tree->{NODES}->{$node}->{$attr});
+	}
     }
+    return ();
 }
 
 

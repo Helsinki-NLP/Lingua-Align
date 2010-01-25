@@ -1635,6 +1635,7 @@ sub zhechev_scoreXY{
 
 	    if (exists($lex->{$s}->{$t})){
 		$sum+=$lex->{$s}->{$t};
+#		print STDERR "add $lex->{$s}->{$t} for $s - $t\n";
 	    }
 	}
 	return 0 if (not $sum);  # sum=0? --> immediately stop and return 0
