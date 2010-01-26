@@ -222,6 +222,22 @@ sub align{
 # 	my @scores = $self->{CLASSIFIER}->classify($model);
 # 	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
 
+	my $nr_existing_links=0;
+	if ($self->{-verbose}){
+	    foreach my $sid (keys %{$existing_links}){
+		if (! exists $src{NODES}{$sid}){
+		    print STDERR "Strange! There is a link from $sid but this node does not seem to exist in the source language tree!\n";
+		}
+		foreach my $tid (keys %{$$existing_links{$sid}}){
+		    $nr_existing_links++;
+		    if (! exists $trg{NODES}{$tid}){
+			print STDERR "Strange! There is a link to $tid from $sid but the node does not seem to exist in the target language tree!\n";
+		    }
+		}
+	    }
+	}
+
+
 	my @scores = $self->classify($model,\%src,\%trg,$existing_links);
 
 	my %links=();
@@ -266,7 +282,9 @@ sub align{
 	if (not $self->{-add_links}){
 	    $correct+=$c;
 	    $wrong+=$w;
-	    $total+=$t;
+            $total+=scalar grep(/1/,@{$self->{LABELS}});
+#	    $total+=$self->{TOTALNRLINKS};
+#	    $total+=$t;
 	}
 
 	if ((not defined $SrcId) || (not defined $TrgId)){
@@ -862,6 +880,7 @@ sub classify_bottom_up{
     my ($model,$src,$trg,$links)=@_;
 
     $self->{LABELS}=[];
+#    $self->{TOTALNRLINKS}=0;
     my $FE=$self->{FEATURE_EXTRACTOR};
 
     my @srcnodes=@{$$src{TERMINALS}};
@@ -973,6 +992,7 @@ sub classify_bottom_up{
 		else{$label=1;}
 	    }
 	    push(@{$self->{LABELS}},$label);
+#	    $self->{TOTALNRLINKS}+=$label;
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    if ($self->{-linked_children}){
 		$self->linked_children(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
@@ -1041,6 +1061,7 @@ sub classify_top_down{
     my ($model,$src,$trg,$links)=@_;
 
     $self->{LABELS}=[];
+#    $self->{TOTALNRLINKS}=0;
     my $FE=$self->{FEATURE_EXTRACTOR};
 
     my @srcnodes=($$src{ROOTNODE});
@@ -1145,6 +1166,7 @@ sub classify_top_down{
 		else{$label=1;}
 	    }
 	    push(@{$self->{LABELS}},$label);
+#	    $self->{TOTALNRLINKS}+=$label;
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    if ($self->{-linked_parent}){
 		$self->linked_parent(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
@@ -1198,6 +1220,7 @@ sub extract_classification_data{
     my ($src,$trg,$links)=@_;
 
     $self->{LABELS}=[];
+#    $self->{TOTALNRLINKS}=0;
     my $FE=$self->{FEATURE_EXTRACTOR};
     $FE->clear_cache();
 
@@ -1284,6 +1307,7 @@ sub extract_classification_data{
 		else{$label=1;}
 	    }
 	    push(@{$self->{LABELS}},$label);
+#	    $self->{TOTALNRLINKS}+=$label;
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 #           print STDERR "test: $sn:$tn\n";
 	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
