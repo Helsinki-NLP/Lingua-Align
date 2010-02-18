@@ -269,6 +269,10 @@ sub align{
 	    }
 	}
 
+	if (not $self->{-add_links}){
+            $total+=scalar grep(/1/,@{$self->{LABELS}});
+	}
+
 	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
 					$self->{INSTANCES_SRC},
 					$self->{INSTANCES_TRG},
@@ -282,7 +286,6 @@ sub align{
 	if (not $self->{-add_links}){
 	    $correct+=$c;
 	    $wrong+=$w;
-            $total+=scalar grep(/1/,@{$self->{LABELS}});
 #	    $total+=$self->{TOTALNRLINKS};
 #	    $total+=$t;
 	}

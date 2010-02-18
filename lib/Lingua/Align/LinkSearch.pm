@@ -14,6 +14,7 @@ use Lingua::Align::LinkSearch::GreedyWellFormed;
 use Lingua::Align::LinkSearch::GreedyFinal;
 use Lingua::Align::LinkSearch::GreedyFinalAnd;
 use Lingua::Align::LinkSearch::Src2Trg;
+use Lingua::Align::LinkSearch::Src2TrgWellFormed;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
 use Lingua::Align::LinkSearch::NTFirst;
@@ -21,6 +22,7 @@ use Lingua::Align::LinkSearch::NTonly;
 use Lingua::Align::LinkSearch::Tonly;
 use Lingua::Align::LinkSearch::Assignment;
 use Lingua::Align::LinkSearch::PaCoMT;
+use Lingua::Align::LinkSearch::Cascaded;
 
 
 sub new{
@@ -29,6 +31,10 @@ sub new{
 
 #    my $type = $attr{-link_search} || 'greedy';
     my $type = $attr{-link_search} || 'threshold';
+
+    if ($type=~/^cascaded/i){
+	return new Lingua::Align::LinkSearch::Cascaded(%attr);
+    }
 
     if ($type=~/paco/i){
 	return new Lingua::Align::LinkSearch::PaCoMT(%attr);
@@ -56,6 +62,9 @@ sub new{
     if ($type=~/tonly/i){
 	return new Lingua::Align::LinkSearch::Tonly(%attr);
     }
+    if ($type=~/src2trg.*well.*form/i){
+	return new Lingua::Align::LinkSearch::Src2TrgWellFormed(%attr);
+    }
     if ($type=~/src2trg/i){
 	return new Lingua::Align::LinkSearch::Src2Trg(%attr);
     }
@@ -75,6 +84,52 @@ sub new{
 	return new Lingua::Align::LinkSearch::Assignment(%attr);
     }
     return new Lingua::Align::LinkSearch::Threshold(%attr);
+}
+
+
+# remove all candidates which are linked already (exactly that link)
+
+sub remove_existing_links{
+    my ($self,$linksST,$scores,$src,$trg,$labels)=@_;
+    my (@newscores,@newsrc,@newtrg,@newlabels);
+    foreach (0..$#{$scores}){
+	if (exists $$linksST{$$src[$_]}){
+	    if (exists $$linksST{$$src[$_]}{$$trg[$_]}){
+		next;
+	    }
+	}
+	push(@newscores,$$scores[$_]);
+	push(@newsrc,$$src[$_]);
+	push(@newtrg,$$trg[$_]);
+	push(@newlabels,$$labels[$_]);
+    }
+    @{$scores}=@newscores;
+    @{$src}=@newsrc;
+    @{$trg}=@newtrg;
+    @{$labels}=@newlabels;
+}
+
+
+# remove all candidates for which both nodes already have ANY link
+
+sub remove_already_linked{
+    my ($self,$linksST,$linksTS,$scores,$src,$trg,$labels)=@_;
+    my (@newscores,@newsrc,@newtrg,@newlabels);
+    foreach (0..$#{$scores}){
+	if (exists $$linksST{$$src[$_]}){
+	    if (exists $$linksTS{$$trg[$_]}){
+		next;
+	    }
+	}
+	push(@newscores,$$scores[$_]);
+	push(@newsrc,$$src[$_]);
+	push(@newtrg,$$trg[$_]);
+	push(@newlabels,$$labels[$_]);
+    }
+    @{$scores}=@newscores;
+    @{$src}=@newsrc;
+    @{$trg}=@newtrg;
+    @{$labels}=@newlabels;
 }
 
 

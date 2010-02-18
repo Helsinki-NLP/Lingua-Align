@@ -45,12 +45,15 @@ sub searchTrg2Src{
 	if ($$labels[$_] == 1){$total++;}
     }
 
+    my %linksTS=();
     foreach my $t (keys %BestTrg){
 	$$linksST{$BestLink{$t}}{$t}=$BestTrg{$t};
+	$linksTS{$t}{$BestLink{$t}}=$BestTrg{$t};
 	if ($BestLabel{$t} == 1){$correct++;}
 	else{$wrong++;}
     }
 
+    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 

@@ -63,7 +63,7 @@ sub search{
 	if ($$labels[$n] == 1){$correct++;}
 	else{$wrong++;}
     }
-
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 

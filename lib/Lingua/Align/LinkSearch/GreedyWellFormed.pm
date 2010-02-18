@@ -59,8 +59,16 @@ sub search{
 	last if ($value{$k}<$min_score);
 	my ($snid,$tnid)=split(/\:/,$k);
 
-	next if (exists $$linksST{$snid});
-	next if (exists $$linksTS{$tnid});
+	# check if these nodes have been linked already
+	# for "weak" wellformedness: skip only of both are linked already
+	# otherwise: do not allow mulit-links!
+
+	if ($self->{-weak_wellformedness}){
+	    next if ((exists $$linksST{$snid}) && (exists $$linksTS{$tnid}));
+	}
+	else{
+	    next if ((exists $$linksST{$snid}) || (exists $$linksTS{$tnid}));
+	}
 
 	## check well-formedness .....
 	if ($self->is_wellformed($srctree,$trgtree,$snid,$tnid,$linksST)){
@@ -74,6 +82,7 @@ sub search{
 #		if ($self->{-verbose});
 #	}
     }
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 

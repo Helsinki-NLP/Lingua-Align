@@ -32,15 +32,17 @@ sub search{
 
     if (not defined $min_score){$min_score=$self->{-min_score};}
 
+    my %linksTS=();
     foreach (0..$#{$scores}){
 	if ($$scores[$_]>=$min_score){
 	    $$linksST{$$src[$_]}{$$trg[$_]}=$$scores[$_];
+	    $linksTS{$$trg[$_]}{$$src[$_]}=$$scores[$_];
 	    if ($$labels[$_] == 1){$correct++;}
 	    else{$wrong++;}
 	}
 	if ($$labels[$_] == 1){$total++;}
     }
-
+    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 
