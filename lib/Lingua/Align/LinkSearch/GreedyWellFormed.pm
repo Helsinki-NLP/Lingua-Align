@@ -21,6 +21,11 @@ sub new{
 	$self->{$_}=$attr{$_};
     }
 
+    # set weak wellformedness
+    if ($attr{-link_search}=~/weak/i){
+	$self->{-weak_wellformedness} = 1;
+    }
+
     # for tree manipulation
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
 
@@ -59,37 +64,6 @@ sub search{
 
 	## check well-formedness .....
 	if ($self->is_wellformed($srctree,$trgtree,$snid,$tnid,$linksST)){
-
-# 	my $wellformed = 1;
-# 	foreach my $s (keys %{$linksST}){
-
-# 	    my $is_desc = $self->{TREES}->is_descendent($srctree,$s,$snid);
-# 	    my $is_anc;
-# 	    if (not $is_desc){
-# 		$is_anc = $self->{TREES}->is_ancestor($srctree,$s,$snid);
-# 	    }
-
-# 	    foreach my $t (keys %{$$linksST{$s}}){
-# 		if ($is_desc){
-# 		    if (not $self->{TREES}->is_descendent($trgtree,$t,$tnid)){
-# 			$wellformed=0;
-# 			last;
-# 		    }
-# 		}
-# 		if ($is_anc){
-# 		    if (not $self->{TREES}->is_ancestor($trgtree,$t,$tnid)){
-# 			$wellformed=0;
-# 			last;
-# 		    }
-# 		}
-# 	    }
-# 	    last if (not $wellformed);
-# 	}
-
-# 	if ($wellformed){
-
-
-
 	    $$linksST{$snid}{$tnid}=$value{$k};
 	    $$linksTS{$tnid}{$snid}=$value{$k};
 	    if ($label{$k} == 1){$correct++;}
@@ -118,6 +92,7 @@ sub is_wellformed{
 	}
 
 	foreach my $t (keys %{$$linksST{$s}}){
+
 	    my $trg_is_desc = $self->{TREES}->is_descendent($trgtree,$t,$tnode);
 	    my $trg_is_anc;
 	    if (not $trg_is_desc){
@@ -126,9 +101,20 @@ sub is_wellformed{
 	    
 	    if ($src_is_desc){              # both nodes are descendents
 		next if ($trg_is_desc);
+		if ($self->{-weak_wellformedness}){
+		    next if ($t eq $tnode);     
+		}
 	    }
 	    elsif ($src_is_anc){            # both are ancestors
 		next if ($trg_is_anc);
+		if ($self->{-weak_wellformedness}){
+		    next if ($t eq $tnode);
+		}
+	    }
+	    elsif ($s eq $snode){
+		if ($self->{-weak_wellformedness}){
+		    next if ($trg_is_desc || $trg_is_anc);
+		}
 	    }
 	    else{                           # both are not connected
 		next if (not ($trg_is_desc || $trg_is_anc));

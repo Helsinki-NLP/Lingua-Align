@@ -1,19 +1,13 @@
-package Lingua::Align::LinkSearch::GreedyFinalAnd;
-
-#
-# do some base alignment and then greedily add links between nodes
-# that are not aligned yet (without wellformedness check!)
-#
+package Lingua::Align::LinkSearch::PaCoMT;
 
 use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw(Lingua::Align::LinkSearch::GreedyFinal);
+@ISA = qw(Lingua::Align::LinkSearch::GreedyWellFormed);
 $VERSION = '0.01';
 
 use Lingua::Align::LinkSearch;
-
 
 sub new{
     my $class=shift;
@@ -26,10 +20,14 @@ sub new{
 	$self->{$_}=$attr{$_};
     }
 
-    my $BaseSearch = $attr{-link_search} || 'greedy_final_and';
-    $BaseSearch =~s/\_?[Aa]nd//;
-    $attr{-link_search} = $BaseSearch;
-    $self->{BASESEARCH} = new Lingua::Align::LinkSearch(%attr);
+    $self->{LINKNT} = 
+	new Lingua::Align::LinkSearch(-link_search =>'NTonlyGreedyWellformed');
+
+    $self->{LINKT} = 
+	new Lingua::Align::LinkSearch(-link_search =>'TonlyGreedyWellformed');
+
+    $self->{FINAL} = 
+	new Lingua::Align::LinkSearch(-link_search =>'GreedyWeaklyWellformedFinal');
 
     # for tree manipulation
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
@@ -45,26 +43,23 @@ sub search{
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    # first do the base search algorithm
-    my ($correct,$wrong,$total) = 
-	$self->{BASESEARCH}->search($linksST,$scores,$min_score,
-				    $src,$trg,$labels,
-				    $stree,$ttree,$linksTS);
+    my ($correct1,$wrong1,$total1) = 
+	$self->{LINKNT}->search($linksST,$scores,$min_score,
+				$src,$trg,$labels,
+				$stree,$ttree,$linksTS);
+    my ($correct2,$wrong2,$total2) = 
+	$self->{LINKT}->search($linksST,$scores,$min_score,
+			       $src,$trg,$labels,
+			       $stree,$ttree,$linksTS);
+    my ($correct3,$wrong3,$total3) = 
+	$self->{FINAL}->search($linksST,$scores,$min_score,
+			       $src,$trg,$labels,
+			       $stree,$ttree,$linksTS);
 
-    foreach my $n (sort {$$scores[$b] <=> $$scores[$a]} (0..$#{$scores})){
-	last if ($$scores[$n] < $min_score);
+    return ($correct1+$correct2+$correct3,
+	    $wrong1+$wrong2+$wrong3,
+	    $total1+$total2+$total3);
 
-	next if (exists $$linksST{$$src[$n]});
-	next if (exists $$linksTS{$$trg[$n]});
-
-#	print STDERR "final_and: add link between $$src[$n] & $$trg[$n]\n";
-	$$linksST{$$src[$n]}{$$trg[$n]}=$$scores[$n];
-	$$linksTS{$$trg[$n]}{$$src[$n]}=$$scores[$n];
-	if ($$labels[$n] == 1){$correct++;}
-	else{$wrong++;}
-    }
-
-    return ($correct,$wrong,$total);
 }
 
 

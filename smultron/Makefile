@@ -36,6 +36,19 @@ CLASSIFIER = megam
 SEARCH = wellformed
 # SEARCH = greedy
 # SEARCH = assign
+#
+# 1) GreedyWeaklyWellformedFinal
+#	greedy search, 
+#       check for weak wellformedness, 
+#       add n:m links in a second (final) step
+# 2) GreedyWeaklyWellformedFinalNTfirst
+#       align NT nodes before terminals with "GreedyWeaklyWellformed"
+#       add n:m links with the same strategy (NT first + GreedyWeaklyWellformed)
+# 3) NTfirstGreedyWeaklyWellformedFinal
+#       align NT nodes first with "GreedyWeaklyWellformedFinal"
+#       align terminals afterwards also with "GreedyWeaklyWellformedFinal"
+#
+
 ALIGNTHR = 0.1
 # EXTRAOPT = -C -U
 
@@ -141,6 +154,23 @@ sophie: moses-sophie
 		-M $< \
 		-f ${FEAT} \
 		-n ${NR_TRAIN} \
+		-e ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@.alg
+	${ALIGNEVAL} -b ${STARTEVAL} -e ${ENDEVAL} \
+		${SMULTRON}/${SOPHIE}.xml $@.alg
+
+
+sophie.test: moses-sophie
+	${TREEALIGN} \
+		-a ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-f ${FEAT} \
+		-n 0 \
 		-e ${NR_TEST} \
 		-x ${ALIGNTHR} \
 		-1 ${WEIGHTG} \

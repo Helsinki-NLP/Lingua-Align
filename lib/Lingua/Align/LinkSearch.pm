@@ -17,7 +17,10 @@ use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 use Lingua::Align::LinkSearch::Intersection;
 use Lingua::Align::LinkSearch::NTFirst;
+use Lingua::Align::LinkSearch::NTonly;
+use Lingua::Align::LinkSearch::Tonly;
 use Lingua::Align::LinkSearch::Assignment;
+use Lingua::Align::LinkSearch::PaCoMT;
 
 
 sub new{
@@ -27,14 +30,31 @@ sub new{
 #    my $type = $attr{-link_search} || 'greedy';
     my $type = $attr{-link_search} || 'threshold';
 
+    if ($type=~/paco/i){
+	return new Lingua::Align::LinkSearch::PaCoMT(%attr);
+    }
+
+    # NT nodes first using the search strategy specified thereafter
+    if ($type=~/^nt.*first/i){
+	return new Lingua::Align::LinkSearch::NTFirst(%attr);
+    }
     if ($type=~/and/i){
 	return new Lingua::Align::LinkSearch::GreedyFinalAnd(%attr);
     }
     if ($type=~/final/i){
 	return new Lingua::Align::LinkSearch::GreedyFinal(%attr);
     }
+
+    # NT nodes first but "final" and "and" are handled before
     if ($type=~/nt.*first/i){
 	return new Lingua::Align::LinkSearch::NTFirst(%attr);
+    }
+
+    if ($type=~/ntonly/i){
+	return new Lingua::Align::LinkSearch::NTonly(%attr);
+    }
+    if ($type=~/tonly/i){
+	return new Lingua::Align::LinkSearch::Tonly(%attr);
     }
     if ($type=~/src2trg/i){
 	return new Lingua::Align::LinkSearch::Src2Trg(%attr);

@@ -140,7 +140,7 @@ my $treealigner = new Lingua::Align::Trees(
     -same_types_only => $SameType,        # link only T&T and nonT&nonT
     -nonterminals_only => $NTonly,        # link non-terminals only
     -terminals_only => $Tonly,            # link terminals only
-    -skip_unary => 1,                     # skip nodes with unary productions
+    -skip_unary => 0,                     # 1:skip nodes with unary productions
 
     -add_links => $opt_u,                 # "add links" mode
 
@@ -168,6 +168,9 @@ my $treealigner = new Lingua::Align::Trees(
 
     -lex_lower => 1,                      # always convert to lower case!
     -min_score => $opt_x,
+
+    -weak_wellformedness => 1,        # use *weak* wellformedness if applicable
+
     -verbose => $opt_v,
 
     );

@@ -10,6 +10,28 @@ $VERSION = '0.01';
 use Lingua::Align::LinkSearch;
 
 
+sub new{
+    my $class=shift;
+    my %attr=@_;
+
+    my $self={};
+    bless $self,$class;
+
+    foreach (keys %attr){
+	$self->{$_}=$attr{$_};
+    }
+
+    my $BaseSearch = $attr{-link_search} || 'NTfirst_greedy_weakly_wellformed';
+    $BaseSearch =~s/\_?[Nn][tT]first\_?//;
+    $attr{-link_search} = $BaseSearch;
+    $self->{BASESEARCH} = new Lingua::Align::LinkSearch(%attr);
+
+    # for tree manipulation
+    $self->{TREES} = new Lingua::Align::Corpus::Treebank();
+
+    return $self;
+}
+
 
 sub search{
     my $self=shift;
@@ -45,16 +67,24 @@ sub search{
 
 
     # first align non-terminals in a greedy way (wellformed!)
+#    my ($NTcorrect,$NTwrong,$NTtotal) = 
+#	$self->SUPER::search($linksST,\@NTscores,$min_score,
+#			     \@NTsrc,\@NTtrg,\@NTlabels,
+#			     $stree,$ttree,$linksTS);
     my ($NTcorrect,$NTwrong,$NTtotal) = 
-	$self->SUPER::search($linksST,\@NTscores,$min_score,
-			     \@NTsrc,\@NTtrg,\@NTlabels,
-			     $stree,$ttree,$linksTS);
+	$self->{BASESEARCH}->search($linksST,\@NTscores,$min_score,
+				    \@NTsrc,\@NTtrg,\@NTlabels,
+				    $stree,$ttree,$linksTS);
 
     # second step: add more links if possible (involving terminal nodes)
+#    my ($Tcorrect,$Twrong,$Ttotal) = 
+#	$self->SUPER::search($linksST,\@Tscores,$min_score,
+#			     \@Tsrc,\@Ttrg,\@Tlabels,
+#			     $stree,$ttree,$linksTS);
     my ($Tcorrect,$Twrong,$Ttotal) = 
-	$self->SUPER::search($linksST,\@Tscores,$min_score,
-			     \@Tsrc,\@Ttrg,\@Tlabels,
-			     $stree,$ttree,$linksTS);
+	$self->{BASESEARCH}->search($linksST,\@Tscores,$min_score,
+				    \@Tsrc,\@Ttrg,\@Tlabels,
+				    $stree,$ttree,$linksTS);
 
     return ($Tcorrect+$NTcorrect,$Twrong+$NTwrong,$Ttotal+$NTtotal);
 

@@ -1,4 +1,4 @@
-package Lingua::Align::LinkSearch::GreedyFinal;
+package Lingua::Align::LinkSearch::NTonly;
 
 use 5.005;
 use strict;
@@ -21,21 +21,17 @@ sub new{
 	$self->{$_}=$attr{$_};
     }
 
-    my $BaseSearch = $attr{-link_search} || 'greedy_final';
-    $BaseSearch =~s/\_?[Ff]inal//;
+    my $BaseSearch = $attr{-link_search} || 'NTonly_greedy_weakly_wellformed';
+    $BaseSearch =~s/\_?[Nn][tT]only\_?//;
     $attr{-link_search} = $BaseSearch;
     $self->{BASESEARCH} = new Lingua::Align::LinkSearch(%attr);
-
-    # need to check wellformedness?
-    if ($BaseSearch=~/well.*formed/i){
-	$self->{-check_wellformedness}=1;
-    }
 
     # for tree manipulation
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
 
     return $self;
 }
+
 
 sub search{
     my $self=shift;
@@ -45,47 +41,30 @@ sub search{
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    # first do the base search algorithm
-    my ($correct,$wrong,$total) = 
-	$self->{BASESEARCH}->search($linksST,$scores,$min_score,
-				    $src,$trg,$labels,
-				    $stree,$ttree,$linksTS);
+    my (@NTscores,@NTlabels);
+    my (@NTsrc,@NTtrg);
 
-    # secondly: add remaining links for unlinked nodes
-    #           (only if well-formed!)
-
-    foreach my $n (sort {$$scores[$b] <=> $$scores[$a]} (0..$#{$scores})){
-	last if ($$scores[$n] < $min_score);
-	if (exists $$linksST{$$src[$n]}){
-#	    next if (exists $$linksST{$$src[$n]}{$$trg[$n]});
-#	    print STDERR "final: linked already ($$src[$n] & $$trg[$n])\n";
-	    next if (exists $$linksTS{$$trg[$n]});
-	}
-
-	if ($self->{-check_wellformedness}){
-	    if (not $self->{BASESEARCH}->is_wellformed($stree,$ttree,
-						       $$src[$n],$$trg[$n],
-						       $linksST)){
+    foreach my $n (0..$#{$scores}){
+	next if ($$scores[$n] < $min_score);
+	if ($self->{TREES}->is_nonterminal($stree,$$src[$n])){
+	    if ($self->{TREES}->is_nonterminal($ttree,$$trg[$n])){
+		push(@NTscores,$$scores[$n]);
+		push(@NTsrc,$$src[$n]);
+		push(@NTtrg,$$trg[$n]);
+		push(@NTlabels,$$labels[$n]);
 		next;
 	    }
 	}
-#	if ($self->is_wellformed($stree,$ttree,$$src[$n],$$trg[$n],$linksST)){
-#	if ($self->{BASESEARCH}->is_wellformed($stree,$ttree,
-#					       $$src[$n],$$trg[$n],$linksST)){
-
-#	print STDERR "final: add link between $$src[$n] & $$trg[$n]\n";
-	$$linksST{$$src[$n]}{$$trg[$n]}=$$scores[$n];
-	$$linksTS{$$trg[$n]}{$$src[$n]}=$$scores[$n];
-	if ($$labels[$n] == 1){$correct++;}
-	else{$wrong++;}
-
-#	}
-#	else{
-#	    print STDERR "final: not well-formed, skip $$src[$n] & $$trg[$n]\n";
-#	}
     }
 
+
+    my ($correct,$wrong,$total) = 
+	$self->{BASESEARCH}->search($linksST,\@NTscores,$min_score,
+				    \@NTsrc,\@NTtrg,\@NTlabels,
+				    $stree,$ttree,$linksTS);
+
     return ($correct,$wrong,$total);
+
 }
 
 
