@@ -5,7 +5,6 @@ use strict;
 
 use vars qw($VERSION @ISA);
 @ISA = qw(Lingua::Align::LinkSearch);
-@ISA = qw();
 $VERSION = '0.01';
 
 sub new{
