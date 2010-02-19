@@ -202,8 +202,8 @@ sub read_tree_alignments{
     my $trgid = $self->{__XMLHANDLE__}->{TREEBANKIDS}->[1];
 
     my %attr=();
-    $attr{-src_type}='TigerXML';
-    $attr{-trg_type}='TigerXML';
+    $attr{-src_type}=$self->{-src_type} || 'TigerXML';
+    $attr{-trg_type}=$self->{-trg_type} || 'TigerXML';
     $attr{-src_file}=
 	__find_corpus_file($self->{__XMLHANDLE__}->{TREEBANKS}->{$srcid},$file);
     $attr{-trg_file}=
