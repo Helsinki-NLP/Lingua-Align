@@ -46,6 +46,22 @@ sub next_sentence_id{}            # return next sentence ID and move to next
 sub next_sentence_id_would_be{}   # return next sentence ID and stay at current
 
 
+sub root_node{
+    my $self=shift;
+    my ($tree)=@_;
+    if (exists $tree->{ROOTNODE}){
+	return $tree->{ROOTNODE};
+    }
+    foreach (keys %{$tree->{NODES}}){
+	if ((not exists $tree->{NODES}->{$_}->{PRENTS}) || 
+	    (scalar @{$tree->{NODES}->{$_}->{PRENTS}} == 0)){
+	    $tree->{ROOTNODE}=$_;
+	    return $_;
+	}
+    }
+    return undef;  # no root node? ---> no tree structure?
+}
+
 sub distance_to_root{
     my $self=shift;
     my ($tree,$node)=@_;
