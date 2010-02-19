@@ -96,7 +96,7 @@ sub read_next_alignment{
 		    last if ($srcok);
 		}
 		my $trgok=0;
-		for (1..$readmax){
+		for (0..$readmax){
 		    my $id = $self->{TRG}->next_sentence_id_would_be($_);
 		    if ($id eq $trg[0]){$trgok=1;}
 		    elsif (not defined $id){$trgok=1;}  # no info about IDs

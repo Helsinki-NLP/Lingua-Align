@@ -221,6 +221,11 @@ sub __XMLTagStart{
     }
     elsif ($e eq 'node'){
 
+	if (exists $a{token}){       # PACO-MT: Vincent's conversion
+	    $a{word} = $a{token};    # saves words in token-attributes!
+	    delete $a{token};
+	}
+
 	if (exists $a{index}){
 	    $p->{IS_INDEX_NODE}=1;
 	    if ($p->{-skip_indexed}){      # skip all index nodes!
@@ -331,8 +336,19 @@ sub __XMLTagEnd{
 	    }
 
 	}
-	
     }
+
+    # no sentence or comment tag ---> make sentence out of tokens
+    # (should I look at sorting the nodes?)
+    if (($e eq 'alpino_ds') && (not $p->{SENT})){
+	foreach (@{$p->{TERMINALS}}){
+	    if (exists $p->{NODES}->{$_}->{word}){
+		$p->{SENT}.=$p->{NODES}->{$_}->{word}.' ';
+	    }
+	}
+	chomp $p->{SENT};
+    }
+
 }
 
 sub __XMLChar{
