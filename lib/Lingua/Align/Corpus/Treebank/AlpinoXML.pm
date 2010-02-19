@@ -113,9 +113,6 @@ sub read_next_sentence{
 	$tree->{ROOTNODE}=$self->{__XMLHANDLE__}->{ROOTNODE};
 	$tree->{NODES}=$self->{__XMLHANDLE__}->{NODES};
 
-	# sort terminals by position (ID)!!!!!!!!
-	@{$tree->{TERMINALS}}=sort @{$self->{__XMLHANDLE__}->{TERMINALS}};
-
 	if ($self->{__XMLHANDLE__}->{SENTID}=~/^(.*)\-([^-]+)$/){
 	    $tree->{ID}=$2;
 	    $tree->{CORPUS}=$1;
@@ -234,16 +231,21 @@ sub __XMLTagStart{
 	}
 	else{ $p->{IS_INDEX_NODE}=0; }
 
-#	$a{id}=$p->{SENTID}.'_'.$a{id};      # append sentence ID to node ID
+	if (exists $a{id}){                # take sentence ID from token ID
+	    if ($a{id} =~/^(.*)\_(.*)$/){  # (is that a good way of doing it?)
+		$p->{SENTID} = $1;
+	    }
+	}
 
 	if (exists $a{word}){
-#	    $a{id}=500+$a{begin};            # start terminal nodes with 500
-	    $a{id}=$a{begin};
-	    $a{id}=$p->{SENTID}.'_'.$a{id};  # and the begin position!!
+	    if (not exists $a{id}){
+		$a{id}=$a{begin};
+		$a{id}=$p->{SENTID}.'_'.$a{id};  # and the begin position!!
+	    }
 	    push(@{$p->{TERMINALS}},$a{id});
 	}
-	else{
-	    $a{id}+=500;                      # add 500 to non-terminal nodes
+	elsif (not exists $a{id}){
+	    $a{id}+=500;                  # add 500 to non-terminal nodes
 	    $a{id}=$p->{SENTID}.'_'.$a{id};   # add sentence ID to node ID
 	}
 
@@ -338,8 +340,13 @@ sub __XMLTagEnd{
 	}
     }
 
+    # sort terminals by position (ID)!!!!!!!!
+    @{$p->{TERMINALS}}=
+	sort { my @x=split(/[\-\_]/,$a);
+	       my @y=split(/[\-\_]/,$b); 
+	       return $x[-1] <=> $y[-1] } @{$p->{TERMINALS}};
+
     # no sentence or comment tag ---> make sentence out of tokens
-    # (should I look at sorting the nodes?)
     if (($e eq 'alpino_ds') && (not $p->{SENT})){
 	foreach (@{$p->{TERMINALS}}){
 	    if (exists $p->{NODES}->{$_}->{word}){
