@@ -39,51 +39,102 @@ sub search{
     my $final = $self->align_nodes($srcroot,$trgroot,$srctree,$trgtree,\%value,
 				   \%link,\%cost);
 
-    foreach my $s ($self->{TREES}->subtree_nodes($srctree,$srcroot)){
-	if (exists $link{$s}){
-	    my $t = $link{$s};
-	    $$linksST{$s}{$t}=$value{$s}{$t};
-	    $$linksTS{$t}{$s}=$value{$s}{$t};
-	    if ($label{$s}{$t} == 1){$correct++;}
-	    else{$wrong++;}
-	}
-    }
+    # always align root nodes (good?)
+    my $s = $srcroot;
+    my $t = $trgroot;
+    $$linksST{$s}{$t}=$value{$s}{$t};
+    $$linksTS{$t}{$s}=$value{$s}{$t};
+    if ($label{$s}{$t} == 1){$correct++;}
+    else{$wrong++;}
+
+    $self->read_links($srcroot,$trgroot,$srctree,
+		      \%link,\%value,
+		      $linksST,$linksTS,
+		      \%label,\$correct,\$wrong);
+
+#     my @c=$self->{TREES}->children($srctree,$s);
+#     while (@c){
+# 	foreach $s (@c){
+# 	    $t = $link{$s}{$trgroot};
+# 	    $$linksST{$s}{$t}=$value{$s}{$t};
+# 	    $$linksTS{$t}{$s}=$value{$s}{$t};
+# 	    if ($label{$s}{$t} == 1){$correct++;}
+# 	    else{$wrong++;}
+# 	    $trgroot = $t;
+# 	}
+#     }
 
     $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 
 
+sub read_links{
+    my $self=shift;
+    my ($srcroot,$trgroot,$srctree,$link,$value,
+	$linksST,$linksTS,$label,$correct,$wrong)=@_;
+
+    my @c=$self->{TREES}->children($srctree,$srcroot);
+    foreach my $s (@c){
+	if (exists $$link{$s} && ref($$link{$s}) eq 'HASH'){
+	    if (exists $$link{$s}{$trgroot}){
+		my $t = $$link{$s}{$trgroot};
+		$$linksST{$s}{$t}=$$value{$s}{$t};
+		$$linksTS{$t}{$s}=$$value{$s}{$t};
+		if ($$label{$s}{$t} == 1){$$correct++;}
+		else{$$wrong++;}
+		$self->read_links($s,$t,$srctree,$link,$value,
+				  $linksST,$linksTS,$label,
+				  $correct,$wrong);
+	    }
+	}
+    }
+}
+
 sub align_nodes{
     my $self=shift;
-    my ($srcroot,$trgroot,$srctree,$trgtree,$value,$link,$cost)=@_;
+    my ($srcroot,$trgroot,$srctree,$trgtree,$value,$link,$cost,$indent)=@_;
 
+    print STDERR "$indent-- subtree $srcroot:$trgroot\n";
+    if (defined $$cost{$srcroot}){
+	if (defined $$cost{$srcroot}{$trgroot}){
+	    return $$value{$srcroot}{$trgroot};
+	}
+    }
+
+    my $score=0;	
     foreach my $s ($self->{TREES}->children($srctree,$srcroot)){
 	my ($BestScore,$BestNode)=(0,undef);
+	# weak wellformedness: check alignment to target root
+	my $score = $self->align_nodes($s,$trgroot,$srctree,$trgtree,
+				       $value,$link,$cost,"$indent--");
+	if ($score > $BestScore){
+	    $BestScore=$score;
+	    $BestNode=$trgroot;
+	}
 	foreach my $t ($self->{TREES}->subtree_nodes($trgtree,$trgroot)){
 	    my $score = $self->align_nodes($s,$t,$srctree,$trgtree,
-					   $value,$link,$cost);
+					   $value,$link,$cost,"$indent--");
 	    if ($score > $BestScore){
 		$BestScore=$score;
 		$BestNode=$t;
 	    }
 	}
-	if ($BestNode){
-	    $$link{$s} = $BestNode;
-	    $$cost{$s} = $BestScore;
+	if (defined $BestNode){
+#	    $$link{$s}{"$srcroot:$trgroot"}=$BestNode;
+#	    $$cost{$s}{"$srcroot:$trgroot"}=$BestScore;
+	    $$link{$s}{$trgroot}=$BestNode;
+	    $$cost{$s}{$trgroot}=$BestScore;
+	    $score+=$BestScore;
+	    print STDERR "$indent--....$s-->$BestNode ($BestScore)\n";
 	}
 #	else{
 #	    print STDERR "no link found for source node $s!\n";
 #	}
     }
 
-    my $ret=$$value{$srcroot}{$trgroot};
-    foreach my $s ($self->{TREES}->children($srctree,$srcroot)){
-	$ret += $$cost{$s};
-    }
-    return $ret;
+    return $score+$$value{$srcroot}{$trgroot};
 }
-
 
 
 1;

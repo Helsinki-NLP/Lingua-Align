@@ -23,6 +23,7 @@ use Lingua::Align::LinkSearch::Tonly;
 use Lingua::Align::LinkSearch::Assignment;
 use Lingua::Align::LinkSearch::PaCoMT;
 use Lingua::Align::LinkSearch::Cascaded;
+use Lingua::Align::LinkSearch::Viterbi;
 
 
 sub new{
@@ -31,6 +32,10 @@ sub new{
 
 #    my $type = $attr{-link_search} || 'greedy';
     my $type = $attr{-link_search} || 'threshold';
+
+    if ($type=~/^viterbi/i){
+	return new Lingua::Align::LinkSearch::Viterbi(%attr);
+    }
 
     if ($type=~/^cascaded/i){
 	return new Lingua::Align::LinkSearch::Cascaded(%attr);
