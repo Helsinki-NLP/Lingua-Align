@@ -95,45 +95,75 @@ sub align_nodes{
     my $self=shift;
     my ($srcroot,$trgroot,$srctree,$trgtree,$value,$link,$cost,$indent)=@_;
 
-    print STDERR "$indent-- subtree $srcroot:$trgroot\n";
+#    print STDERR "$indent-- subtree $srcroot:$trgroot\n";
     if (defined $$cost{$srcroot}){
 	if (defined $$cost{$srcroot}{$trgroot}){
 	    return $$value{$srcroot}{$trgroot};
 	}
     }
 
-    my $score=0;	
+    my $score=0;
     foreach my $s ($self->{TREES}->children($srctree,$srcroot)){
 	my ($BestScore,$BestNode)=(0,undef);
 	# weak wellformedness: check alignment to target root
-	my $score = $self->align_nodes($s,$trgroot,$srctree,$trgtree,
+	my $ThisScore = $self->align_nodes($s,$trgroot,$srctree,$trgtree,
 				       $value,$link,$cost,"$indent--");
-	if ($score > $BestScore){
-	    $BestScore=$score;
+	if ($ThisScore > $BestScore){
+	    $BestScore=$ThisScore;
 	    $BestNode=$trgroot;
 	}
+
 	foreach my $t ($self->{TREES}->subtree_nodes($trgtree,$trgroot)){
-	    my $score = $self->align_nodes($s,$t,$srctree,$trgtree,
-					   $value,$link,$cost,"$indent--");
-	    if ($score > $BestScore){
-		$BestScore=$score;
+	    my $ThisScore = $self->align_nodes($s,$t,$srctree,$trgtree,$value,
+					   $link,$cost,"$indent--");
+	    if ($ThisScore > $BestScore){
+		$BestScore=$ThisScore;
 		$BestNode=$t;
 	    }
 	}
 	if (defined $BestNode){
-#	    $$link{$s}{"$srcroot:$trgroot"}=$BestNode;
-#	    $$cost{$s}{"$srcroot:$trgroot"}=$BestScore;
 	    $$link{$s}{$trgroot}=$BestNode;
 	    $$cost{$s}{$trgroot}=$BestScore;
 	    $score+=$BestScore;
-	    print STDERR "$indent--....$s-->$BestNode ($BestScore)\n";
+	    if ($self->{-verbose}){
+		print STDERR "$indent--$s-->$BestNode ($BestScore)\n";
+	    }
 	}
-#	else{
-#	    print STDERR "no link found for source node $s!\n";
-#	}
     }
 
-    return $score+$$value{$srcroot}{$trgroot};
+    $score+=$$value{$srcroot}{$trgroot};
+
+##########################################
+## normalize (if not switched off ...)
+    if (not $self->{-skip_normalize}){
+	if ($score){
+	    my %linked=();
+	    my @c=$self->{TREES}->subtree_nodes($srctree,$srcroot);
+	    foreach my $s (@c){
+		if (exists $$link{$s} && ref($$link{$s}) eq 'HASH'){
+		    if (exists $$link{$s}{$trgroot}){
+			my $t = $$link{$s}{$trgroot};
+			$linked{$t}++;
+		    }
+		}
+	    }
+	    $linked{$trgroot}++;
+	    
+	    my $nrLinked=0;
+	    my $nrLinks=0;
+	    foreach (keys %linked){
+		$nrLinked++;
+		$nrLinks+=$linked{$_};
+	    }
+#	print STDERR "$indent--multiply score with $nrLinked/$nrLinks\n";
+	    if ($nrLinks){
+		$score*=$nrLinked/$nrLinks;
+	    }
+	}
+    }
+##########################################
+
+    return $score;
 }
 
 
