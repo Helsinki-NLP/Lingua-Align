@@ -101,6 +101,7 @@ sub is_wellformed{
 	}
 
 	foreach my $t (keys %{$$linksST{$s}}){
+	    next if ($s eq $snode && $t eq $tnode);  # identical link is OK!
 
 	    my $trg_is_desc = $self->{TREES}->is_descendent($trgtree,$t,$tnode);
 	    my $trg_is_anc;

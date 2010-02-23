@@ -1,6 +1,6 @@
 
-# SMULTRON=${HOME}/projects/SMULTRON
-SMULTRON=.
+SMULTRON=${HOME}/projects/SMULTRON
+# SMULTRON=.
 SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
 SOPHIE_DEEN=Alignments_SMULTRON_Sophies_World_DE_EN
 ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
@@ -60,9 +60,11 @@ SRC=src
 TRG=trg
 
 PACO            = ${HOME}/projects/PACO-MT
-# TREEALIGNERHOME = ${PACO}/tools/Lingua-Align-dev
-TREEALIGNERHOME = ..
-TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
+TREEALIGNERHOME = ${PACO}/tools/Lingua-Align-dev
+# TREEALIGNERHOME = ..
+# TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
+TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
+
 STA2MOSES       = ${TREEALIGNERHOME}/bin/sta2moses
 ALIGNEVAL       = ${TREEALIGNERHOME}/bin/eval_sta
 

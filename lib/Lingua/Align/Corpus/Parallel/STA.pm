@@ -137,6 +137,9 @@ sub print_alignments{
 	    if ($$links{$s}{$t}>0.5){
 		$str.="    <align $att type=\"good\">\n";
 	    }
+	    elsif ($$links{$s}{$t}=~s/w//){
+		$str.="    <align $att type=\"weak\">\n";
+	    }
 	    else{
 		$str.="    <align $att type=\"fuzzy\">\n";
 	    }

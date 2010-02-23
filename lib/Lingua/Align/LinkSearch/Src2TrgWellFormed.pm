@@ -45,8 +45,15 @@ sub search{
 
 	## check well-formedness .....
 	if ($self->is_wellformed($srctree,$trgtree,$snid,$tnid,$linksST)){
-	    $$linksST{$snid}{$tnid}=$value{$k};
-	    $$linksTS{$tnid}{$snid}=$value{$k};
+	    # mark "weakly" wellformed with suffix 'w'
+	    if (exists $$linksTS{$tnid}){
+		$$linksST{$snid}{$tnid}=$value{$k}.'w';
+		$$linksTS{$tnid}{$snid}=$value{$k}.'w';
+	    }
+	    else{
+		$$linksST{$snid}{$tnid}=$value{$k};
+		$$linksTS{$tnid}{$snid}=$value{$k};
+	    }
 	    if ($label{$k} == 1){$correct++;}
 	    else{$wrong++;}
 	}

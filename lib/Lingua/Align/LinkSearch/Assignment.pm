@@ -4,14 +4,27 @@ use 5.005;
 use strict;
 
 use vars qw($VERSION @ISA);
-@ISA = qw(Lingua::Align::LinkSearch::Greedy);
+@ISA = qw(Lingua::Align::LinkSearch::GreedyWellFormed);
 $VERSION = '0.01';
 
 use Algorithm::Munkres;
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels)=@_;
+    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+	$srctree,$trgtree,$linksTS)=@_;
+    my ($correct,$wrong,$total) = $self->assign($linksST,$scores,$min_score,
+						$src,$trg,$labels,
+						$srctree,$trgtree,$linksTS);
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
+    return ($correct,$wrong,$total);
+}
+
+
+sub assign{
+    my $self=shift;
+    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+	$srctree,$trgtree,$linksTS)=@_;
 
     my $correct=0;
     my $wrong=0;
@@ -61,9 +74,9 @@ sub search{
     my @assignment=();
     &Algorithm::Munkres::assign(\@matrix,\@assignment);
 
-    my %linksTS=();
+    if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    # save links (no score threshold?!?)
+    # save links
     foreach (0..$#assignment){
 	next if (not $matrix[$_][$assignment[$_]]);
 	my $score=$max-$matrix[$_][$assignment[$_]];
@@ -72,11 +85,10 @@ sub search{
 	$snid = $SrcNodes[$_];
 	$tnid = $TrgNodes[$assignment[$_]];
 	$$linksST{$snid}{$tnid}=$max-$matrix[$_][$assignment[$_]];
-	$linksTS{$tnid}{$snid}=$max-$matrix[$_][$assignment[$_]];
+	$$linksTS{$tnid}{$snid}=$max-$matrix[$_][$assignment[$_]];
 	if ($label[$_][$assignment[$_]] == 1){$correct++;}
 	else{$wrong++;}
     }
-    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg,$labels);
     return ($correct,$wrong,$total);
 }
 

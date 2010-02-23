@@ -24,6 +24,7 @@ use Lingua::Align::LinkSearch::Assignment;
 use Lingua::Align::LinkSearch::PaCoMT;
 use Lingua::Align::LinkSearch::Cascaded;
 use Lingua::Align::LinkSearch::Viterbi;
+use Lingua::Align::LinkSearch::AssignmentWellFormed;
 
 
 sub new{
@@ -33,14 +34,12 @@ sub new{
 #    my $type = $attr{-link_search} || 'greedy';
     my $type = $attr{-link_search} || 'threshold';
 
-    if ($type=~/^viterbi/i){
-	return new Lingua::Align::LinkSearch::Viterbi(%attr);
-    }
-
     if ($type=~/^cascaded/i){
 	return new Lingua::Align::LinkSearch::Cascaded(%attr);
     }
-
+    if ($type=~/^viterbi/i){
+	return new Lingua::Align::LinkSearch::Viterbi(%attr);
+    }
     if ($type=~/paco/i){
 	return new Lingua::Align::LinkSearch::PaCoMT(%attr);
     }
@@ -79,14 +78,17 @@ sub new{
     if ($type=~/inter/i){
 	return new Lingua::Align::LinkSearch::Intersection(%attr);
     }
+    if ($type=~/(assign|munkres).*wellform/i){
+	return new Lingua::Align::LinkSearch::AssignmentWellFormed(%attr);
+    }
+    if ($type=~/(assign|munkres)/i){
+	return new Lingua::Align::LinkSearch::Assignment(%attr);
+    }
     if ($type=~/well.*formed/i){
 	return new Lingua::Align::LinkSearch::GreedyWellFormed(%attr);
     }
     if ($type=~/greedy/i){
 	return new Lingua::Align::LinkSearch::Greedy(%attr);
-    }
-    if ($type=~/(assign|munkres)/i){
-	return new Lingua::Align::LinkSearch::Assignment(%attr);
     }
     return new Lingua::Align::LinkSearch::Threshold(%attr);
 }
