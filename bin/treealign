@@ -65,11 +65,11 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_M $opt_N $opt_L $opt_k $opt_R
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
-            $opt_1 $opt_2 $opt_3 $opt_u $opt_K);
+            $opt_1 $opt_2 $opt_3 $opt_u $opt_K $opt_i);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:uK');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:uKi');
 
 
 use Lingua::Align::Trees;
@@ -199,7 +199,11 @@ $corpus{-src_type} = $opt_S if ($opt_S);
 $corpus{-trg_file} = $opt_t if ($opt_t);
 $corpus{-trg_type} = $opt_T if ($opt_T);
 
-
+# use index-nodes (AlpinoXML) if opt_i is set! --> otherwise skip them!
+if (not $opt_i){
+    $corpus{-src_skip_indexed}=1;
+    $corpus{-trg_skip_indexed}=1;
+}
 
 #-------------------------------------------------------------------
 # train a model if nrTrain is given
@@ -277,6 +281,10 @@ Format of the target language treebank (similar to -S)
 =item -w
 
 Swap alignment direction when reading through the parallel treebank
+
+=item -i
+
+Try to align index nodes as well (used in AlpinoXML)
 
 =back
 

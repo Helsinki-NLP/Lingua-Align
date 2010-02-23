@@ -168,10 +168,14 @@ sub print_sub_tree{
     foreach my $k (keys %{$tree->{NODES}->{$node}}){
 	next if (ref($tree->{NODES}->{$node}->{$k}));
 	my $val = escape_string($tree->{NODES}->{$node}->{$k});
-	if ($k eq 'id'){
-	    $val =~s/^.*\_([0-9]+)$/$1/;
-	    if ($val>500){$val-=500;}
-	}
+
+# just leave the node ID's as they are!
+# 
+#	if ($k eq 'id'){
+#	    $val =~s/^.*\_([0-9]+)$/$1/;
+#	    if ($val>500){$val-=500;}
+#	}
+
 	$str .= ' '.$k.'="';
 	$str .= $val;
 	$str .= '"';
@@ -224,7 +228,7 @@ sub __XMLTagStart{
 	    delete $a{token};
 	}
 
-	if (exists $a{index}){
+	if (exists $a{index} && (not exists $a{word})){
 	    $p->{IS_INDEX_NODE}=1;
 	    if ($p->{-skip_indexed}){      # skip all index nodes!
 		return 1;
