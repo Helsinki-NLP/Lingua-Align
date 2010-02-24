@@ -137,7 +137,10 @@ sub print_tree{
     my $ids=shift || [];
     my $node = shift || $tree->{ROOTNODE};
 
-    my $str= "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    my $str='';
+    if (not $self->{-single_document}){
+	$str= "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    }
     $str .= "<alpino_ds version=\"1.2\">\n";
     $str .= $self->print_sub_tree($tree,$node,'  ','top');
 
@@ -204,6 +207,22 @@ sub escape_string{
     return $string;
 }
 
+
+sub print_header{
+    my $self=shift;
+    if ($self->{-single_document}){
+	my $h='<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>';
+	$h.="\n<treebank>\n";
+	return $h;
+    }
+}
+
+sub print_tail{
+    my $self=shift;
+    if ($self->{-single_document}){
+	return "</treebank>\n";
+    }
+}
 
 
 ##-------------------------------------------------------------------------

@@ -225,6 +225,13 @@ sub open{
 }
 
 
+sub print_header{
+    my $self=shift;
+}
+
+sub print_tail{
+    my $self=shift;
+}
 
 # try to delete complex structures
 # without circular references behind causing any memory leaks

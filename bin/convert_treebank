@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+# USAGE: alpino2tiger infile informat outformat
+
+use strict;
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
+use Lingua::Align::Corpus;
+
+use vars qw($opt_i);
+use Getopt::Std;
+getopts('i');
+
+my $infile = shift(@ARGV);
+my $informat = shift(@ARGV);
+my $outformat = shift(@ARGV);
+
+my $corpus = new Lingua::Align::Corpus(-file => $infile,
+				       -skip_indexed => $opt_i,
+				       -type => $informat);
+my $output = new Lingua::Align::Corpus(-type => $outformat,
+				       -single_document => 1);
+
+my %sent=();
+print $output->print_header();
+while ($corpus->next_sentence(\%sent)){
+    print $output->print_tree(\%sent);
+}
+print $output->print_tail();
+
