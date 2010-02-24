@@ -96,24 +96,9 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
+Lingua::Align::Corpus::Parallel::Dublin - Perl extension for reading tree-aligned parallel corpora in Dublin Subtree Aligner format
 
 =head1 SYNOPSIS
-
-  use Lingua::Align::Corpus::Parallel;
-
-  my $corpus = new Lingua::Align::Corpus::Parallel(-srcfile => $srcfile,
-                                                   -trgfile => $trgfile);
-
-  my @src=();
-  my @trg=();
-  while ($corpus->next_alignment(\@src,\@trg)){
-     print "src> ";
-     print join(' ',@src);
-     print "\ntrg> ";
-     print join(' ',@trg);
-     print "============================\n";
-  }
 
 =head1 DESCRIPTION
 

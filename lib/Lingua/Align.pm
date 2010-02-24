@@ -71,7 +71,7 @@ Lingua::Align - Perl modules for the alignment of parallel corpora
 
 =head1 DESCRIPTION
 
-This module doesn't do anything. Look at Lingua::Align::Trees for the Tree Aligner. Other modules might follow later.
+This module doesn't do anything. Look at Lingua::Align::Trees for the Tree Aligner. Other modules will follow later.
 
 =head1 SEE ALSO
 

@@ -35,7 +35,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
+Lingua::Align::Corpus::Parallel::Bitext - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
 
 =head1 SYNOPSIS
 

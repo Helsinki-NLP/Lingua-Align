@@ -144,24 +144,15 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align::LinkSearch::GreedyWellFormed
 
 =head1 SYNOPSIS
 
-  use YADWA;
-
 =head1 DESCRIPTION
 
+This module does the same as L<Lingua::Align::LinkSearch::Greedy> but adds a wellformedness constraint (no links across subtrees). The option "-weak_wellformedness" relaxes this constraint by allowing multiple links to one node.
+
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 

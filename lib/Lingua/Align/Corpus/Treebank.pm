@@ -424,44 +424,41 @@ sub subtree_span{
     return ();
 }
 
+sub print_sentence{
+    my $self=shift;
+    return $self->print_tree(@_);
+}
+
+sub print_tree{
+    my $self=shift;
+    my $tree=shift;
+}
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
+
 
 =head1 NAME
 
-YADWA::Data::Trees - Perl extension for blah blah blah
+Lingua::Align::Corpus::Treebank - Virtual Perl extension to read treebanks; default format = Penn Treebank format
 
 =head1 SYNOPSIS
 
-  use YADWA::Data::Trees;
-  blah blah blah
+    my $treebank = new Lingua::Align::Corpus::Treebank(-file => $corpusfile,
+                                                       -type => 'TigerXML');
+
+  my %tree=();
+  while ($treebank->next_sentence(\%tree)){
+    print $treebank->print_sentence(\%tree);
+    print "\n";
+  }
 
 =head1 DESCRIPTION
 
-Stub documentation for YADWA::Data::Trees, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
 
 =head2 EXPORT
 
-None by default.
-
-
-
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 

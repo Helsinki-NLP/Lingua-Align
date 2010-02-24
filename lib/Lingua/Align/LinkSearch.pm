@@ -143,15 +143,16 @@ sub remove_already_linked{
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Lingua::Align::LinkSearch - Perl extension for tree link search
+Lingua::Align::LinkSearch - Virtual Perl extension for tree alignment (alignment inference using local classification scores as alignment costs)
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+Various strategies have been implemented. More information will be added soon ....
 
 =head1 SEE ALSO
 

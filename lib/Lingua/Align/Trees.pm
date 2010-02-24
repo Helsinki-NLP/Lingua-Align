@@ -1413,7 +1413,7 @@ This module implements a discriminative tree aligner based on binary classificat
 
 =head2 Link search heuristics
 
-For alignment we actually use the conditional probability scores and link search heuristics (3rd argumnt in C<align> method). The default heuristic is a greedy one-to-one alignment best-first heuristics. Other possibilities are "intersection", "src2trg", "trg2src" and "refined" which are defined in a similar way as word alignment symmetrization heuristics are defined. The C<-min_score> parameter is used to set a threshold for the minimum score for establishing a link (default is 0)
+For alignment we actually use the conditional probability scores and link search heuristics (3rd argumnt in C<align> method). The default strategy is a threshold based alignment which simply aligns all nodes whose score is above a certain threshold (default=0.5). This is equivalent to using the local classifier without any additional alignment inference step. Other alignment inference strategies include greedy best-first one-to-one alignment (greedy) with additional wellformedness constraints (GreedyWellformed) or greedy source-to-target alignment strategies (src2trg). Another approach is to view tree alignment in terms of standard assignment problems and to use the "Hungarian method" implemented by the Kuhn-Munkres algorithm for alignment inference (munkres). There are many other possibilities for alignment inference. For more information look at L<Lingua::Align::LinkSearch>.
 
 
 =head2 External resources for feature extraction

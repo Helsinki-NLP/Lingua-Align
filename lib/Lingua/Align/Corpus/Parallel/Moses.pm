@@ -53,24 +53,15 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
+Lingua::Align::Corpus::Parallel::Moses - Perl extension to read sentence-aligned parallel corpora in Moses format
 
 =head1 SYNOPSIS
 
   use Lingua::Align::Corpus::Parallel;
 
   my $corpus = new Lingua::Align::Corpus::Parallel(-srcfile => $srcfile,
-                                                   -trgfile => $trgfile);
-
-  my @src=();
-  my @trg=();
-  while ($corpus->next_alignment(\@src,\@trg)){
-     print "src> ";
-     print join(' ',@src);
-     print "\ntrg> ";
-     print join(' ',@trg);
-     print "============================\n";
-  }
+                                                   -trgfile => $trgfile,
+                                                   -type => 'moses');
 
 =head1 DESCRIPTION
 

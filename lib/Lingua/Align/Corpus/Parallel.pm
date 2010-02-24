@@ -186,7 +186,8 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
+
+Lingua::Align::Corpus::Parallel - Virtual Perl extension for reading parallel sentence-aligned corpora; default format is plain text (see Lingua::Align::Corpus::Parallel::Bitext)
 
 =head1 SYNOPSIS
 
@@ -208,6 +209,12 @@ Lingua::Align::Corpus::Parallel - Perl extension for reading a simple parallel c
 =head1 DESCRIPTION
 
 =head1 SEE ALSO
+
+L<Lingua::Align::Corpus::Parallel::Bitext>,
+L<Lingua::Align::Corpus::Parallel::Giza>,
+L<Lingua::Align::Corpus::Parallel::Moses>,
+L<Lingua::Align::Corpus::Parallel::OPUS>,
+L<Lingua::Align::Corpus::Parallel::STA>
 
 =head1 AUTHOR
 

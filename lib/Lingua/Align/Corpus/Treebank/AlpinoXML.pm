@@ -400,41 +400,18 @@ sub __XMLChar{
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-YADWA::Data::Trees::TigerXML - Perl extension for blah blah blah
+Lingua::Align::Corpus::Treebank::AlpinoXML - Perl extension to read treebanks in Alpino Treebank format L<http://www.let.rug.nl/vannoord/alp/>
 
 =head1 SYNOPSIS
 
-  use YADWA::Data::Trees::TigerXML;
-  blah blah blah
-
 =head1 DESCRIPTION
-
-Stub documentation for YADWA::Data::Trees::TigerXML, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
 
 =head2 EXPORT
 
-None by default.
-
-
-
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 

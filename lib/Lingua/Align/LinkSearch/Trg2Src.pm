@@ -63,13 +63,13 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align::LinkSearch::Trg2Src
 
 =head1 SYNOPSIS
 
-  use YADWA;
-
 =head1 DESCRIPTION
+
+This module implements an alignment strategy that greedily aligns the best scoring source tree node to each target tree node. Only one link per target tree node is allowed.
 
 =head1 SEE ALSO
 

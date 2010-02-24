@@ -233,6 +233,16 @@ sub print_tail{
     my $self=shift;
 }
 
+sub print_sentence{
+    my $self=shift;
+    my $words=shift;
+    my $str='';
+    if (ref($words) eq 'ARRAY'){
+	$str=join(' ',@{$words});
+    }
+    return $str;
+}
+
 # try to delete complex structures
 # without circular references behind causing any memory leaks
 
@@ -257,11 +267,10 @@ sub __clean_delete{
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Lingua::Align::Corpus - Perl extension for reading a tokenized plain text corpus, 1 sentence per line
+Lingua::Align::Corpus - Perl extension for reading a tokenized plain text corpus, 1 sentence per line; can also be used as a virtual module to open other types of corpora (treebanks etc) using the "-type" attribute
 
 =head1 SYNOPSIS
 
@@ -272,8 +281,18 @@ Lingua::Align::Corpus - Perl extension for reading a tokenized plain text corpus
   my @words=();
   while ($corpus->next_sentence(\@words)){
     print "\n",$corpus->current_id,"> ";
-    print join(' ',@words);
+    print $treebank->print_sentence(\%tree);
   }
+
+  my $treebank = new Lingua::Align::Corpus(-file => $corpusfile,
+                                           -type => 'TigerXML');
+
+  my %tree=();
+  while ($treebank->next_sentence(\%tree)){
+    print $treebank->print_sentence(\%tree);
+    print "\n";
+  }
+
 
 =head1 DESCRIPTION
 

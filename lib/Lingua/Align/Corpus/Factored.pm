@@ -14,14 +14,33 @@ sub read_next_sentence{
     my $factors=shift;
 
     my @tokens=();
-    if ($self->SUPER::next_sentence(\@tokens,$@)){
+    if ($self->SUPER::next_sentence(\@tokens,@_)){
 	foreach (@tokens){
 	    my $idx=@{$factors};
-	    $$factors[$idx]=split(/\|/);
+	    @{$$factors[$idx]}=split(/\|/);
 	}
 	return 1;
     }
     return 0;
+}
+
+sub print_sentence{
+    my $self=shift;
+    my $factors=shift;
+
+    if (ref($factors) eq 'ARRAY'){
+	my @words=();
+	foreach my $f (@{$factors}){
+	    if (ref($f) eq 'ARRAY'){
+		push(@words,join('|',@{$f}));
+	    }
+	    else{
+		push(@words,$f);
+	    }
+	}
+	return join(' ',@words);
+    }
+    return '';
 }
 
 

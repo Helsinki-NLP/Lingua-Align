@@ -57,24 +57,15 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align::LinkSearch::Intersection
 
 =head1 SYNOPSIS
 
-  use YADWA;
-
 =head1 DESCRIPTION
 
+This modules implements the intersection of Src2Trg and Trg2Src alignments.
+
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
