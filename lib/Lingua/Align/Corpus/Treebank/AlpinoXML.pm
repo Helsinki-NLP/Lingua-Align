@@ -357,26 +357,30 @@ sub __XMLTagEnd{
 	}
     }
 
-    # sort terminals by begin position
-    @{$p->{TERMINALS}}= 
-	sort { $p->{NODES}->{$a}->{begin} <=> $p->{NODES}->{$b}->{begin} } 
-             @{$p->{TERMINALS}};
+    if ($e eq 'alpino_ds'){
+	# no sentence or comment tag ---> make sentence out of tokens
+	if (not $p->{SENT}){
+	    foreach (@{$p->{TERMINALS}}){
+		if (exists $p->{NODES}->{$_}->{word}){
+		    $p->{SENT}.=$p->{NODES}->{$_}->{word}.' ';
+		}
+	    }
+	    chomp $p->{SENT};
+	}
+	# sort terminals by begin position
+	print STDERR join(':',@{$p->{TERMINALS}});
+	@{$p->{TERMINALS}}= 
+	    sort { $p->{NODES}->{$a}->{begin} <=> 
+		       $p->{NODES}->{$b}->{begin} } @{$p->{TERMINALS}};
+	print STDERR "\n";
+	print STDERR join(':',@{$p->{TERMINALS}});
+	print STDERR "\n";
 
 #	sort { my @x=split(/[\-\_]/,$a);
 #	       my @y=split(/[\-\_]/,$b); 
 #	       return $x[-1] <=> $y[-1] } @{$p->{TERMINALS}};
 
-
-    # no sentence or comment tag ---> make sentence out of tokens
-    if (($e eq 'alpino_ds') && (not $p->{SENT})){
-	foreach (@{$p->{TERMINALS}}){
-	    if (exists $p->{NODES}->{$_}->{word}){
-		$p->{SENT}.=$p->{NODES}->{$_}->{word}.' ';
-	    }
-	}
-	chomp $p->{SENT};
     }
-
 }
 
 sub __XMLChar{

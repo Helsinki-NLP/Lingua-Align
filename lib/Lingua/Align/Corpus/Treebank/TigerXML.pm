@@ -120,8 +120,13 @@ sub print_tree{
 
     my %begin=();
     foreach (@{$tree->{TERMINALS}}){
-	my ($id,$b)=split(/\_/);
-	$begin{$_}=$b;
+	if (exists $tree->{NODES}->{$_}->{begin}){
+	    $begin{$_}=$tree->{NODES}->{$_}->{begin};
+	}
+	else{
+	    my ($id,$b)=split(/\_/);
+	    $begin{$_}=$b;
+	}
     }
 #    foreach my $t (sort @{$tree->{TERMINALS}}){
     foreach my $t (sort { $begin{$a} <=> $begin{$b} } keys %begin){
