@@ -204,6 +204,10 @@ sub features{
 	}
     }
 
+#    print STDERR "$srcnode:$trgnode = ";
+#    print STDERR join ":",%retfeat;
+#    print STDERR "\n";
+
     return %retfeat;
 }
 
@@ -541,13 +545,24 @@ sub tree_features{
     ## compute the relative closeness of these positions
 
     if (exists $$FeatTypes{treespansim}){
-	my $srclength=scalar @{$srctree->{TERMINALS}};
-	my $trglength=scalar @{$trgtree->{TERMINALS}};
+	my $srclength=$#{$srctree->{TERMINALS}};
+	my $trglength=$#{$trgtree->{TERMINALS}};
 	my ($srcstart,$srcend)=$self->{TREES}->subtree_span($srctree,$srcnode);
 	my ($trgstart,$trgend)=$self->{TREES}->subtree_span($trgtree,$trgnode);
-	$$values{treespansim}=
-	    1-abs(($srcstart+$srcend)/(2*$srclength)-
-		  ($trgstart+$trgend)/(2*$trglength));
+	my $relsrc=0;
+	if ($srclength){
+	    $relsrc=($srcstart+$srcend-2)/(2*$srclength);
+	}
+	my $reltrg=0;
+	if ($trglength){
+	    $reltrg=($trgstart+$trgend-2)/(2*$trglength);
+	}
+	$$values{treespansim}=1-abs($relsrc-$reltrg);
+#	my $srclength=scalar @{$srctree->{TERMINALS}};
+#	my $trglength=scalar @{$trgtree->{TERMINALS}};
+#	$$values{treespansim}=
+#	    1-abs(($srcstart+$srcend)/(2*$srclength)-
+#		  ($trgstart+$trgend)/(2*$trglength));
     }
 
     ## tree-level similarity:
@@ -683,26 +698,33 @@ sub gizae2f{
     my %trgLeafIDs=();
     foreach (@trgleafs){$trgLeafIDs{$_}=1;}
 
-    my $inside=0;
-    my $outside=0;
+    my %InsideLink=();
+    my %OutsideLink=();
 
     foreach my $s (@srcleafs){
 	foreach my $t (keys %{$self->{GIZA_E2F}->{S2T}->{$s}}){
 	    if (exists $trgLeafIDs{$t}){
-		$inside++;
+		$InsideLink{"$s:$t"}=1;
 	    }
-	    else{$outside++;}
+	    else{
+		$OutsideLink{"$s:$t"}=1;
+	    }
 	}
     }
 
     foreach my $t (@trgleafs){
 	foreach my $s (keys %{$self->{GIZA_E2F}->{T2S}->{$t}}){
 	    if (exists $srcLeafIDs{$s}){
-		$inside++;
+		$InsideLink{"$s:$t"}=1;
 	    }
-	    else{$outside++;}
+	    else{
+		$OutsideLink{"$s:$t"}=1;
+	    }
 	}
     }
+
+    my $inside=scalar keys %InsideLink;
+    my $outside=scalar keys %OutsideLink;
 
     return ($inside,$outside);
 
@@ -716,7 +738,7 @@ sub gizaf2e{
 
     if ($trg->{ID} ne $self->{LASTGIZA_TRG_ID}){
 	$self->{LASTGIZA_TRG_ID} = $trg->{ID};
-	$self->read_next_giza_links($src,$trg,'GIZA_F2E',
+	$self->read_next_giza_links($trg,$src,'GIZA_F2E',
 				    $self->{-gizaA3_f2e},
 				    $self->{-gizaA3_f2e_encoding},
 				    $self->{-gizaA3_f2e_ids});
@@ -732,26 +754,33 @@ sub gizaf2e{
     my %trgLeafIDs=();
     foreach (@trgleafs){$trgLeafIDs{$_}=1;}
 
-    my $inside=0;
-    my $outside=0;
+    my %InsideLink=();
+    my %OutsideLink=();
 
     foreach my $s (@srcleafs){
 	foreach my $t (keys %{$self->{GIZA_F2E}->{T2S}->{$s}}){
 	    if (exists $trgLeafIDs{$t}){
-		$inside++;
+		$InsideLink{"$s:$t"}=1;
 	    }
-	    else{$outside++;}
+	    else{
+		$OutsideLink{"$s:$t"}=1;
+	    }
 	}
     }
 
     foreach my $t (@trgleafs){
 	foreach my $s (keys %{$self->{GIZA_F2E}->{S2T}->{$t}}){
 	    if (exists $srcLeafIDs{$s}){
-		$inside++;
+		$InsideLink{"$s:$t"}=1;
 	    }
-	    else{$outside++;}
+	    else{
+		$OutsideLink{"$s:$t"}=1;
+	    }
 	}
     }
+
+    my $inside=scalar keys %InsideLink;
+    my $outside=scalar keys %OutsideLink;
 
     return ($inside,$outside);
 

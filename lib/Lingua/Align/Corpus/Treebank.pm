@@ -405,15 +405,14 @@ sub subtree_span{
     }
 
     my @leafs = $self->get_leafs($tree,$node,'id');
-
     my %hash=();
     foreach (@leafs){$hash{$_}=1;}
     my $start=9999999;
     my $end=0;
     foreach (0..$#{$tree->{TERMINALS}}){
 	if (exists $hash{$tree->{TERMINALS}->[$_]}){
-	    if ($_<$start){$start = $_+1;}
-	    if ($_>$end){$end = $_+1;}
+	    if ($_<$start-1){$start = $_+1;}
+	    if ($_>=$end){$end = $_+1;}
 	}
     }
     if ($start<9999999 && $end>0){
@@ -421,6 +420,7 @@ sub subtree_span{
 	$tree->{NODES}->{$node}->{end} = $end;
 	return ($start,$end);
     }
+    print STDERR "Strange? no start & end of the tree-span? $start-$end\n";
     return ();
 }
 
