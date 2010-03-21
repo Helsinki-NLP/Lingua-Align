@@ -14,7 +14,7 @@ use Lingua::Align;
 use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Classifier;           # binary classifier
 use Lingua::Align::LinkSearch;           # link search algorithms
-use Lingua::Align::Trees::Features;      # feature extraction module
+use Lingua::Align::Features;             # feature extraction module
 
 
 my $DEFAULTFEATURES = 'inside:outside';
@@ -34,7 +34,7 @@ sub new{
     }
 
     $self->{CLASSIFIER} = new Lingua::Align::Classifier(%attr);
-    $self->{FEATURE_EXTRACTOR} = new Lingua::Align::Trees::Features(%attr);
+    $self->{FEATURE_EXTRACTOR} = new Lingua::Align::Features(%attr);
     # make a Treebank object for processing trees
     $self->{TREES} = new Lingua::Align::Corpus::Treebank();
 
@@ -1460,7 +1460,7 @@ In the example above there are some contextual features such as C<parent_catpos>
 
 =head1 SEE ALSO
 
-For a descriptions of features that can be used see L<Lingua::Align::Trees::Features>.
+For a descriptions of features that can be used see L<Lingua::Align::Features>.
 
 
 =head1 AUTHOR

@@ -163,11 +163,11 @@ sub open_file{
 
 	if ($filename=~/\.gz$/){
 	    $self->{FH}->{$file}->open("gzip -cd < $filename |") ||
-		die "cannot open file $filename\n";
+		die "cannot open file '$filename'\n";
 	}
 	else{
 	    $self->{FH}->{$file}->open("<$filename") || 
-		die "cannot open file $filename\n";
+		die "cannot open file '$filename'\n";
 	}
 	if ($encoding){
 	    binmode($self->{FH}->{$file},":encoding($encoding)");
