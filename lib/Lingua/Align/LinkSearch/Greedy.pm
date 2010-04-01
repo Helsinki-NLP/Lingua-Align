@@ -23,20 +23,13 @@ sub new{
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels)=@_;
-
-    my $correct=0;
-    my $wrong=0;
-    my $total=0;
+    my ($linksST,$scores,$min_score,$src,$trg)=@_;
 
     my %value=();
-    my %label=();
     foreach (0..$#{$scores}){
 	if ($$scores[$_]>=$min_score){
 	    $value{$$src[$_].':'.$$trg[$_]}=$$scores[$_];
-	    $label{$$src[$_].':'.$$trg[$_]}=$$labels[$_];
 	}
-	if ($$labels[$_] == 1){$total++;}
     }
 
     my %linksTS=();
@@ -47,12 +40,10 @@ sub search{
 	next if (exists $linksTS{$tnid});
 	$$linksST{$snid}{$tnid}=$value{$k};
 	$linksTS{$tnid}{$snid}=$value{$k};
-	if ($label{$k} == 1){$correct++;}
-	else{$wrong++;}
     }
 
-    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg,$labels);
-    return ($correct,$wrong,$total);
+    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 

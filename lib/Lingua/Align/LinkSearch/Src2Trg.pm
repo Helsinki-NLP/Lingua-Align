@@ -17,43 +17,30 @@ sub search{
 
 sub searchSrc2Trg{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels,$LabelMatrix)=@_;
+    my ($linksST,$scores,$min_score,$src,$trg)=@_;
     
-    my $correct=0;
-    my $wrong=0;
-    my $total=0;
-
     my %value=();
-    my %label=();
 
     my %BestSrc=();
     my %BestLink=();
-    my %BestLabel=();
 
     foreach (0..$#{$scores}){
 	if ($$scores[$_]>=$min_score){
 	    if ($$scores[$_]>$BestSrc{$$src[$_]}){
 		$BestSrc{$$src[$_]}=$$scores[$_];
 		$BestLink{$$src[$_]}=$$trg[$_];
-		$BestLabel{$$src[$_]}=$$labels[$_];
 	    }
 	}
-	if ($LabelMatrix){
-	    $$LabelMatrix{$$src[$_]}{$$trg[$_]}=$$labels[$_];
-	}
-	if ($$labels[$_] == 1){$total++;}
     }
 
     my %linksTS=();
     foreach my $s (keys %BestSrc){
 	$$linksST{$s}{$BestLink{$s}}=$BestSrc{$s};
 	$linksTS{$BestLink{$s}}{$s}=$BestSrc{$s};
-	if ($BestLabel{$s} == 1){$correct++;}
-	else{$wrong++;}
     }
 
-    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg,$labels);
-    return ($correct,$wrong,$total);
+    $self->remove_already_linked($linksST,\%linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 

@@ -97,8 +97,8 @@ sub new{
 # remove all candidates which are linked already (exactly that link)
 
 sub remove_existing_links{
-    my ($self,$linksST,$scores,$src,$trg,$labels)=@_;
-    my (@newscores,@newsrc,@newtrg,@newlabels);
+    my ($self,$linksST,$scores,$src,$trg)=@_;
+    my (@newscores,@newsrc,@newtrg);
     foreach (0..$#{$scores}){
 	if (exists $$linksST{$$src[$_]}){
 	    if (exists $$linksST{$$src[$_]}{$$trg[$_]}){
@@ -108,20 +108,18 @@ sub remove_existing_links{
 	push(@newscores,$$scores[$_]);
 	push(@newsrc,$$src[$_]);
 	push(@newtrg,$$trg[$_]);
-	push(@newlabels,$$labels[$_]);
     }
     @{$scores}=@newscores;
     @{$src}=@newsrc;
     @{$trg}=@newtrg;
-    @{$labels}=@newlabels;
 }
 
 
 # remove all candidates for which both nodes already have ANY link
 
 sub remove_already_linked{
-    my ($self,$linksST,$linksTS,$scores,$src,$trg,$labels)=@_;
-    my (@newscores,@newsrc,@newtrg,@newlabels);
+    my ($self,$linksST,$linksTS,$scores,$src,$trg)=@_;
+    my (@newscores,@newsrc,@newtrg);
     foreach (0..$#{$scores}){
 	if (exists $$linksST{$$src[$_]}){
 	    if (exists $$linksTS{$$trg[$_]}){
@@ -131,12 +129,10 @@ sub remove_already_linked{
 	push(@newscores,$$scores[$_]);
 	push(@newsrc,$$src[$_]);
 	push(@newtrg,$$trg[$_]);
-	push(@newlabels,$$labels[$_]);
     }
     @{$scores}=@newscores;
     @{$src}=@newsrc;
     @{$trg}=@newtrg;
-    @{$labels}=@newlabels;
 }
 
 

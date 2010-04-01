@@ -36,12 +36,12 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    my (@Tscores,@Tlabels);
+    my @Tscores;
     my (@Tsrc,@Ttrg);
 
     foreach my $n (0..$#{$scores}){
@@ -51,19 +51,17 @@ sub search{
 		push(@Tscores,$$scores[$n]);
 		push(@Tsrc,$$src[$n]);
 		push(@Ttrg,$$trg[$n]);
-		push(@Tlabels,$$labels[$n]);
 		next;
 	    }
 	}
     }
 
 
-    my ($correct,$wrong,$total) = 
-	$self->{BASESEARCH}->search($linksST,\@Tscores,$min_score,
-				    \@Tsrc,\@Ttrg,\@Tlabels,
-				    $stree,$ttree,$linksTS);
+    $self->{BASESEARCH}->search($linksST,\@Tscores,$min_score,
+				\@Tsrc,\@Ttrg,
+				$stree,$ttree,$linksTS);
 
-    return ($correct,$wrong,$total);
+    return 1;
 
 }
 

@@ -10,11 +10,11 @@ $VERSION = '0.01';
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+    my ($linksST,$scores,$min_score,$src,$trg,
 	$srctree,$trgtree,$linksTS)=@_;
-    my ($correct,$wrong,$total) = $self->assign($linksST,$scores,$min_score,
-						$src,$trg,$labels,
-						$srctree,$trgtree,$linksTS);
+    $self->assign($linksST,$scores,$min_score,
+		  $src,$trg,
+		  $srctree,$trgtree,$linksTS);
     my %NotWell=();
     while ($self->check_wellformedness($srctree,$trgtree,$linksST,\%NotWell)){
     	my @sorted = sort { $NotWell{$a} <=> $NotWell{$b} } keys %NotWell;
@@ -27,21 +27,8 @@ sub search{
 	%NotWell=();
     }
 
-    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
-
-    my %LabelHash=();
-    foreach (0..$#{$labels}){
-	$LabelHash{$$src[$_]}{$$trg[$_]}=$$labels[$_];
-    }
-    ($correct,$wrong)=(0,0);
-    foreach my $s (keys %{$linksST}){
-	foreach my $t (keys %{$$linksST{$s}}){
-	    if ($LabelHash{$s}{$t}){$correct++;}
-	    else{$wrong++;}
-	}
-    }
-
-    return ($correct,$wrong,$total);
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 

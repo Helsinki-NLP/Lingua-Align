@@ -36,15 +36,15 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    my (@NTscores,@NTlabels);
+    my @NTscores;
     my (@NTsrc,@NTtrg);
 
-    my (@Tscores,@Tlabels);
+    my @Tscores;
     my (@Tsrc,@Ttrg);
     
 
@@ -55,39 +55,26 @@ sub search{
 		push(@NTscores,$$scores[$n]);
 		push(@NTsrc,$$src[$n]);
 		push(@NTtrg,$$trg[$n]);
-		push(@NTlabels,$$labels[$n]);
 		next;
 	    }
 	}
 	push(@Tscores,$$scores[$n]);
 	push(@Tsrc,$$src[$n]);
 	push(@Ttrg,$$trg[$n]);
-	push(@Tlabels,$$labels[$n]);
     }
 
 
     # first align non-terminals in a greedy way (wellformed!)
-#    my ($NTcorrect,$NTwrong,$NTtotal) = 
-#	$self->SUPER::search($linksST,\@NTscores,$min_score,
-#			     \@NTsrc,\@NTtrg,\@NTlabels,
-#			     $stree,$ttree,$linksTS);
-    my ($NTcorrect,$NTwrong,$NTtotal) = 
-	$self->{BASESEARCH}->search($linksST,\@NTscores,$min_score,
-				    \@NTsrc,\@NTtrg,\@NTlabels,
-				    $stree,$ttree,$linksTS);
+    $self->{BASESEARCH}->search($linksST,\@NTscores,$min_score,
+				\@NTsrc,\@NTtrg,
+				$stree,$ttree,$linksTS);
 
     # second step: add more links if possible (involving terminal nodes)
-#    my ($Tcorrect,$Twrong,$Ttotal) = 
-#	$self->SUPER::search($linksST,\@Tscores,$min_score,
-#			     \@Tsrc,\@Ttrg,\@Tlabels,
-#			     $stree,$ttree,$linksTS);
-    my ($Tcorrect,$Twrong,$Ttotal) = 
-	$self->{BASESEARCH}->search($linksST,\@Tscores,$min_score,
-				    \@Tsrc,\@Ttrg,\@Tlabels,
-				    $stree,$ttree,$linksTS);
+    $self->{BASESEARCH}->search($linksST,\@Tscores,$min_score,
+				\@Tsrc,\@Ttrg,
+				$stree,$ttree,$linksTS);
 
-    return ($Tcorrect+$NTcorrect,$Twrong+$NTwrong,$Ttotal+$NTtotal);
-
+    return 1;
 }
 
 

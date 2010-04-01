@@ -61,7 +61,7 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
@@ -69,12 +69,11 @@ sub search{
     my ($correct,$wrong,$total);
 
     foreach my $aligner (@{$self->{LINKSEARCH}}){
-	my ($c,$w,$t) = $aligner->search($linksST,$scores,$min_score,
-					 $src,$trg,$labels,
-					 $stree,$ttree,$linksTS);
-	$correct+=$c;$wrong+=$w;$total+=$t;
+	$aligner->search($linksST,$scores,$min_score,
+			 $src,$trg,
+			 $stree,$ttree,$linksTS);
     }
-    return ($correct,$wrong,$total);
+    return 1;
 }
 
 

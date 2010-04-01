@@ -11,24 +11,20 @@ use Algorithm::Munkres;
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+    my ($linksST,$scores,$min_score,$src,$trg,
 	$srctree,$trgtree,$linksTS)=@_;
-    my ($correct,$wrong,$total) = $self->assign($linksST,$scores,$min_score,
-						$src,$trg,$labels,
-						$srctree,$trgtree,$linksTS);
-    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
-    return ($correct,$wrong,$total);
+    $self->assign($linksST,$scores,$min_score,
+		  $src,$trg,
+		  $srctree,$trgtree,$linksTS);
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 
 sub assign{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+    my ($linksST,$scores,$min_score,$src,$trg,
 	$srctree,$trgtree,$linksTS)=@_;
-
-    my $correct=0;
-    my $wrong=0;
-    my $total=0;
 
     my $max=1;       # max score --> use cost=max-score
 
@@ -54,11 +50,8 @@ sub assign{
 
     # make cost matrix (simply use $max-score)
     my @matrix=();
-    my @label=();
     foreach (0..$#{$scores}){
 	$matrix[$SrcIds{$$src[$_]}][$TrgIds{$$trg[$_]}] = $max-$$scores[$_];
-	$label[$SrcIds{$$src[$_]}][$TrgIds{$$trg[$_]}] = $$labels[$_];
-	if ($$labels[$_] == 1){$total++;}
     }
 
     for my $s (0..$#SrcNodes){
@@ -86,10 +79,8 @@ sub assign{
 	$tnid = $TrgNodes[$assignment[$_]];
 	$$linksST{$snid}{$tnid}=$max-$matrix[$_][$assignment[$_]];
 	$$linksTS{$tnid}{$snid}=$max-$matrix[$_][$assignment[$_]];
-	if ($label[$_][$assignment[$_]] == 1){$correct++;}
-	else{$wrong++;}
     }
-    return ($correct,$wrong,$total);
+    return 1;
 }
 
 
@@ -98,7 +89,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch - A Perl extension that calls Algorithm::Munkres to assign links between tree nodes (Kuhn-Munkres algorithm L<http://en.wikipedia.org/wiki/Hungarian_algorithm>)
+Lingua::Align::LinkSearch::Assignment - A Perl extension that calls Algorithm::Munkres to assign links between tree nodes (Kuhn-Munkres algorithm L<http://en.wikipedia.org/wiki/Hungarian_algorithm>)
 
 =head1 SYNOPSIS
 

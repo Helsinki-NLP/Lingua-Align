@@ -12,24 +12,19 @@ $VERSION = '0.01';
 
 sub search{
     my $self=shift;
-    my ($links,$scores,$min_score,$src,$trg,$labels)=@_;
+    my ($links,$scores,$min_score,$src,$trg)=@_;
 
     my %linksST=();
     my %linksTS=();
-    my %LM=();         # matrix with correct labels
-    
+
     my ($c1,$w1,$total1)=
-     $self->searchSrc2Trg(\%linksST,$scores,$min_score,$src,$trg,$labels,\%LM);
+     $self->searchSrc2Trg(\%linksST,$scores,$min_score,$src,$trg);
     my ($c2,$w2,$total2)=
-     $self->searchTrg2Src(\%linksTS,$scores,$min_score,$src,$trg,$labels);
+     $self->searchTrg2Src(\%linksTS,$scores,$min_score,$src,$trg);
 
     if ($total1 <=> $total2){
 	print STDERR "strange: total is different for src2trg & trg2src\n";
     }
-
-    my $correct=0;
-    my $wrong=0;
-#    my $missed=0;
 
     foreach my $s (keys %linksST){
 	foreach my $t (keys %{$linksST{$s}}){
@@ -37,16 +32,12 @@ sub search{
 		if (exists $linksTS{$t}{$s}){
 		    if ($linksST{$s}{$t}>=$min_score){
 			$$links{$s}{$t}=$linksST{$s}{$t};
-			if ($LM{$s}{$t} == 1){$correct++;}
-			else{$wrong++;}
 		    }
 		}
-#		elsif ($LM{$s}{$t} == 1){$missed++;}
 	    }
-#	    elsif ($LM{$s}{$t} == 1){$missed++;}
 	}
     }
-    return ($correct,$wrong,$total1);
+    return 1;
 }
 
 

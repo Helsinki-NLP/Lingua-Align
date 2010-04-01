@@ -13,21 +13,14 @@ $VERSION = '0.01';
 
 sub search{
     my $self=shift;
-    my ($linksST,$scores,$min_score,$src,$trg,$labels,
+    my ($linksST,$scores,$min_score,$src,$trg,
 	$srctree,$trgtree,$linksTS)=@_;
 
-    my $correct=0;
-    my $wrong=0;
-    my $total=0;
-
     my %value=();
-    my %label=();
     foreach (0..$#{$scores}){
 	if ($$scores[$_]>=$min_score){
 	    $value{$$src[$_]}{$$trg[$_]}=$$scores[$_];
-	    $label{$$src[$_]}{$$trg[$_]}=$$labels[$_];
 	}
-	if ($$labels[$_] == 1){$total++;}
     }
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
@@ -44,35 +37,20 @@ sub search{
     my $t = $trgroot;
     $$linksST{$s}{$t}=$value{$s}{$t};
     $$linksTS{$t}{$s}=$value{$s}{$t};
-    if ($label{$s}{$t} == 1){$correct++;}
-    else{$wrong++;}
 
     $self->read_links($srcroot,$trgroot,$srctree,
 		      \%link,\%value,
-		      $linksST,$linksTS,
-		      \%label,\$correct,\$wrong);
+		      $linksST,$linksTS);
 
-#     my @c=$self->{TREES}->children($srctree,$s);
-#     while (@c){
-# 	foreach $s (@c){
-# 	    $t = $link{$s}{$trgroot};
-# 	    $$linksST{$s}{$t}=$value{$s}{$t};
-# 	    $$linksTS{$t}{$s}=$value{$s}{$t};
-# 	    if ($label{$s}{$t} == 1){$correct++;}
-# 	    else{$wrong++;}
-# 	    $trgroot = $t;
-# 	}
-#     }
-
-    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
-    return ($correct,$wrong,$total);
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 
 sub read_links{
     my $self=shift;
     my ($srcroot,$trgroot,$srctree,$link,$value,
-	$linksST,$linksTS,$label,$correct,$wrong)=@_;
+	$linksST,$linksTS)=@_;
 
     my @c=$self->{TREES}->children($srctree,$srcroot);
     foreach my $s (@c){
@@ -81,11 +59,8 @@ sub read_links{
 		my $t = $$link{$s}{$trgroot};
 		$$linksST{$s}{$t}=$$value{$s}{$t};
 		$$linksTS{$t}{$s}=$$value{$s}{$t};
-		if ($$label{$s}{$t} == 1){$$correct++;}
-		else{$$wrong++;}
 		$self->read_links($s,$t,$srctree,$link,$value,
-				  $linksST,$linksTS,$label,
-				  $correct,$wrong);
+				  $linksST,$linksTS);
 	    }
 	}
     }

@@ -40,16 +40,15 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
     # first do the base search algorithm
-    my ($correct,$wrong,$total) = 
-	$self->{BASESEARCH}->search($linksST,$scores,$min_score,
-				    $src,$trg,$labels,
-				    $stree,$ttree,$linksTS);
+    $self->{BASESEARCH}->search($linksST,$scores,$min_score,
+				$src,$trg,
+				$stree,$ttree,$linksTS);
 
     # secondly: add remaining links for unlinked nodes
     #           (only if well-formed!)
@@ -76,16 +75,13 @@ sub search{
 #	print STDERR "final: add link between $$src[$n] & $$trg[$n]\n";
 	$$linksST{$$src[$n]}{$$trg[$n]}=$$scores[$n];
 	$$linksTS{$$trg[$n]}{$$src[$n]}=$$scores[$n];
-	if ($$labels[$n] == 1){$correct++;}
-	else{$wrong++;}
 
 #	}
 #	else{
 #	    print STDERR "final: not well-formed, skip $$src[$n] & $$trg[$n]\n";
 #	}
     }
-
-    return ($correct,$wrong,$total);
+    return 1;
 }
 
 

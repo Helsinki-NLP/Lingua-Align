@@ -1,4 +1,25 @@
 package Lingua::Align::Trees;
+#---------------------------------------------------------------------------    
+# Copyright (C) 2009 Jörg Tiedemann                                             
+# jorg.tiedemann@lingfil.uu.se
+#                                                                               
+# This program is free software; you can redistribute it and/or modify          
+# it under the terms of the GNU General Public License as published by          
+# the Free Software Foundation; either version 2 of the License, or             
+# (at your option) any later version.                                           
+#                                                                               
+# This program is distributed in the hope that it will be useful,               
+# but WITHOUT ANY WARRANTY; without even the implied warranty of                
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 
+# GNU General Public License for more details.                                  
+#                                                                               
+# You should have received a copy of the GNU General Public License             
+# along with this program; if not, write to the Free Software                   
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA     
+#---------------------------------------------------------------------------    
+#
+# Lingua::Align::Trees - Perl modules implementing a discriminative tree aligner
+#
 
 use 5.005;
 use strict;
@@ -42,8 +63,20 @@ sub new{
 }
 
 
-
+#----------------------------------------------------------------
+#
 # train a classifier for alignment
+#
+# $aligner->train($corpus,$model,$max,$skip[,features])
+#
+#    corpus .... hash parallel treebank used for training
+#    model ..... file for storing base classifier model
+#    max ....... max number of tree pairs to be aligned
+#    skip ...... number of innitial tree pairs to be skipped
+#    features .. hash of features to be used (optional)
+#                (if not specified: use $aligner->{-features})
+#
+#----------------------------------------------------------------
 
 sub train{
     my $self=shift;
@@ -59,28 +92,32 @@ sub train{
     #
     # $model is the name of the model-file
 
-
-
     my $done=0;
     my $iter=0;
 
+    # this loop is used to do some "SEARN" like adaptation of history features
+
     do {
+	# initialize training
 	$self->{SENT_COUNT}=0;
 	$self->{NODE_COUNT}=0;
 	$self->{SRCNODE_COUNT}=0;
 	$self->{TRGNODE_COUNT}=0;
+
+	# extract training data (data instances as feature-vectors)
 	$self->{START_EXTRACT_FEATURES}=time();
 	$self->{CLASSIFIER}->initialize_training();
 	$self->extract_training_data($corpus,$features,$max,$skip);
 	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
 
+	# train the model (call external learner)
 	$self->{START_TRAIN_MODEL}=time();
 	$model = $self->{CLASSIFIER}->train($model);
 	$self->{TIME_TRAIN_MODEL} += time() - $self->{START_TRAIN_MODEL};
 
+	# iterative "SEARN-like" learning --> adapt history features
+	# (this is probably not appropriate, need to look into this later)
 	$done=1;
-
-	# iterative SEARN learning --> adapt structural features
 	if (exists $self->{-searn}){
 	    if ($iter<$self->{-searn}){
 		$self->{-searn_model} = $model;
@@ -93,11 +130,11 @@ sub train{
     }
     until ($done);
 
-
-
+    # store features types (to have access to used features when aligning)
     $self->store_features_used($model,$features);
     $self->{TIME_TRAINING} = time() - $self->{START_TRAINING};
 
+    # print some runtime information
     if ($self->{-verbose}){
     if ($self->{SENT_COUNT} && $self->{NODE_COUNT}){
 	print STDERR "\n============ ";
@@ -126,44 +163,62 @@ sub train{
     }
 }
 
+#
+# end of train
+#----------------------------------------------------------------
 
 
+
+#----------------------------------------------------------------
+#
+# tree alignment: run through the parallel treebank & align nodes
+#
+# $aligner->align($corpus,$model,$type,$max,$skip)
+#
+#    corpus .... hash specifying parallel treebank to be aligned
+#    model ..... model file for base classifier
+#    type ...... type of alignment inference (link search)
+#    max ....... max number of tree pairs to be aligned
+#    skip ...... number of innitial tree pairs to be skipped
+#
+#----------------------------------------------------------------
 
 sub align{
     my $self=shift;
 
+    #----------------------------------------------------------------
+    # initialize
+    #----------------------------------------------------------------
+
     $self->{START_ALIGNING}=time();
     my ($corpus,$model,$type,$max,$skip)=@_;
+    if (ref($corpus) ne 'HASH'){die "please specify a corpus!";}
+    my $min_score = $self->{-min_score};
 
+    # initialize classifier and feature extractor
     $self->{CLASSIFIER}->initialize_classification($model);
     my $features = $self->get_features_used($model);
-#    my $features = $_[5] || $self->{-features};
-#    my $min_score = $self->{-min_score} || 0.2;
-    my $min_score = $self->{-min_score};
 
     my $FE=$self->{FEATURE_EXTRACTOR};
     $FE->initialize_features($features);
-#    $self->initialize_features($features);
-    if (ref($corpus) ne 'HASH'){die "please specify a corpus!";}
 
-    # make a corpus object
-    my $corpus = new Lingua::Align::Corpus::Parallel(%{$corpus});
-    # make a search object
+    # make a new corpus object & link search object
+    my $corpus   = new Lingua::Align::Corpus::Parallel(%{$corpus});
     my $searcher = new Lingua::Align::LinkSearch(-link_search => $type);
 
-    # output data
+    # initialize output data object
     my %output;
     $output{-type} = $self->{-output_format} || 'sta';
     my $alignments = new Lingua::Align::Corpus::Parallel(%output);
 
-    my %src=();my %trg=();my $existing_links;
-
+    my %src=();
+    my %trg=();
+    my $existing_links;
     my $count=0;
     my $skipped=0;
-
-    my ($correct,$wrong,$total)=(0,0,0);
     my ($SrcId,$TrgId);
 
+    # initialize variables for runtime information
     $self->{TIME_EXTRACT_FEATURES}=0;
     $self->{TIME_CLASSIFICATION}=0;
     $self->{TIME_LINK_SEARCH}=0;
@@ -171,6 +226,11 @@ sub align{
     $self->{NODE_COUNT}=0;
     $self->{SRCNODE_COUNT}=0;
     $self->{TRGNODE_COUNT}=0;
+
+
+    #----------------------------------------------------------------
+    # main loop: run through the parallel corpus and align!
+    #----------------------------------------------------------------
 
     while ($corpus->next_alignment(\%src,\%trg,\$existing_links)){
 
@@ -182,10 +242,7 @@ sub align{
 	    }
 	}
 
-#	if ($src{NODES}{'12_9'}{'word'} eq 'Evans'){
-#	    print '';
-#	}
-
+	# generate some runtime output to show progress
 	$count++;
 	if (not($count % 10)){print STDERR '.';}
 	if (not($count % 100)){
@@ -194,6 +251,8 @@ sub align{
 	    print STDERR $elapsed;
 	    printf STDERR " sec, %f/sentence)\n",$elapsed/$count;
 	}
+
+	# stop after MAX number of sentence pairs (if specified)
 	if (defined $max){
 	    if ($count>$max){
 		$corpus->close();
@@ -208,19 +267,13 @@ sub align{
 	$self->{INSTANCES}=[];
 	$self->{INSTANCES_SRC}=[];
 	$self->{INSTANCES_TRG}=[];
+
 	# clear the feature value cache
 	$self->{FEATURE_EXTRACTOR}->clear_cache();
 
 
-# 	# extract features
-# 	$self->{START_EXTRACT_FEATURES}=time();
-# 	$self->extract_classification_data(\%src,\%trg,$links);
-# 	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
-
-# 	# classify data instances
-# 	$self->{START_CLASSIFICATION}=time();
-# 	my @scores = $self->{CLASSIFIER}->classify($model);
-# 	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+	#----------------------------------------------------------------
+	# check if already existing links are OK
 
 	my $nr_existing_links=0;
 	if ($self->{-verbose}){
@@ -237,27 +290,35 @@ sub align{
 	    }
 	}
 
+	#----------------------------------------------------------------
+	# extract features and classify link candidates
+	#----------------------------------------------------------------
 
 	my @scores = $self->classify($model,\%src,\%trg,$existing_links);
+
+	#----------------------------------------------------------------
+	# link search: use classification result to do the actual alignment
+	#----------------------------------------------------------------
 
 	my %links=();
 	$self->{START_LINK_SEARCH}=time();
 
-	# add existing links if necessary --> good to inlcude here already
-	# because they may influence the link search (wellformedness ...)
-
-	# "compete" --> let the existing links compete with the new ones
+	# add previously existing links before link search
+	# --> they may influence the link search (wellformedness constraint ...)
+	#
+	# 1) "compete-mode":
+	#    let the existing links compete with the new ones
 	if ($self->{-add_links}=~/compet/){
 	    foreach my $sid (keys %{$existing_links}){
 		foreach my $tid (keys %{$$existing_links{$sid}}){
 		    push(@{$self->{INSTANCES_SRC}},$sid);
 		    push(@{$self->{INSTANCES_TRG}},$tid);
-		    push(@{$self->{LABELS}},1);
 		    push(@scores,$$existing_links{$sid}{$tid});
 		}
 	    }
 	}
-	# otherwise: just leave the existing links as they are and just add new
+	# 2) "standard-mode":
+	#    leave existing links as they are and just add new ones in search
 	elsif ($self->{-add_links}){
 	    foreach my $sid (keys %{$existing_links}){
 		foreach my $tid (keys %{$$existing_links{$sid}}){
@@ -269,26 +330,18 @@ sub align{
 	    }
 	}
 
-	if (not $self->{-add_links}){
-            $total+=scalar grep(/1/,@{$self->{LABELS}});
-	}
+	# do the actual inference: search for the best alignment using
+	#                          the selected link search algorithm
 
-	my ($c,$w,$t)=$searcher->search(\%links,\@scores,$min_score,
-					$self->{INSTANCES_SRC},
-					$self->{INSTANCES_TRG},
-					$self->{LABELS},
-					\%src,\%trg);
+	$searcher->search(\%links,\@scores,$min_score,
+			  $self->{INSTANCES_SRC},
+			  $self->{INSTANCES_TRG},
+			  \%src,\%trg);
 	$self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
 
-	# option add_links means that we keep existing links and
-	# add the new ones to the exting ones!
-	# --> don't us existing ones for evaluation!
-	if (not $self->{-add_links}){
-	    $correct+=$c;
-	    $wrong+=$w;
-#	    $total+=$self->{TOTALNRLINKS};
-#	    $total+=$t;
-	}
+	#----------------------------------------------------------------
+	# print alignment output
+	#----------------------------------------------------------------
 
 	if ((not defined $SrcId) || (not defined $TrgId)){
 	    $SrcId=$corpus->src_treebankID();
@@ -298,52 +351,17 @@ sub align{
 	    print $alignments->print_header($SrcFile,$TrgFile,$SrcId,$TrgId);
 	}
 
-# 	if ($self->{-add_links}){
-# 	    foreach my $sid (keys %{$existing_links}){
-# 		foreach my $tid (keys %{$$existing_links{$sid}}){
-# 		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
-# 			print STDERR "link between $sid and $tid exists\n";
-# 		    }
-# 		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
-# 		}
-# 	    }
-# 	}
-
 	print $alignments->print_alignments(\%src,\%trg,\%links,$SrcId,$TrgId);
-
-# 	foreach my $snid (keys %links){
-# 	    foreach my $tnid (keys %{$links{$snid}}){
-# 		print "<align comment=\"$links{$snid}{$tnid}\" type=\"auto\">\n";
-# 		print "  <node node_id=\"$snid\" treebank_id=\"src\"/>\n";
-# 		print "  <node node_id=\"$tnid\" treebank_id=\"trg\"/>\n";
-# 		print "<align/>\n";
-# 	    }
-# 	}
-
-
     }
+
+    #----------------------------------------------------------------
+    # end of the main loop
+    #----------------------------------------------------------------
+
+    # close alignment output & print some runtime information
+
     print $alignments->print_tail();
 
-    ## if there were any lables & we are not in 'add_links' mode
-    if ($total && (not $self->{-add_links})){
-	my $precision = 0;
-	if ($correct || $wrong){
-	    $precision = $correct/($correct+$wrong);
-	}
-	my $recall = $correct/($total);
-
-	printf STDERR "\n%20s = %5.2f (%d/%d)\n","precision",
-	$precision*100,$correct,$correct+$wrong;
-	printf STDERR "%20s = %5.2f (%d/%d)\n","recall",
-	$recall*100,$correct,$total;
-	my $F=0;
-	if ($precision || $recall){
-	    $F=2*$precision*$recall/($precision+$recall);
-	}
-	printf STDERR "%20s = %5.2f\n","balanced F",100*$F;
-#	print STDERR "=======================================\n";
-
-    }
     $self->{TIME_ALIGNING} = time() - $self->{START_ALIGNING};
 
     if ($self->{-verbose}){
@@ -374,25 +392,51 @@ sub align{
 	    print STDERR "============================================\n\n";
 	}
     }
-
 }
+
+
+#
+# end of align
+#----------------------------------------------------------------
+
+
+
+
+
+
+#----------------------------------------------------------------
+# extract training data instances
+#
+# - run through training corpus (aligned parallel treebank)
+#   and extract data instances in terms of labeled feature vectors
+# - extract also history features
+# - add each instance to training data
+#
+# extract_training_data($corpus,$features,$max,$skip)
+#
+#  corpus .... pointer to hash specifying the parallel tree bank
+#  features .. set of features to be used
+#  max ....... number of tree pairs to be used for training (default: all)
+#  skip ...... number of initial tree pairs to be skipped (default: 0)
+#----------------------------------------------------------------
+
 
 
 sub extract_training_data{
     my $self=shift;
+
     my ($corpus,$features,$max,$skip)=@_;
     if (not $features){$features = $self->{-features};}
-
-    print STDERR "extract features for training!\n";
-
-    my $FE=$self->{FEATURE_EXTRACTOR};
-    $FE->initialize_features($features);
-#    $self->initialize_features($features);
-
     if (ref($corpus) ne 'HASH'){
 	die "please specify a corpus to be used for training!";
     }
 
+    print STDERR "extract features for training!\n";
+
+    # initialize
+
+    my $FE=$self->{FEATURE_EXTRACTOR};
+    $FE->initialize_features($features);
     my $CorpusHandle = new Lingua::Align::Corpus::Parallel(%{$corpus});
 
     my ($weightSure,$weightPossible,$weightNegative) = (1,0,1);
@@ -412,7 +456,10 @@ sub extract_training_data{
 
     my $count=0;
     my $skipped=0;
-#    my $LinkProbs;
+
+    #----------------------------------------------------------------
+    # main loop: run through treebank and extract features
+    #----------------------------------------------------------------    
 
     while ($CorpusHandle->next_alignment(\%src,\%trg,\$links)){
 
@@ -424,17 +471,19 @@ sub extract_training_data{
 	    }
 	}
 
-
 	# clear the feature value cache
 	$FE->clear_cache();
 
 	#-------------------------------------------------------------------
-	# adaptive learning a la SEARN (combine true & predicted values)
+	# adaptive "SEARN-like" learning (combine true & predicted values)
+	#-------------------------------------------------------------------
 
 	if (defined $self->{-searn_model}){
 
 	    # make link prob's out of link types ....
-
+	    # HARDCODED STUFF!!!
+	    # --> good = 1
+	    # --> fuzzy = 0.2
 	    if (not defined $self->{LP}){
 		$self->{LP}={};
 		foreach my $s (keys %{$links}){
@@ -449,6 +498,10 @@ sub extract_training_data{
 		}
 	    }
 
+	    # interpolation beta: take from $self->{-searn_beta}
+	    # or simply set it to 0.3
+	    # ---> beta should be estimated on development data!!!!
+
 	    my $model = $self->{-searn_model};
 	    my @scores = $self->classify($model,\%src,\%trg);
 	    my $b=$self->{-searn_beta} || 0.3;
@@ -461,20 +514,22 @@ sub extract_training_data{
 	    }
 	}
 
-	#-------------------------------------------------------------------
-
-
-
+	# show progress at runtime
 	$count++;
 	if (not($count % 10)){print STDERR '.';}
 	elsif (not($count % 100)){print STDERR " $count aligments\n";}
 
+	# stop after max number of tree pairs (if specified)
 	if (defined $max){
 	    if ($count>$max){
 		$CorpusHandle->close();
 		last;
 	    }
 	}
+
+	#-------------------------------------------------------------------
+	# loop through all node pairs and extract data instances
+	#-------------------------------------------------------------------
 
 	$self->{SENT_COUNT}++;
 	$self->{SRCNODE_COUNT}+=scalar keys %{$src{NODES}};
@@ -483,42 +538,9 @@ sub extract_training_data{
 	foreach my $sn (keys %{$src{NODES}}){
 	    next if ($sn!~/\S/);
 	    my $s_is_terminal=$self->{TREES}->is_terminal(\%src,$sn);
-
-	    ## align only non-terminals!
-	    if ($self->{-nonterminals_only}){
-		next if ($s_is_terminal);
-	    }
-	    ## align only terminals!
-	    ## (do we need this?)
-	    if ($self->{-terminals_only}){
-		next if (not $s_is_terminal);
-	    }
-	    # skip nodes with unary productions
-	    if ((not $s_is_terminal) && $self->{-skip_unary}){
-
-		# IF "nonterminals_only" is switched on OR
-		#    "same_types_only" is switched on THEN
-		# do NOT skip unary subtrees 
-		# IF the only child is a terminal node!
-		# Why? --> "nonterminals_only" --> we want to link those nodes!
-		#          down at the end of branches
-		#      --> "same_types_only" --> there might be a non-unary
-		#          subtree in the target language to be linked to!
-
-		if ($self->{-nonterminals_only} ||
-		    $self->{-same_types_only}){
-		    my $c=undef;
-		    if ($self->{TREES}->is_unary_subtree(\%src,$sn,\$c)){
-			next if ($self->{TREES}->is_nonterminal(\%src,$c));
-		    }
-		}
-		else{
-		    next if ($self->{TREES}->is_unary_subtree(\%src,$sn));
-		}
-	    }
+	    next if ($self->skip_node($sn,\%src,$s_is_terminal));
 	    
 	    foreach my $tn (keys %{$trg{NODES}}){
-
 		next if ($tn!~/\S/);
 		my $t_is_terminal=$self->{TREES}->is_terminal(\%trg,$tn);
 
@@ -530,34 +552,19 @@ sub extract_training_data{
 		    }
 		    elsif ($t_is_terminal){next;}
 		}
-		## align only non-terminals!
-		if ($self->{-nonterminals_only}){
-		    next if ($t_is_terminal);
-		}
-		## align only terminals!
-		if ($self->{-terminals_only}){
-		    next if (not $t_is_terminal);
-		}
-		# skip nodes with unary productions
-		if ((not $t_is_terminal) && $self->{-skip_unary}){
-		    if ($self->{-nonterminals_only} ||
-			$self->{-same_types_only}){
-			my $c=undef;
-			if ($self->{TREES}->is_unary_subtree(\%trg,$tn,\$c)){
-			    next if ($self->{TREES}->is_nonterminal(\%trg,$c));
-			}
-		    }
-		    else{
-			next if ($self->{TREES}->is_unary_subtree(\%trg,$tn));
-		    }
-		}
+		next if ($self->skip_node($tn,\%trg,$t_is_terminal));
+
+		#------------------------------------------------
+		# finally: extract features for given node pair!
+		#------------------------------------------------
 
 		my %values = $FE->features(\%src,\%trg,$sn,$tn);
-#		print STDERR "train: $sn:$tn\n";
 		$self->{NODE_COUNT}++;
 
 		#-----------------------------------------------------------
-		# structural dependencies
+		# add history features
+		#------------------------------------------------
+
 		if ($self->{-linked_children}){
 		    if (defined $self->{LP}){
 			$self->linked_children(\%values,\%src,\%trg,
@@ -599,10 +606,10 @@ sub extract_training_data{
 		    }
 		}
 
-#		$values{"$sn-$tn"} = 1;
-
-		# positive training events
+		#-----------------------------------------------------------
+		# add positive training events
 		# (good/sure examples && fuzzy/possible examples)
+		#-----------------------------------------------------------
 
 		if ((ref($$links{$sn}) eq 'HASH') && 
 		    (exists $$links{$sn}{$tn})){
@@ -616,17 +623,17 @@ sub extract_training_data{
 		    }
 		    elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
 			if ($weightPossible){
-#			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightPossible);
 			}
 		    }
 		}
 
-		# negative training events
+		#-----------------------------------------------------------
+		# add negative training events
+		#-----------------------------------------------------------
 
 		elsif ($weightNegative){
-#		    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 		    $self->{CLASSIFIER}->add_train_instance(
 			'0',\%values,$weightNegative);
 		}
@@ -635,6 +642,147 @@ sub extract_training_data{
     }
 }
 
+
+
+#---------------------------------------------------------------
+# skip_node($node,$tree,$is_terminal)
+#    - check if we should skip nodes because of some constraints & settings
+#
+# node ......... node ID
+# tree ......... pointer to tree structure
+# is_terminal .. flag to indicate that node is terminal node (or not)
+#---------------------------------------------------------------
+
+sub skip_node{
+    my $self=shift;
+    my ($n,$tree,$is_terminal)=@_;
+
+    ## align only non-terminals!
+    if ($self->{-nonterminals_only}){
+	return 1 if ($is_terminal);
+    }
+    ## align only terminals!
+    ## (do we need this?)
+    if ($self->{-terminals_only}){
+	return 1 if (not $is_terminal);
+    }
+    # skip nodes with unary productions
+    if ((not $is_terminal) && $self->{-skip_unary}){
+
+	# IF "nonterminals_only" is switched on OR
+	#    "same_types_only" is switched on THEN
+	# do NOT skip unary subtrees 
+	# IF the only child is a terminal node!
+	# Why? --> "nonterminals_only" --> we want to link those nodes!
+	#          down at the end of branches
+	#      --> "same_types_only" --> there might be a non-unary
+	#          subtree in the target language to be linked to!
+
+	if ($self->{-nonterminals_only} || $self->{-same_types_only}){
+	    my $c=undef;
+	    if ($self->{TREES}->is_unary_subtree($tree,$n,\$c)){
+		return 1 if ($self->{TREES}->is_nonterminal($tree,$c));
+	    }
+	}
+	else{
+	    return 1 if ($self->{TREES}->is_unary_subtree($tree,$n));
+	}
+    }
+    return 0;
+}
+
+
+
+#----------------------------------------------------------------
+#
+# history features
+#
+#----------------------------------------------------------------
+
+
+# linked_children
+#
+# - look at link predictions for all *immediate* children nodes 
+#   of the current subtree pair
+# - normalize number of linked children nodes 
+#   by largest number of nodes on either source or target language side
+# - in alignment: use prediction likelihood as "soft count"
+
+sub linked_children{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
+    my @srcchildren=$self->{TREES}->children($src,$sn);
+    my @trgchildren=$self->{TREES}->children($trg,$tn);
+    my $nr=0;
+    foreach my $s (@srcchildren){
+	foreach my $t (@trgchildren){
+	    if (exists $$links{$s}){
+		if (exists $$links{$s}{$t}){
+		    if ($softcount){                 # prediction mode:
+			$nr+=$$links{$s}{$t};        # use prediction prob
+#			if ($softcount>0.5){$nr++;}  # use classification
+		    }
+		    else{$nr++;}                     # training mode
+		}
+	    }
+	}
+    }
+    # normalize by the size of the larger subtree
+    # problem: might give us scores > 1 (is this a problem?)
+    if ($nr){
+	if ($#srcchildren > $#trgchildren){
+	    if ($#srcchildren>=0){
+		$$values{linkedchildren}=$nr/($#srcchildren+1);
+	    }
+	}
+	elsif ($#trgchildren>=0){
+	    $$values{linkedchildren}=$nr/($#trgchildren+1);
+	}
+    }
+}
+
+
+# linked_subtree
+#
+# same as linked_subtree but cosider all nodes in the subtree!
+
+sub linked_subtree{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
+    my @srcchildren=$self->{TREES}->subtree_nodes($src,$sn);
+    my @trgchildren=$self->{TREES}->subtree_nodes($trg,$tn);
+    my $nr=0;
+    foreach my $s (@srcchildren){
+	foreach my $t (@trgchildren){
+	    if (exists $$links{$s}){
+		if (exists $$links{$s}{$t}){
+		    if ($softcount){
+			$nr+=$$links{$s}{$t};
+		    }
+		    else{$nr++;}
+		}
+	    }
+	}
+    }
+    if ($nr){
+	if ($#srcchildren > $#trgchildren){
+	    if ($#srcchildren>=0){
+		$$values{linkedsubtree}=$nr/($#srcchildren+1);
+	    }
+	}
+	elsif ($#trgchildren>=0){
+	    $$values{linkedsubtree}=$nr/($#trgchildren+1);
+	}
+    }
+}
+
+
+
+# linked_parent
+#
+# - for top-down classification: 
+#   return whether parent nodes are linked or not
+# - in alignment mode: return prediction likelihood
 
 sub linked_parent{
     my $self=shift;
@@ -657,6 +805,13 @@ sub linked_parent{
 }
 
 
+# linked_parent_distance
+#
+# - for top-down prediction: 
+#   measure the distance between the linked parent 
+#   and the parent of the current link candidate
+# - in case of multiple links (or multiple link likelihoods):
+#   compute average distance
 
 sub linked_parent_distance{
     my $self=shift;
@@ -695,41 +850,19 @@ sub linked_parent_distance{
 }
 
 
-sub linked_children{
-    my $self=shift;
-    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
-    my @srcchildren=$self->{TREES}->children($src,$sn);
-    my @trgchildren=$self->{TREES}->children($trg,$tn);
-    my $nr=0;
-    foreach my $s (@srcchildren){
-	foreach my $t (@trgchildren){
-	    if (exists $$links{$s}){
-		if (exists $$links{$s}{$t}){
-		    if ($softcount){                 # prediction mode:
-			$nr+=$$links{$s}{$t};        # use prediction prob
-#			if ($softcount>0.5){$nr++;}  # use classification
-		    }
-		    else{$nr++;}                     # training mode
-		}
-	    }
-	}
-    }
-    # normalize by the size of the larger subtree
-    # problem: might give us scores > 1 (is this a problem?)
-    if ($nr){
-	if ($#srcchildren > $#trgchildren){
-	    if ($#srcchildren>=0){
-		$$values{linkedchildren}=$nr/($#srcchildren+1);
-	    }
-	}
-	elsif ($#trgchildren>=0){
-	    $$values{linkedchildren}=$nr/($#trgchildren+1);
-	}
-    }
-}
 
 
-sub linked_children_new{
+
+
+# alternative history features .... not used yet
+#
+# linked_children_proper
+# linked_subtree_proper
+#     --> normalize with total number of src & trg nodes
+#     --> scores are always between 0 and 1
+#     (punishes nodes with many children too much?!)
+
+sub linked_children_proper{
     my $self=shift;
     my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
     my @srcchildren=$self->{TREES}->children($src,$sn);
@@ -755,7 +888,7 @@ sub linked_children_new{
     }
 }
 
-sub linked_subtree_new{
+sub linked_subtree_proper{
     my $self=shift;
     my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
     my @srcchildren=$self->{TREES}->subtree_nodes($src,$sn);
@@ -782,37 +915,10 @@ sub linked_subtree_new{
 }
 
 
-
-sub linked_subtree{
-    my $self=shift;
-    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
-    my @srcchildren=$self->{TREES}->subtree_nodes($src,$sn);
-    my @trgchildren=$self->{TREES}->subtree_nodes($trg,$tn);
-    my $nr=0;
-    foreach my $s (@srcchildren){
-	foreach my $t (@trgchildren){
-	    if (exists $$links{$s}){
-		if (exists $$links{$s}{$t}){
-		    if ($softcount){
-			$nr+=$$links{$s}{$t};
-		    }
-		    else{$nr++;}
-		}
-	    }
-	}
-    }
-    if ($nr){
-	if ($#srcchildren > $#trgchildren){
-	    if ($#srcchildren>=0){
-		$$values{linkedsubtree}=$nr/($#srcchildren+1);
-	    }
-	}
-	elsif ($#trgchildren>=0){
-	    $$values{linkedsubtree}=$nr/($#trgchildren+1);
-	}
-    }
-}
-
+# linked_children_inside_outside
+#
+# ratio between links within the subtree pair 
+# and links outside of the subtree pair
 
 sub linked_children_inside_outside{
     my $self=shift;
@@ -820,15 +926,12 @@ sub linked_children_inside_outside{
     my @srcchildren=$self->{TREES}->children($src,$sn);
     my @trgchildren=$self->{TREES}->children($trg,$tn);
 
-#    my %srcLeafIDs=();
-#    foreach (@srcchildren){$srcLeafIDs{$_}=1;}
     my %trgLeafIDs=();
     foreach (@trgchildren){$trgLeafIDs{$_}=1;}
 
     my $inside=0;
     my $outside=0;
 
-#    my $nr=0;
     foreach my $s (@srcchildren){
 	if (exists $$links{$s}){
 	    foreach my $t (keys %{$$links{$s}}){
@@ -849,15 +952,34 @@ sub linked_children_inside_outside{
 }
 
 
+
+
+#----------------------------------------------------------------
+#
+# classify
+#
+# call classifier for all node pairs
+# - classify_bottom_up .... if linked_children history features are used 
+# - classify_top_down ..... if linked_parent history features are used 
+# - simply run through all pairsotherwise
+#
+#----------------------------------------------------------------
+
+
 sub classify{
     my $self=shift;
 
-    if ($self->{-linked_children} || $self->{-linked_subtree}){
-	return $self->classify_bottom_up(@_);
+    if ($self->{-linked_children} || $self->{-linked_subtree} ||
+	$self->{-linked_parent} || $self->{-linked_parent_distance}){
+	return $self->classify_with_history(@_);
     }
-    elsif ($self->{-linked_parent} || $self->{-linked_parent_distance}){
-	return $self->classify_top_down(@_);
-    }
+
+    # if ($self->{-linked_children} || $self->{-linked_subtree}){
+    # 	return $self->classify_bottom_up(@_);
+    # }
+    # elsif ($self->{-linked_parent} || $self->{-linked_parent_distance}){
+    # 	return $self->classify_top_down(@_);
+    # }
 
     my ($model,$src,$trg,$links)=@_;
 
@@ -871,6 +993,189 @@ sub classify{
     my @scores = $self->{CLASSIFIER}->classify($model);
     $self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
 
+    return @scores;
+}
+
+
+
+#----------------------------------------------------------------
+#
+# classify_with_history
+#
+#----------------------------------------------------------------
+
+sub classify_with_history{
+    my $self=shift;
+    my ($model,$src,$trg,$links)=@_;
+
+    my $BottomUp = 1;
+    if ($self->{-linked_parent} || $self->{-linked_parent_distance}){
+	$BottomUp = 0;
+    }
+
+    my $FE=$self->{FEATURE_EXTRACTOR};
+    my @srcnodes=();
+    my %srcdone=();
+    my @scores=();
+
+
+    # Bottom-Up: start with leaf nodes
+
+    if ($BottomUp){
+	@srcnodes=@{$$src{TERMINALS}};
+
+	# special case: "link non-terminals only"
+	# ---> we have to start with the parents of all source terminal nodes!
+
+	foreach my $sn (@srcnodes){
+	    my @parents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@parents){
+		push(@srcnodes,$p);
+	    }
+	}
+    }
+
+
+    # Top-Down: start with root node
+
+    else{
+	@srcnodes=($$src{ROOTNODE});
+
+	# special case: link only terminal nodes
+	# makes only sense in combination with 'use_existing_links'
+	# and parent links exist in the input!
+
+	if ($self->{-terminals_only}){
+	    @srcnodes=@{$$src{TERMINALS}};
+	}
+
+    }
+
+
+
+    # another special case:
+    # --> use existing links (mark them as "done")
+
+    if ($self->{-use_existing_links}){
+	foreach my $sn (keys %{$links}){
+	    foreach my $tn (keys %{$$links{$sn}}){
+		$srcdone{$sn}{$tn}=$$links{$sn}{$tn};
+	    }
+	}
+    }
+
+
+    # run as long as there are srcnodes that we haven't classified yet
+
+    while (@srcnodes){
+
+	$self->{START_EXTRACT_FEATURES}=time();
+	my $sn = shift(@srcnodes);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
+
+	my @trgnodes=();
+	foreach my $tn (keys %{$$trg{NODES}}){
+	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+
+	    ## align ony terminals with terminals and
+	    ## nonterminals with nonterminals
+	    if ($self->{-same_types_only}){
+		if ($s_is_terminal){
+		    next if (not $t_is_terminal);
+		}
+		elsif ($t_is_terminal){next;}
+	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
+
+	    my %values = $FE->features($src,$trg,$sn,$tn);
+
+	    # Bottom-Up: need to add children features
+
+	    if ($BottomUp){
+		if ($self->{-linked_children}){
+		    $self->linked_children(\%values,$src,$trg,
+					   $sn,$tn,\%srcdone,1);
+		}
+		if ($self->{-linked_subtree}){
+		    $self->linked_subtree(\%values,$src,$trg,
+					  $sn,$tn,\%srcdone,1);
+		}
+	    }
+
+	    # Top-Down: need to add parent features
+
+	    else{
+		if ($self->{-linked_parent}){
+		    $self->linked_parent(\%values,$src,$trg,
+					 $sn,$tn,\%srcdone,1);
+		}
+		if ($self->{-linked_parent_distance}){
+		    $self->linked_parent_distance(\%values,$src,$trg,
+						  $sn,$tn,\%srcdone,1);
+		}
+	    }
+
+
+	    $self->{CLASSIFIER}->add_test_instance(\%values);
+	    $self->{NODE_COUNT}++;
+
+	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
+	    push(@{$self->{INSTANCES_SRC}},$sn);
+	    push(@{$self->{INSTANCES_TRG}},$tn);
+	    push(@trgnodes,$tn);
+
+	}
+	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
+
+	# classify data instances
+	$self->{START_CLASSIFICATION}=time();
+	my @res = $self->{CLASSIFIER}->classify($model);
+	push (@scores,@res);
+	$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+	# store scores in srcdone hash
+	# for linked-children feature
+	foreach (0..$#trgnodes){
+	    $srcdone{$sn}{$trgnodes[$_]}=$res[$_];
+#	    if ($res[$_]>0.5){
+#		$srcdone{$sn}{$trgnodes[$_]}=1;
+#	    }
+	}
+
+
+	# Bottom-Up: add only those parent nodes 
+	#            for which ALL children are done already!
+
+	if ($BottomUp){
+
+	    # add sn's parent nodes to srcnodes if all its children are 
+	    # classified already (is this good enough?)
+
+	    my @parents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@parents){
+		next if (exists $srcdone{$p});
+		my @children=$self->{TREES}->children($src,$p);
+		my $isok=1;
+		foreach my $c (@children){
+		    $isok = 0 if (not exists $srcdone{$c});
+		}
+		if ($isok){
+		    push(@srcnodes,$p);
+		}
+	    }
+	}
+
+	# Top-Down: easy! --> take children next!
+
+	else{
+	    my @srcchildren=$self->{TREES}->children($src,$sn);
+	    push(@srcnodes,@srcchildren);
+	}
+
+
+    }
+
 #    print STDERR scalar @scores if ($self->{-verbose});
 #    print STDERR " ... scores returned\n"  if ($self->{-verbose});
     return @scores;
@@ -878,16 +1183,81 @@ sub classify{
 }
 
 
+#
+# end of classify_with_history
+#----------------------------------------------------------------
+
+
+
+
+
+
+sub extract_classification_data{
+    my $self=shift;
+    my ($src,$trg,$links)=@_;
+
+    my $FE=$self->{FEATURE_EXTRACTOR};
+    $FE->clear_cache();
+
+    foreach my $sn (keys %{$$src{NODES}}){
+	next if ($sn!~/\S/);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
+
+	foreach my $tn (keys %{$$trg{NODES}}){
+	    next if ($tn!~/\S/);
+	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+
+	    ## align ony terminals with terminals and
+	    ## nonterminals with nonterminals
+	    if ($self->{-same_types_only}){
+		if ($s_is_terminal){
+		    next if (not $t_is_terminal);
+		}
+		elsif ($t_is_terminal){next;}
+	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
+
+	    my %values = $FE->features($src,$trg,$sn,$tn);
+	    $self->{CLASSIFIER}->add_test_instance(\%values);
+	    $self->{NODE_COUNT}++;
+
+	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
+	    push(@{$self->{INSTANCES_SRC}},$sn);
+	    push(@{$self->{INSTANCES_TRG}},$tn);
+
+	}
+    }
+}
+
+
+
+
+
+
+
+#################################################################
+#################################################################
+### OLD: separate sub-routines for bottom-up and top-down
+#################################################################
+#################################################################
+
+
+
+#----------------------------------------------------------------
+#
+# classify_bottom_up
+#
+# start with leaf nodes and move upwards
+#----------------------------------------------------------------
+
 sub classify_bottom_up{
     my $self=shift;
     my ($model,$src,$trg,$links)=@_;
 
-    $self->{LABELS}=[];
-#    $self->{TOTALNRLINKS}=0;
     my $FE=$self->{FEATURE_EXTRACTOR};
 
     my @srcnodes=@{$$src{TERMINALS}};
-    my @trgnodes=@{$$trg{TERMINALS}};
 
     my %srcdone=();
     my @scores=();
@@ -915,7 +1285,6 @@ sub classify_bottom_up{
     }
 
 
-
     # run as long as there are srcnodes that we haven't classified yet
 
     while (@srcnodes){
@@ -923,30 +1292,7 @@ sub classify_bottom_up{
 	$self->{START_EXTRACT_FEATURES}=time();
 	my $sn = shift(@srcnodes);
 	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
-
-	## align only non-terminals!
-	if ($self->{-nonterminals_only}){
-	    next if ($s_is_terminal);
-	}
-	## align only terminals!
-	## (do we need this?)
-	if ($self->{-terminals_only}){
-	    next if (not $s_is_terminal);
-	}
-	# skip nodes with unary productions
-	if ((not $s_is_terminal) && $self->{-skip_unary}){
-#	if ($self->{-skip_unary}){
-	    if ($self->{-nonterminals_only} ||  # special treatment for
-		$self->{-same_types_only}){     # unary subtrees with
-		my $child=undef;                # a terminal as child node
-		if ($self->{TREES}->is_unary_subtree($src,$sn,\$child)){
-		    next if ($self->{TREES}->is_nonterminal($src,$child));
-		}
-	    }
-	    else{
-		next if ($self->{TREES}->is_unary_subtree($src,$sn));
-	    }
-	}
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
 
 	my @trgnodes=();
 	foreach my $tn (keys %{$$trg{NODES}}){
@@ -960,42 +1306,8 @@ sub classify_bottom_up{
 		}
 		elsif ($t_is_terminal){next;}
 	    }
-	    ## align only non-terminals!
-	    if ($self->{-nonterminals_only}){
-		next if ($t_is_terminal);
-	    }
-	    ## align only terminals!
-	    if ($self->{-terminals_only}){
-		next if (not $t_is_terminal);
-	    }
-	    # skip nodes with unary productions
-	    if ((not $t_is_terminal) && $self->{-skip_unary}){
-#	    if ($self->{-skip_unary}){              
-		if ($self->{-nonterminals_only} ||  # special treatment for
-		    $self->{-same_types_only}){     # unary subtrees with
-		    my $child=undef;                # a terminal as child node
-		    if ($self->{TREES}->is_unary_subtree($trg,$tn,\$child)){
-			next if ($self->{TREES}->is_nonterminal($trg,$child));
-		    }
-		}
-		else{
-		    next if ($self->{TREES}->is_unary_subtree($trg,$tn));
-		}
-	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
 
-
-	    my $label=0;
-	    if ((ref($$links{$sn}) eq 'HASH') && 
-		(exists $$links{$sn}{$tn})){
-		if ($self->{-count_good_only}){           # discard fuzzy
-		    if ($$links{$sn}{$tn}=~/(good|S)/){
-			$label=1;
-		    }
-		}
-		else{$label=1;}
-	    }
-	    push(@{$self->{LABELS}},$label);
-#	    $self->{TOTALNRLINKS}+=$label;
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    if ($self->{-linked_children}){
 		$self->linked_children(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
@@ -1004,7 +1316,7 @@ sub classify_bottom_up{
 		$self->linked_subtree(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
 	    }
 
-	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+	    $self->{CLASSIFIER}->add_test_instance(\%values);
 	    $self->{NODE_COUNT}++;
 
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
@@ -1031,7 +1343,7 @@ sub classify_bottom_up{
 	}
 
 	# add sn's parent nodes to srcnodes if all its children are 
-	# classified already (good enough?)
+	# classified already (is this good enough?)
 
 	my @parents=$self->{TREES}->parents($src,$sn);
 	foreach my $p (@parents){
@@ -1055,16 +1367,24 @@ sub classify_bottom_up{
 }
 
 
+#
+# end of classify_bottom_up
+#----------------------------------------------------------------
 
 
+
+#----------------------------------------------------------------
+#
+# classify_top_down
+#
+# start with the root nodes and move downwards
+#----------------------------------------------------------------
 
 
 sub classify_top_down{
     my $self=shift;
     my ($model,$src,$trg,$links)=@_;
 
-    $self->{LABELS}=[];
-#    $self->{TOTALNRLINKS}=0;
     my $FE=$self->{FEATURE_EXTRACTOR};
 
     my @srcnodes=($$src{ROOTNODE});
@@ -1097,30 +1417,7 @@ sub classify_top_down{
 	$self->{START_EXTRACT_FEATURES}=time();
 	my $sn = shift(@srcnodes);
 	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
-
-	## align only non-terminals!
-	if ($self->{-nonterminals_only}){
-	    next if ($s_is_terminal);
-	}
-	## align only terminals!
-	## (do we need this?)
-	if ($self->{-terminals_only}){
-	    next if (not $s_is_terminal);
-	}
-	# skip nodes with unary productions
-	if ((not $s_is_terminal) && $self->{-skip_unary}){
-#	if ($self->{-skip_unary}){
-	    if ($self->{-nonterminals_only} ||  # special treatment for
-		$self->{-same_types_only}){     # unary subtrees with
-		my $child=undef;                # a terminal as child node
-		if ($self->{TREES}->is_unary_subtree($src,$sn,\$child)){
-		    next if ($self->{TREES}->is_nonterminal($src,$child));
-		}
-	    }
-	    else{
-		next if ($self->{TREES}->is_unary_subtree($src,$sn));
-	    }
-	}
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
 
 	my @trgnodes=();
 	foreach my $tn (keys %{$$trg{NODES}}){
@@ -1134,42 +1431,8 @@ sub classify_top_down{
 		}
 		elsif ($t_is_terminal){next;}
 	    }
-	    ## align only non-terminals!
-	    if ($self->{-nonterminals_only}){
-		next if ($t_is_terminal);
-	    }
-	    ## align only terminals!
-	    if ($self->{-terminals_only}){
-		next if (not $t_is_terminal);
-	    }
-	    # skip nodes with unary productions
-	    if ((not $t_is_terminal) && $self->{-skip_unary}){
-#	    if ($self->{-skip_unary}){              
-		if ($self->{-nonterminals_only} ||  # special treatment for
-		    $self->{-same_types_only}){     # unary subtrees with
-		    my $child=undef;                # a terminal as child node
-		    if ($self->{TREES}->is_unary_subtree($trg,$tn,\$child)){
-			next if ($self->{TREES}->is_nonterminal($trg,$child));
-		    }
-		}
-		else{
-		    next if ($self->{TREES}->is_unary_subtree($trg,$tn));
-		}
-	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
 
-
-	    my $label=0;
-	    if ((ref($$links{$sn}) eq 'HASH') && 
-		(exists $$links{$sn}{$tn})){
-		if ($self->{-count_good_only}){           # discard fuzzy
-		    if ($$links{$sn}{$tn}=~/(good|S)/){
-			$label=1;
-		    }
-		}
-		else{$label=1;}
-	    }
-	    push(@{$self->{LABELS}},$label);
-#	    $self->{TOTALNRLINKS}+=$label;
 	    my %values = $FE->features($src,$trg,$sn,$tn);
 	    if ($self->{-linked_parent}){
 		$self->linked_parent(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
@@ -1178,7 +1441,7 @@ sub classify_top_down{
 		$self->linked_parent_distance(\%values,$src,$trg,$sn,$tn,\%srcdone,1);
 	    }
 
-	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
+	    $self->{CLASSIFIER}->add_test_instance(\%values);
 	    $self->{NODE_COUNT}++;
 
 	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
@@ -1215,119 +1478,6 @@ sub classify_top_down{
 
 }
 
-
-
-
-sub extract_classification_data{
-    my $self=shift;
-    my ($src,$trg,$links)=@_;
-
-    $self->{LABELS}=[];
-#    $self->{TOTALNRLINKS}=0;
-    my $FE=$self->{FEATURE_EXTRACTOR};
-    $FE->clear_cache();
-
-    foreach my $sn (keys %{$$src{NODES}}){
-	next if ($sn!~/\S/);
-	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
-
-	## align only non-terminals!
-	if ($self->{-nonterminals_only}){
-	    next if ($s_is_terminal);
-	}
-	## align only terminals!
-	## (do we need this?)
-	if ($self->{-terminals_only}){
-	    next if (not $s_is_terminal);
-	}
-	# skip nodes with unary productions
-	if ((not $s_is_terminal) && $self->{-skip_unary}){
-
-	    # IF "nonterminals_only" is switched on OR
-	    #    "same_types_only" is switched on THEN
-	    # do NOT skip unary subtrees 
-	    # IF the only child is a terminal node!
-	    # Why? --> "nonterminals_only" --> we want to link those nodes!
-	    #          down at the end of branches
-	    #      --> "same_types_only" --> there might be a non-unary subtree
-	    #          in the target language to be linked to!
-
-	    if ($self->{-nonterminals_only} ||
-		$self->{-same_types_only}){
-		my $child=undef;
-		if ($self->{TREES}->is_unary_subtree($src,$sn,\$child)){
-		    next if ($self->{TREES}->is_nonterminal($src,$child));
-		}
-	    }
-	    else{
-		next if ($self->{TREES}->is_unary_subtree($src,$sn));
-	    }
-	}
-
-	foreach my $tn (keys %{$$trg{NODES}}){
-	    next if ($tn!~/\S/);
-	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
-
-	    ## align ony terminals with terminals and
-	    ## nonterminals with nonterminals
-	    if ($self->{-same_types_only}){
-		if ($s_is_terminal){
-		    next if (not $t_is_terminal);
-		}
-		elsif ($t_is_terminal){next;}
-	    }
-
-	    ## align only non-terminals!
-	    if ($self->{-nonterminals_only}){
-		next if ($t_is_terminal);
-	    }
-	    ## align only terminals!
-	    if ($self->{-terminals_only}){
-		next if (not $t_is_terminal);
-	    }
-	    # skip nodes with unary productions (same as above)
-	    if ((not $t_is_terminal) && $self->{-skip_unary}){
-		if ($self->{-nonterminals_only} ||  # special treatment for
-		    $self->{-same_types_only}){     # unary subtrees with
-		    my $child=undef;                # a terminal as child node
-		    if ($self->{TREES}->is_unary_subtree($trg,$tn,\$child)){
-			next if ($self->{TREES}->is_nonterminal($trg,$child));
-		    }
-		}
-		else{
-		    next if ($self->{TREES}->is_unary_subtree($trg,$tn));
-		}
-	    }
-
-	    my $label=0;
-	    if ((ref($$links{$sn}) eq 'HASH') && 
-		(exists $$links{$sn}{$tn})){
-		if ($self->{-count_good_only}){           # discard fuzzy
-		    if ($$links{$sn}{$tn}=~/(good|S)/){
-			$label=1;
-		    }
-		}
-		else{$label=1;}
-	    }
-	    push(@{$self->{LABELS}},$label);
-#	    $self->{TOTALNRLINKS}+=$label;
-	    my %values = $FE->features($src,$trg,$sn,$tn);
-#           print STDERR "test: $sn:$tn\n";
-	    $self->{CLASSIFIER}->add_test_instance(\%values,$label);
-	    $self->{NODE_COUNT}++;
-
-#	    print STDERR $label,' ';
-#	    print STDERR join(':',%values);
-#	    print STDERR "\n";
-#	    print STDERR "\n----------------------------------\n";
-
-	    push(@{$self->{INSTANCES}},"$$src{ID}:$$trg{ID}:$sn:$tn");
-	    push(@{$self->{INSTANCES_SRC}},$sn);
-	    push(@{$self->{INSTANCES_TRG}},$tn);
-
-	}
-    }
-}
 
 
 

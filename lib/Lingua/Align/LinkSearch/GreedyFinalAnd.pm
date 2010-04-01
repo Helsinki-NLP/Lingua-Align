@@ -40,16 +40,15 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
     # first do the base search algorithm
-    my ($correct,$wrong,$total) = 
-	$self->{BASESEARCH}->search($linksST,$scores,$min_score,
-				    $src,$trg,$labels,
-				    $stree,$ttree,$linksTS);
+    $self->{BASESEARCH}->search($linksST,$scores,$min_score,
+				$src,$trg,
+				$stree,$ttree,$linksTS);
 
     foreach my $n (sort {$$scores[$b] <=> $$scores[$a]} (0..$#{$scores})){
 	last if ($$scores[$n] < $min_score);
@@ -60,11 +59,9 @@ sub search{
 #	print STDERR "final_and: add link between $$src[$n] & $$trg[$n]\n";
 	$$linksST{$$src[$n]}{$$trg[$n]}=$$scores[$n];
 	$$linksTS{$$trg[$n]}{$$src[$n]}=$$scores[$n];
-	if ($$labels[$n] == 1){$correct++;}
-	else{$wrong++;}
     }
-    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg,$labels);
-    return ($correct,$wrong,$total);
+    $self->remove_already_linked($linksST,$linksTS,$scores,$src,$trg);
+    return 1;
 }
 
 

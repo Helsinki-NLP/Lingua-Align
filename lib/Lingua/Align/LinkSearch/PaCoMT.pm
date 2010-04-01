@@ -38,27 +38,22 @@ sub new{
 sub search{
     my $self=shift;
     my ($linksST,$scores,$min_score,
-	$src,$trg,$labels,
+	$src,$trg,
 	$stree,$ttree,$linksTS)=@_;
 
     if (ref($linksTS) ne 'HASH'){$linksTS={};}
 
-    my ($correct1,$wrong1,$total1) = 
-	$self->{LINKNT}->search($linksST,$scores,$min_score,
-				$src,$trg,$labels,
-				$stree,$ttree,$linksTS);
-    my ($correct2,$wrong2,$total2) = 
-	$self->{LINKT}->search($linksST,$scores,$min_score,
-			       $src,$trg,$labels,
-			       $stree,$ttree,$linksTS);
-    my ($correct3,$wrong3,$total3) = 
-	$self->{FINAL}->search($linksST,$scores,$min_score,
-			       $src,$trg,$labels,
-			       $stree,$ttree,$linksTS);
+    $self->{LINKNT}->search($linksST,$scores,$min_score,
+			    $src,$trg,
+			    $stree,$ttree,$linksTS);
+    $self->{LINKT}->search($linksST,$scores,$min_score,
+			   $src,$trg,
+			   $stree,$ttree,$linksTS);
+    $self->{FINAL}->search($linksST,$scores,$min_score,
+			   $src,$trg,
+			   $stree,$ttree,$linksTS);
 
-    return ($correct1+$correct2+$correct3,
-	    $wrong1+$wrong2+$wrong3,
-	    $total1+$total2+$total3);
+    return 1;
 
 }
 
