@@ -197,10 +197,21 @@ sub read_next_giza_links{
 				 -sent_id_file => $idfile);
     }
 
+#    print STDERR "read from $file($idfile) ....";
+
     my @srcwords=();
     my @trgwords=();
     my %wordlinks=();
     my @ids=();
+
+    # need to delete initial letters for numeric comparisons
+    my $srcID=$$src{ID};
+    my $trgID=$$trg{ID};
+    $srcID=~s/^[^0-9]+//;
+    $trgID=~s/^[^0-9]+//;
+
+    # temporary variables for link IDs
+    my ($srcLinkID,$trgLinkID);
 
     # read GIZA++ Viterbi word alignment for next sentence pair
     # (check IDs if there is an ID file to do that!)
@@ -218,7 +229,14 @@ sub read_next_giza_links{
 	    return 0;
 	}
 
-	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	# need to delete initial letters for numeric comparisons
+	$srcLinkID=$ids[0];
+	$trgLinkID=$ids[1];
+	$srcLinkID=~s/^[^0-9]+//;
+	$trgLinkID=~s/^[^0-9]+//;
+
+#	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	if (($srcID<$srcLinkID) || ($trgID<$trgLinkID)){
 	    if ($self->{-verbose}>1){
 		print STDERR "gone too far? (looking for $$src{ID}:$$trg{ID}";
 		print STDERR " - found ($ids[0]:$ids[1])\n";
@@ -231,7 +249,8 @@ sub read_next_giza_links{
 
 	if ($self->{-verbose}>1){
 	    if (@ids){
-		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+#		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+		if (($srcID ne $srcLinkID) || ($trgID ne $trgLinkID)){
 		    print STDERR "skip this GIZA++ alignment!";
 		    print STDERR " ($$src{ID}/$ids[0] $$trg{ID}/$ids[1])\n";
 		}
@@ -239,7 +258,10 @@ sub read_next_giza_links{
 	}
     }
     until ((not defined $ids[0]) || 
-	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])));
+	   (($srcID eq $srcLinkID) && ($trgID eq $trgLinkID)));
+
+#	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])) ||
+#	   (($$src{ID} eq "s$ids[0]") && ($$trg{ID} eq "s$ids[1]")));
 
     # get terminal node IDs
 
@@ -340,8 +362,14 @@ sub read_next_moses_links{
     my %wordlinks=();
     my @ids=();
 
-    $self->{$key}->{S2T} = {};
-    $self->{$key}->{T2S} = {};
+    # need to delete initial letters for numeric comparisons
+    my $srcID=$$src{ID};
+    my $trgID=$$trg{ID};
+    $srcID=~s/^[^0-9]+//;
+    $trgID=~s/^[^0-9]+//;
+
+    # temporary variables for link IDs
+    my ($srcLinkID,$trgLinkID);
 
     # read Moses word alignment for next sentence pair
     # (check IDs if there is an ID file to do that!)
@@ -360,7 +388,14 @@ sub read_next_moses_links{
 	    
 	}
 
-	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	# need to delete initial letters for numeric comparisons
+	$srcLinkID=$ids[0];
+	$trgLinkID=$ids[1];
+	$srcLinkID=~s/^[^0-9]+//;
+	$trgLinkID=~s/^[^0-9]+//;
+
+#	if (($$src{ID}<$ids[0]) || ($$trg{ID}<$ids[1])){
+	if (($srcID<$srcLinkID) || ($trgID<$trgLinkID)){
 	    if ($self->{-verbose}>1){
 		print STDERR "gone too far? (looking for $$src{ID}:$$trg{ID}";
 		print STDERR " - found ($ids[0]:$ids[1])\n";
@@ -373,7 +408,8 @@ sub read_next_moses_links{
 
 	if ($self->{-verbose}>1){
 	    if (@ids){
-		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+#		if (($$src{ID} ne $ids[0]) || ($$trg{ID} ne $ids[1])){
+		if (($srcID ne $srcLinkID) || ($trgID ne $trgLinkID)){
 		    print STDERR "skip this MOSES alignment!";
 		    print STDERR "($$src{ID}/$ids[0] $$trg{ID}/$ids[1])\n";
 		}
@@ -381,7 +417,8 @@ sub read_next_moses_links{
 	}
     }
     until ((not defined $ids[0]) || 
-	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])));
+	   (($srcID eq $srcLinkID) && ($trgID eq $trgLinkID)));
+#	   (($$src{ID} eq $ids[0]) && ($$trg{ID} eq $ids[1])));
 
     # get terminal node IDs
 
