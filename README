@@ -24,7 +24,7 @@ ATTENTION:
   provided as a pre-compiles binary in bin/megam for i686 Linux platforms!
 
 - For Mac-OS X (10.4 or higher):
-  Replace the link in bin/megam to point to megam.osx instead of megam.i686
+  Replace bin/megam with bin/megam.osx
 
 - For other platforms:
   You need to dowload the source code of megam and compile it for your
