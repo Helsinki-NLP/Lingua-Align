@@ -1,8 +1,7 @@
 NAME
-    Lingua::Align::Corpus::Parallel - Perl extension for reading a simple
-    parallel corpus (two corpus files, one for the source language, one for
-    the target language); text on corresponding lines are aligned with each
-    other
+    Lingua::Align::Corpus::Parallel - Virtual Perl extension for reading
+    parallel sentence-aligned corpora; default format is plain text (see
+    Lingua::Align::Corpus::Parallel::Bitext)
 
 SYNOPSIS
       use Lingua::Align::Corpus::Parallel;
@@ -22,6 +21,12 @@ SYNOPSIS
 
 DESCRIPTION
 SEE ALSO
+    Lingua::Align::Corpus::Parallel::Bitext,
+    Lingua::Align::Corpus::Parallel::Giza,
+    Lingua::Align::Corpus::Parallel::Moses,
+    Lingua::Align::Corpus::Parallel::OPUS,
+    Lingua::Align::Corpus::Parallel::STA
+
 AUTHOR
     Joerg Tiedemann, <j.tiedemann@rug.nl>
 

@@ -6,7 +6,7 @@ SYNOPSIS
 
 DESCRIPTION
     This module doesn't do anything. Look at Lingua::Align::Trees for the
-    Tree Aligner. Other modules might follow later.
+    Tree Aligner. Other modules will follow later.
 
 SEE ALSO
     Lingua::Align::Trees, Lingua::Align::Trees::FeatureExtractor

@@ -53,6 +53,8 @@ DESCRIPTION
 
     -w  Swap alignment direction when reading through the parallel treebank
 
+    -i  Try to align index nodes as well (used in AlpinoXML)
+
    Training options
     Training will be enabled if a positive number of training sentences iss
     specified with the -n option OR the modelfile does not exist.
@@ -170,13 +172,18 @@ DESCRIPTION
         corresponding nodes as explained above.
 
     -1 weight
-        Training weight for good (sure) alignments
+        Training weight for good (sure) alignments Default = 3
 
     -2 weight
-        Training weight for fuzzy (possible) alignments
+        Training weight for fuzzy (possible) alignments Default = 1
 
     -3 weight
-        Training weight for negative examples (non-aligned nodes)
+        Training weight for negative examples (non-aligned nodes) Default =
+        1
+
+    -4 weight
+        Training weight for weak alignments (new category in our Europarl
+        data) Default = 1
 
     -k  Keep the feature file extracted for training which usually is
         removed to save storage space. The features are stored in __train.$$
@@ -192,7 +199,22 @@ DESCRIPTION
         Link strategy used to extract the node aligments after
         classification. Default strategy is 'greedy'. Other possible
         strategies are 'wellformed' (greedy + wellformedness criteria) and
-        threshold (allow all links above the threshold score).
+        threshold (allow all links above the threshold score). You can also
+        add the option 'final' (by adding the string '_final') to the
+        selected strategy. In that case the aligner will first do the basic
+        link search and then add links between nodes that obey the
+        well-formedness criteria if either source or target language node is
+        not linked yet. In other words, this final step makes 1:many links
+        in the data that do not violate wellformedness. Yet another option
+        is 'and' (which can be added as the string '_and' to the selected
+        strategy, also in combination with '_final'). Using this option
+        unlinked nodes (source and target) will be aligned in a last step in
+        a greedy way even if they violate well-formedness. For example:
+        'wellformed_final_and' will force the aligner to, first, look for
+        1:1 links that are well-formed (multiple links are not allowed),
+        then add well-formed links between nodes where one of them is
+        already linked to another one, and, finally, adds links between
+        still unlinked nodes.
 
     -u  Switch to add-links mode (union). Existing links between nodes will
         be kept in the output file and new ones will be added. (In the
@@ -201,11 +223,18 @@ DESCRIPTION
         pipeline of alignments, for example, terminal node alignment first
         and non-terminal nodes in the next step.
 
+    -K  Similar to -u: switches to 'add-link' mode but now forces the
+        aligner to use existing links to compete with the new ones. This
+        means that the scores of existing links will be used in the link
+        search algorithm applied for aligning tree nodes. This may also
+        cause some existing links to disappear, for example, because they
+        are not conform to the wellformedness criteria anymore.
+
    Runtime options
     -v  Verbose output
 
 SEE ALSO
-    Lingua::Align::Trees, Lingua::Align::Trees::FeatureExtractor
+    Lingua::Align::Trees, Lingua::Align::Features
 
 AUTHOR
     Joerg Tiedemann, <j.tiedemann@rug.nl>

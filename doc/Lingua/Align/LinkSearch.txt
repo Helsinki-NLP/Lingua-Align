@@ -1,8 +1,13 @@
 NAME
-    Lingua::Align::LinkSearch - Perl extension for
+    Lingua::Align::LinkSearch - Virtual Perl extension for tree alignment
+    (alignment inference using local classification scores as alignment
+    costs)
 
 SYNOPSIS
 DESCRIPTION
+    Various strategies have been implemented. More information will be added
+    soon ....
+
 SEE ALSO
 AUTHOR
     Joerg Tiedemann, <j.tiedemann@rug.nl>

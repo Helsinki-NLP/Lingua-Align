@@ -451,7 +451,7 @@ Verbose output
 
 =head1 SEE ALSO
 
-Lingua::Align::Trees, Lingua::Align::Trees::FeatureExtractor
+Lingua::Align::Trees, Lingua::Align::Features
  
 
 =head1 AUTHOR

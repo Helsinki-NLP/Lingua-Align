@@ -42,7 +42,6 @@ SYNOPSIS
         -verbose => 1,                    # verbose output
       );
 
-
       # corpus to be used for training (and testing)
       # default input format is the 
       # Stockholm Tree Aligner format (STA)
@@ -77,11 +76,18 @@ DESCRIPTION
   Link search heuristics
     For alignment we actually use the conditional probability scores and
     link search heuristics (3rd argumnt in "align" method). The default
-    heuristic is a greedy one-to-one alignment best-first heuristics. Other
-    possibilities are "intersection", "src2trg", "trg2src" and "refined"
-    which are defined in a similar way as word alignment symmetrization
-    heuristics are defined. The "-min_score" parameter is used to set a
-    threshold for the minimum score for establishing a link (default is 0)
+    strategy is a threshold based alignment which simply aligns all nodes
+    whose score is above a certain threshold (default=0.5). This is
+    equivalent to using the local classifier without any additional
+    alignment inference step. Other alignment inference strategies include
+    greedy best-first one-to-one alignment (greedy) with additional
+    wellformedness constraints (GreedyWellformed) or greedy source-to-target
+    alignment strategies (src2trg). Another approach is to view tree
+    alignment in terms of standard assignment problems and to use the
+    "Hungarian method" implemented by the Kuhn-Munkres algorithm for
+    alignment inference (munkres). There are many other possibilities for
+    alignment inference. For more information look at
+    Lingua::Align::LinkSearch.
 
   External resources for feature extraction
     Certain features require external resources. For example for lexical
@@ -166,10 +172,10 @@ Example feature settings
 
 SEE ALSO
     For a descriptions of features that can be used see
-    Lingua::Align::Trees::Features.
+    Lingua::Align::Features.
 
 AUTHOR
-    Joerg Tiedemann, <j.tiedemann@rug.nl@>
+    Joerg Tiedemann, <j.tiedemann@rug.nl>
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann

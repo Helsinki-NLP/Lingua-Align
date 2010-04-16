@@ -2,7 +2,7 @@
 
 modulehome = ../lib
 modules = Lingua/Align.pm Lingua/Align/Trees.pm Lingua/Align/Corpus.pm \
-	Lingua/Align/LinkSearch.pm Lingua/Align/Trees/Features.pm \
+	Lingua/Align/LinkSearch.pm Lingua/Align/Features.pm \
 	Lingua/Align/Corpus/Parallel.pm
 
 binhome = ../bin

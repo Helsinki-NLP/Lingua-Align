@@ -17,8 +17,7 @@ WriteMakefile(
 	'bin/stanford2tiger',
 	'bin/penn2tiger',
 	'bin/alpino2tiger',
-	'bin/convert_treebank',
-	'megam.i686'
+	'bin/convert_treebank'
     ],
     AUTHOR            => 'Joerg Tiedemann <j.tiedemann@rug.nl>'
     PREREQ_PM         => {

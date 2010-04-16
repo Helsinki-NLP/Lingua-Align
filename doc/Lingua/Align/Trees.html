@@ -9,10 +9,8 @@
 
 <body style="background-color: white">
 
-
-<!-- INDEX BEGIN -->
-<div name="index">
 <p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
 
 <ul>
 
@@ -30,11 +28,9 @@
 	<li><a href="#author">AUTHOR</a></li>
 	<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
 </ul>
-
-<hr name="index" />
-</div>
 <!-- INDEX END -->
 
+<hr />
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
@@ -114,7 +110,7 @@
 <p>
 </p>
 <h2><a name="link_search_heuristics">Link search heuristics</a></h2>
-<p>For alignment we actually use the conditional probability scores and link search heuristics (3rd argumnt in <code>align</code> method). The default heuristic is a greedy one-to-one alignment best-first heuristics. Other possibilities are &quot;intersection&quot;, &quot;src2trg&quot;, &quot;trg2src&quot; and &quot;refined&quot; which are defined in a similar way as word alignment symmetrization heuristics are defined. The <code>-min_score</code> parameter is used to set a threshold for the minimum score for establishing a link (default is 0)</p>
+<p>For alignment we actually use the conditional probability scores and link search heuristics (3rd argumnt in <code>align</code> method). The default strategy is a threshold based alignment which simply aligns all nodes whose score is above a certain threshold (default=0.5). This is equivalent to using the local classifier without any additional alignment inference step. Other alignment inference strategies include greedy best-first one-to-one alignment (greedy) with additional wellformedness constraints (GreedyWellformed) or greedy source-to-target alignment strategies (src2trg). Another approach is to view tree alignment in terms of standard assignment problems and to use the ``Hungarian method'' implemented by the Kuhn-Munkres algorithm for alignment inference (munkres). There are many other possibilities for alignment inference. For more information look at <a href="/~joerg/Lingua/Align/LinkSearch.html">the Lingua::Align::LinkSearch manpage</a>.</p>
 <p>
 </p>
 <h2><a name="external_resources_for_feature_extraction">External resources for feature extraction</a></h2>
@@ -123,21 +119,24 @@
 <p>The feature settings will be saved together with the model file. Hence, for aligning features do not have to be specified in the constructor of the tree aligner object. They will be read from the model file and the tree aligner will use them automatically when extracting features for alignment.</p>
 <p>One exeption are <strong>link dependency features</strong>. These features are not specified as the other features because they are not directly extracted from the data when aligning. They are based on previous alignment decisions (scores) and, therefore, also influence the alignment algorithm. Link dependency features are enabled by including appropriate flags in the constructor of the tree aligner object.</p>
 <dl>
-<dt><strong><a name="linked_children" class="item"><code>-linked_children</code></a></strong></dt>
+<dt><strong><a name="item__2dlinked_children"><code>-linked_children</code></a></strong>
 
 <dd>
 <p>... adds a dependency on the average of the link scores for all (direct) child nodes of the current node pair. In training link scores are 1 for all linked nodes in the training data and 0 for non-linked nodes. In alignment the link prediction scores are used. In order to make this possible alignment will be done in a bottom-up fashion starting at the leaf nodes.</p>
 </dd>
-<dt><strong><a name="linked_subtree" class="item"><code>-linked_subtree</code></a></strong></dt>
+</li>
+<dt><strong><a name="item__2dlinked_subtree"><code>-linked_subtree</code></a></strong>
 
 <dd>
-<p>... adds a dependency on the average of link scores for all descendents of the current node pair (all nodes in the subtrees dominated by the current nodes). It works in the same way as the <a href="#linked_children"><code>-linked_children</code></a> feature and may also be combined with that feature</p>
+<p>... adds a dependency on the average of link scores for all descendents of the current node pair (all nodes in the subtrees dominated by the current nodes). It works in the same way as the <a href="#item__2dlinked_children"><code>-linked_children</code></a> feature and may also be combined with that feature</p>
 </dd>
-<dt><strong><a name="linked_parent" class="item"><code>-linked_parent</code></a></strong></dt>
+</li>
+<dt><strong><a name="item__2dlinked_parent"><code>-linked_parent</code></a></strong>
 
 <dd>
 <p>... adds a dependency on the link score of the immediate parent nodes. This causes the alignment procedure to run in a top-down fashion starting at the root nodes of the trees to be aligned. Hence, it cannot be combined with the previous two link dependency features as the alignment strategy conflicts with this one!</p>
 </dd>
+</li>
 </dl>
 <p>Note that the use of link dependency features is not stored together with the model. Therefore, you always have to specify these flags even in the alignment mode if you want to use them and the model is trained with these features.</p>
 <p>
@@ -155,12 +154,12 @@
 </p>
 <hr />
 <h1><a name="see_also">SEE ALSO</a></h1>
-<p>For a descriptions of features that can be used see <a href="/~tiedeman/Lingua/Align/Trees/Features.html">the Lingua::Align::Trees::Features manpage</a>.</p>
+<p>For a descriptions of features that can be used see <a href="/~joerg/Lingua/Align/Features.html">the Lingua::Align::Features manpage</a>.</p>
 <p>
 </p>
 <hr />
 <h1><a name="author">AUTHOR</a></h1>
-<p>Joerg Tiedemann, &lt;<a href="mailto:j.tiedemann@rug.nl@">j.tiedemann@rug.nl@</a>&gt;</p>
+<p>Joerg Tiedemann, &lt;<a href="mailto:j.tiedemann@rug.nl">j.tiedemann@rug.nl</a>&gt;</p>
 <p>
 </p>
 <hr />

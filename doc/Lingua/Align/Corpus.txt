@@ -1,6 +1,8 @@
 NAME
     Lingua::Align::Corpus - Perl extension for reading a tokenized plain
-    text corpus, 1 sentence per line
+    text corpus, 1 sentence per line; can also be used as a virtual module
+    to open other types of corpora (treebanks etc) using the "-type"
+    attribute
 
 SYNOPSIS
       use Lingua::Align::Corpus;
@@ -10,7 +12,16 @@ SYNOPSIS
       my @words=();
       while ($corpus->next_sentence(\@words)){
         print "\n",$corpus->current_id,"> ";
-        print join(' ',@words);
+        print $treebank->print_sentence(\%tree);
+      }
+
+      my $treebank = new Lingua::Align::Corpus(-file => $corpusfile,
+                                               -type => 'TigerXML');
+
+      my %tree=();
+      while ($treebank->next_sentence(\%tree)){
+        print $treebank->print_sentence(\%tree);
+        print "\n";
       }
 
 DESCRIPTION
