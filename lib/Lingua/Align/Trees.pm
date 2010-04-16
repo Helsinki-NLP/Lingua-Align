@@ -439,12 +439,15 @@ sub extract_training_data{
     $FE->initialize_features($features);
     my $CorpusHandle = new Lingua::Align::Corpus::Parallel(%{$corpus});
 
-    my ($weightSure,$weightPossible,$weightNegative) = (1,0,1);
+    my ($weightSure,$weightPossible,$weightWeak,$weightNegative) = (1,0,0,1);
     if (defined $self->{-classifier_weight_sure}){
 	$weightSure = $self->{-classifier_weight_sure};
     }
     if (defined $self->{-classifier_weight_possible}){
 	$weightPossible = $self->{-classifier_weight_possible};
+    }
+    if (defined $self->{-classifier_weight_weak}){
+	$weightWeak = $self->{-classifier_weight_weak};
     }
     if (defined $self->{-classifier_weight_negative}){
 	$weightNegative = $self->{-classifier_weight_negative};
@@ -619,6 +622,12 @@ sub extract_training_data{
 #			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
 			    $self->{CLASSIFIER}->add_train_instance(
 				1,\%values,$weightSure);
+			}
+		    }
+		    elsif ($$links{$sn}{$tn}=~/weak/){
+			if ($weightWeak){
+			    $self->{CLASSIFIER}->add_train_instance(
+				1,\%values,$weightWeak);
 			}
 		    }
 		    elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){

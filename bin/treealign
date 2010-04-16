@@ -65,11 +65,11 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_M $opt_N $opt_L $opt_k $opt_R
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
-            $opt_1 $opt_2 $opt_3 $opt_u $opt_K $opt_i);
+            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:uKi');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKi');
 
 
 use Lingua::Align::Trees;
@@ -85,10 +85,13 @@ my $search = $opt_l || 'greedy';
 
 my $MosesDir = $opt_M || 'moses';
 
-my $WeightS = $opt_1 || '3';
-my $WeightP = 1;
+# weights for different types of links
+my $WeightS = $opt_1 || '3';               # sure (=good)
+my $WeightP = 1;                           # possible (=fuzzy)
 if (defined $opt_2){$WeightP=$opt_2;}
-my $WeightN = $opt_3 || '1';
+my $WeightN = $opt_3 || '1';               # wrong (=negative data)
+my $WeightW = 1;                           # new category: weak links!
+if (defined $opt_4){$WeightW=$opt_4;}
 
 #--------------------------------------------------------
 # if -L && -N ... align nodes of the same type only
@@ -130,6 +133,7 @@ my $treealigner = new Lingua::Align::Trees(
     -classifier => $classifier,            # classifier used
     -classifier_weight_sure => $WeightS,   # training: weight for sure links
     -classifier_weight_possible=>$WeightP, # training: weight for possible links
+    -classifier_weight_weak=>$WeightW,     # training: weight for weak links
     -classifier_weight_negative=>$WeightN, # training: weight for non-linked
 
 #    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
@@ -386,14 +390,22 @@ Align non-terminal nodes only. If specified together with -L: align correspondin
 =item -1 weight
 
 Training weight for good (sure) alignments
+Default = 3
 
 =item -2 weight
 
 Training weight for fuzzy (possible) alignments
+Default = 1
 
 =item -3 weight
 
 Training weight for negative examples (non-aligned nodes)
+Default = 1
+
+=item -4 weight
+
+Training weight for weak alignments (new category in our Europarl data)
+Default = 1
 
 
 =item -k

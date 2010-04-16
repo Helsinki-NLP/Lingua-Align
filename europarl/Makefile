@@ -12,7 +12,8 @@
 
 # training corpus (STA format)
 
-TRAINCORPUS = nl-en_125
+# TRAINCORPUS = nl-en_125
+TRAINCORPUS = nl-en-weak_125
 NR_TRAIN    = 100
 NR_TEST     = 25
 CLASSIFIER  = megam
@@ -53,6 +54,7 @@ treealign.megam:
 		-G moses/giza.trg-src/trg-src.A3.final.gz \
 		-y moses/model/aligned.intersect \
 		-f ${FEAT} \
+		-1 10 -2 3 -3 1 -4 1 \
 		-n ${NR_TRAIN} \
 		-e ${NR_TEST} \
 		-v \
