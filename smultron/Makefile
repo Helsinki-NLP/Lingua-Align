@@ -59,9 +59,7 @@ MOSESTRAINING = ${SCRIPTS_ROOTDIR}/training
 SRC=src
 TRG=trg
 
-PACO            = ${HOME}/projects/PACO-MT
-TREEALIGNERHOME = ${PACO}/tools/Lingua-Align-dev
-# TREEALIGNERHOME = ..
+TREEALIGNERHOME = ..
 # TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
 TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
 
