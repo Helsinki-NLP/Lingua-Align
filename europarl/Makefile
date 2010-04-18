@@ -43,12 +43,23 @@ all: treealign.megam
 #		-G gideon_100.trg-src.A3 \
 #		-y gideon_100.aligned.intersect \
 
+#		-X '../bin/megam -maxi 10 -bnsfs 50' \
+
+# megam arguments:
+#   -bnfsf int ...... keep only <int> features by the BNS selection criteria
+#   -minfc int ...... remove features with freq <= <int>
+#   -lambda float ... precision of Gaussian (default=1)
+#   -mean file ...... file with Gaussian prior mean for all features
+#   -tune ........... tune lambda (requires development data!!)
+#   -nobias ......... do not use a BIAS feature (?)
+#
 
 treealign.megam:
 	../bin/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
+		-X '../bin/megam -maxi 10' \
 		-I moses/model/aligned.ids \
 		-g moses/giza.src-trg/src-trg.A3.final.gz \
 		-G moses/giza.trg-src/trg-src.A3.final.gz \
