@@ -48,6 +48,7 @@ sub initialize_classification{
 
     my $arguments = "-fvals -predict $model $self->{MEGAM_MODEL}";
     my $command = "$self->{MEGAM} $arguments -";
+    print STDERR "command for classification: $command\n";
 
     $self->{MEGAM_PROC} = open3($self->{MEGAM_IN}, 
 				$self->{MEGAM_OUT}, 

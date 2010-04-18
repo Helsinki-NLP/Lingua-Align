@@ -258,6 +258,7 @@ sub get_features{
 	if (exists $self->{CACHE}->{$key}->{$_}){
 	    $values{$_}=$self->{CACHE}->{$key}->{$_};
 	    delete $todo{$_};
+	    $self->{CACHEACCESS}++;
 	}
     }
 

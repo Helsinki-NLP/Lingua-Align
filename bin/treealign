@@ -65,11 +65,11 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_M $opt_N $opt_L $opt_k $opt_R
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
-            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i);
+            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i $opt_X);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKi');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:');
 
 
 use Lingua::Align::Trees;
@@ -136,6 +136,7 @@ my $treealigner = new Lingua::Align::Trees(
     -classifier_weight_weak=>$WeightW,     # training: weight for weak links
     -classifier_weight_negative=>$WeightN, # training: weight for non-linked
 
+    -megam => $opt_X,
 #    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',
 #    -megam => '/storage3/data/PACO-MT/tools/megam_i686.opt',
 

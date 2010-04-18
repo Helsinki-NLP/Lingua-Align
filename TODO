@@ -15,4 +15,10 @@
 
 - multi-threaded alignment? is it worth it?
   (--> simpler: run on cluster!)
+  http://www.mathematik.uni-ulm.de/help/perl5/doc/perlthrtut.html
+
+
+- fast, greedy, bottom-up alignment
+  start with leaf-to-leaf, rely on local classifications, greedy alignment
+  --> threshold>0.5, best-first, 1:1 only (is that necessary?)
 

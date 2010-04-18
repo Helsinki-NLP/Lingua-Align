@@ -147,11 +147,14 @@ sub train{
 	$self->{SRCNODE_COUNT},
 	$self->{TRGNODE_COUNT};
 
-	printf STDERR "%30s: %f (%f/sent, %f/node pair)\n",
+	printf STDERR "%30s: %.2f (%f/sent, %f/node pair)\n",
 	"time for feature extraction",
 	$self->{TIME_EXTRACT_FEATURES},
 	$self->{TIME_EXTRACT_FEATURES}/$self->{SENT_COUNT},
 	$self->{TIME_EXTRACT_FEATURES}/$self->{NODE_COUNT};
+
+	printf STDERR "%30s: %d\n","access to cached features",
+	$self->{FEATURE_EXTRACTOR}->{CACHEACCESS};
 
 	printf STDERR "%30s: %f\n","time for training classifier",
 	$self->{TIME_TRAIN_MODEL};
@@ -231,6 +234,19 @@ sub align{
     #----------------------------------------------------------------
     # main loop: run through the parallel corpus and align!
     #----------------------------------------------------------------
+    #
+    #  here we could hve some multi-threading!
+    #  - create a number of threads (sharing LEXE2f and LEXF2E, GIZAE2F)
+    #    (is it possible to share objects? GIZAE2F, MOSES --> BITEXT-objects)
+    #    every thread has its own feature_extractor object!?
+    #  - read a number of tree pairs
+    #  - if necessary: read GIZA++/Moses alignments to fill buffer
+    #    reading and buffering word alignments has to be changed!!!!! 
+    #  - distribute tree pairs among all threads
+    #  Do we have to wait for all threads to be finished?
+    #  (Is the output order important? --> not really ...)
+    # --> but print_alignments is done by master process!
+    #
 
     while ($corpus->next_alignment(\%src,\%trg,\$existing_links)){
 
