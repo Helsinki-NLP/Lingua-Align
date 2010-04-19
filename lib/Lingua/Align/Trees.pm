@@ -172,6 +172,12 @@ sub train{
 
 
 
+
+
+
+
+
+
 #----------------------------------------------------------------
 #
 # tree alignment: run through the parallel treebank & align nodes
@@ -196,7 +202,6 @@ sub align{
     $self->{START_ALIGNING}=time();
     my ($corpus,$model,$type,$max,$skip)=@_;
     if (ref($corpus) ne 'HASH'){die "please specify a corpus!";}
-    my $min_score = $self->{-min_score};
 
     # initialize classifier and feature extractor
     $self->{CLASSIFIER}->initialize_classification($model);
@@ -205,9 +210,8 @@ sub align{
     my $FE=$self->{FEATURE_EXTRACTOR};
     $FE->initialize_features($features);
 
-    # make a new corpus object & link search object
+    # make a new corpus object
     my $corpus   = new Lingua::Align::Corpus::Parallel(%{$corpus});
-    my $searcher = new Lingua::Align::LinkSearch(-link_search => $type);
 
     # initialize output data object
     my %output;
@@ -287,73 +291,46 @@ sub align{
 	# clear the feature value cache
 	$self->{FEATURE_EXTRACTOR}->clear_cache();
 
-
 	#----------------------------------------------------------------
 	# check if already existing links are OK
 
 	my $nr_existing_links=0;
-	if ($self->{-verbose}){
-	    foreach my $sid (keys %{$existing_links}){
-		if (! exists $src{NODES}{$sid}){
-		    print STDERR "Strange! There is a link from $sid but this node does not seem to exist in the source language tree!\n";
+	foreach my $sid (keys %{$existing_links}){
+	    if (! exists $src{NODES}{$sid}){
+		if ($self->{-verbose}){
+		    print STDERR "Strange! There is a link from $sid but this node does not seem to exist in the source language tree! --> I will remove this link!\n";
 		}
-		foreach my $tid (keys %{$$existing_links{$sid}}){
-		    $nr_existing_links++;
-		    if (! exists $trg{NODES}{$tid}){
-			print STDERR "Strange! There is a link to $tid from $sid but the node does not seem to exist in the target language tree!\n";
+		delete $$existing_links{$sid};
+	    }
+	    foreach my $tid (keys %{$$existing_links{$sid}}){
+		$nr_existing_links++;
+		if (! exists $trg{NODES}{$tid}){
+		    if ($self->{-verbose}){
+			print STDERR "Strange! There is a link to $tid from $sid but the node does not seem to exist in the target language tree! --> I will remove this link!\n";
 		    }
+		    delete $$existing_links{$sid}{$tid};
 		}
 	    }
 	}
-
-	#----------------------------------------------------------------
-	# extract features and classify link candidates
-	#----------------------------------------------------------------
-
-	my @scores = $self->classify($model,\%src,\%trg,$existing_links);
-
-	#----------------------------------------------------------------
-	# link search: use classification result to do the actual alignment
-	#----------------------------------------------------------------
-
-	my %links=();
-	$self->{START_LINK_SEARCH}=time();
-
-	# add previously existing links before link search
-	# --> they may influence the link search (wellformedness constraint ...)
-	#
-	# 1) "compete-mode":
-	#    let the existing links compete with the new ones
-	if ($self->{-add_links}=~/compet/){
-	    foreach my $sid (keys %{$existing_links}){
-		foreach my $tid (keys %{$$existing_links{$sid}}){
-		    push(@{$self->{INSTANCES_SRC}},$sid);
-		    push(@{$self->{INSTANCES_TRG}},$tid);
-		    push(@scores,$$existing_links{$sid}{$tid});
-		}
-	    }
-	}
-	# 2) "standard-mode":
-	#    leave existing links as they are and just add new ones in search
-	elsif ($self->{-add_links}){
-	    foreach my $sid (keys %{$existing_links}){
-		foreach my $tid (keys %{$$existing_links{$sid}}){
-		    if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
-			print STDERR "link between $sid and $tid exists\n";
-		    }
-		    $links{$sid}{$tid}=$$existing_links{$sid}{$tid};
-		}
-	    }
+	if (($self->{-verbose}>1) && $nr_existing_links){
+	    print STDERR "Nr of existing links: $nr_existing_links\n";
 	}
 
-	# do the actual inference: search for the best alignment using
-	#                          the selected link search algorithm
 
-	$searcher->search(\%links,\@scores,$min_score,
-			  $self->{INSTANCES_SRC},
-			  $self->{INSTANCES_TRG},
-			  \%src,\%trg);
-	$self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
+        #############################################
+	# now run the actual alignment
+	#   - two_step_align = first classify all node pairs, then align
+        #############################################
+
+	my %links = ();
+	if ($self->{-alignment}=~/bottom.*up/i){
+	    %links = $self->bottom_up_align(\%src,\%trg,$existing_links,
+					    $model,$type);
+	}
+	else{
+	    %links = $self->two_step_align(\%src,\%trg,$existing_links,
+					   $model,$type);
+	}
 
 	#----------------------------------------------------------------
 	# print alignment output
@@ -414,6 +391,258 @@ sub align{
 #
 # end of align
 #----------------------------------------------------------------
+
+
+
+
+
+
+
+sub two_step_align{
+    my $self=shift;
+    my ($src,$trg,$old_links,$model,$type)=@_;
+
+    #----------------------------------------------------------------
+    # extract features and classify link candidates
+    #----------------------------------------------------------------
+
+    $self->{START_CLASSIFICATION}=time();
+    my @scores = $self->classify($model,$src,$trg,$old_links);
+    $self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+    #----------------------------------------------------------------
+    # link search: use classification result to do the actual alignment
+    #----------------------------------------------------------------
+
+    my %links=();
+    $self->{START_LINK_SEARCH}=time();
+
+    # add previously existing links before link search
+    # --> they may influence the link search (wellformedness constraint ...)
+    #
+    # 1) "compete-mode":
+    #    let the existing links compete with the new ones
+    if ($self->{-add_links}=~/compet/){
+	foreach my $sid (keys %{$old_links}){
+	    foreach my $tid (keys %{$$old_links{$sid}}){
+		push(@{$self->{INSTANCES_SRC}},$sid);
+		push(@{$self->{INSTANCES_TRG}},$tid);
+		push(@scores,$$old_links{$sid}{$tid});
+	    }
+	}
+    }
+    # 2) "standard-mode":
+    #    leave existing links as they are and just add new ones in search
+    elsif ($self->{-add_links}){
+	foreach my $sid (keys %{$old_links}){
+	    foreach my $tid (keys %{$$old_links{$sid}}){
+		if (exists $links{$sid}{$tid} && $self->{-verbose}>1){
+		    print STDERR "link between $sid and $tid exists\n";
+		}
+		$links{$sid}{$tid}=$$old_links{$sid}{$tid};
+	    }
+	}
+    }
+
+    # do the actual inference: search for the best alignment using
+    #                          the selected link search algorithm
+
+    my $min_score = $self->{-min_score};
+    my $searcher = new Lingua::Align::LinkSearch(-link_search => $type);
+
+    $searcher->search(\%links,\@scores,$min_score,
+		      $self->{INSTANCES_SRC},
+		      $self->{INSTANCES_TRG},
+		      $src,$trg);
+    $self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
+    return %links;
+}
+
+
+
+
+
+
+
+sub bottom_up_align{
+    my $self=shift;
+    my ($src,$trg,$old_links,$model,$type)=@_;
+
+    my $FE=$self->{FEATURE_EXTRACTOR};                # feature exatractor
+    my $scorethr = $self->{-score_threshold} || 0.5;  # classification threshold
+    my $min_score = $self->{-min_score};
+    my $searcher = new Lingua::Align::LinkSearch(-link_search => $type);
+
+    # start with terminal nodes (leafs)
+    # or their parents if we align non-terminals only
+
+    my %srcnode=();
+    my %trgnode=();
+    foreach my $sn (@{$$src{TERMINALS}}){
+	if ($self->{-nonterminals_only}){
+	    my @parents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@parents){
+		$srcnode{$p}=1;
+	    }
+	}
+	else{$srcnode{$sn}=1;}
+    }
+    foreach my $tn (@{$$trg{TERMINALS}}){
+	if ($self->{-nonterminals_only}){
+	    my @parents=$self->{TREES}->parents($trg,$tn);
+	    foreach my $p (@parents){
+		$trgnode{$p}=1;
+	    }
+	}
+	else{$trgnode{$tn}=1;}
+    }
+
+    my %linksST=();     # hash of src nodes linked to trg nodes
+    my %linksTS=();     # hash of trg nodes linked to src nodes
+    my %tried=();       # hash of unlinked node pairs & classification score
+    my $NodesAdded=1;   # indicate that nodes have been added --> continue loop
+
+    #------------------------------------------------------------------
+    # main loop: classify & align nodes bottom up
+    # (continue until no new nodes are added anymore)
+    #------------------------------------------------------------------
+
+    do{
+	foreach my $sn (keys %srcnode){
+	    foreach my $tn (keys %trgnode){
+
+		# don't try the same things again!
+		if (exists $tried{$sn}){
+		    next if (exists $tried{$sn}{$tn});
+		}
+
+		my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+		next if ($self->skip_node($sn,$src,$s_is_terminal));
+		my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+
+		## align ony terminals with terminals and
+		## nonterminals with nonterminals
+		if ($self->{-same_types_only}){
+		    if ($s_is_terminal){next if (not $t_is_terminal);}
+		    elsif ($t_is_terminal){next;}
+		}
+		next if ($self->skip_node($tn,$trg,$t_is_terminal));
+
+
+		#####################################
+		# check link constraints here!!!!
+		# wellformedness etc 
+		# via searcher?! 
+		# --> introduce check_constraint as general linksearch method!!!
+		#####################################
+
+
+
+		#---------------------------------------------
+		# feature extraction
+
+		$self->{START_EXTRACT_FEATURES}=time();
+		my %values = $FE->features($src,$trg,$sn,$tn);
+		if ($self->{-linked_children}){
+		    $self->linked_children(\%values,$src,$trg,$sn,$tn,
+					   \%linksST,1);
+		}
+		if ($self->{-linked_subtree}){
+		    $self->linked_subtree(\%values,$src,$trg,$sn,$tn,
+					  \%linksST,1);
+		}
+		$self->{TIME_EXTRACT_FEATURES}+=
+		    time()-$self->{START_EXTRACT_FEATURES};
+
+		#---------------------------------------------
+		# classify
+
+		$self->{START_CLASSIFICATION}=time();
+		$self->{CLASSIFIER}->add_test_instance(\%values);
+		$self->{NODE_COUNT}++;
+
+		my @res = $self->{CLASSIFIER}->classify($model);
+		$self->{TIME_CLASSIFY}+=time()-$self->{START_CLASSIFICATION};
+
+		#---------------------------------------------
+		# align
+
+		if ($res[-1]>=$scorethr){
+		    $linksST{$sn}{$tn}=$res[-1]; # add link
+		    $linksTS{$tn}{$sn}=$res[-1]; # reverse link
+		    next;
+		}
+		else{
+		    $tried{$sn}{$tn}=$res[-1];   # save score for bad candidate
+		}
+	    }
+	    next if ($linksST{$sn});
+	}
+
+	#-----------------------------------------------------------
+	# add nodes from the next level
+	# and delete the ones for whic alignments have been found
+	#-----------------------------------------------------------
+
+	$NodesAdded=0;
+	foreach my $sn (keys %srcnode){
+	    my @parents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@parents){
+		next if (exists $srcnode{$p});
+		next if (exists $linksST{$p});
+		$srcnode{$p}=1;
+		$NodesAdded++;
+	    }
+	    if (exists $linksST{$sn}){     # nodes that have been linked already
+		delete $srcnode{$sn};      # 
+	    }
+	}
+	foreach my $tn (keys %trgnode){
+	    my @parents=$self->{TREES}->parents($trg,$tn);
+	    foreach my $p (@parents){
+		next if (exists $trgnode{$p});
+		next if (exists $linksTS{$p});
+		$trgnode{$p}=1;
+		$NodesAdded++;
+	    }
+	    if (exists $linksTS{$tn}){
+		delete $trgnode{$tn};
+	    }
+	}
+    }
+    until (not $NodesAdded);
+
+    #------------------------------------------------------------------
+    # end main loop
+    #------------------------------------------------------------------
+
+
+    # finally: should do something with the unlinked nodes here ....
+
+    $self->{START_LINK_SEARCH}=time();
+    my @scores=();
+    foreach my $sid (keys %tried){
+	next if (exists $linksST{$sid});
+	foreach my $tid (keys %{$tried{$sid}}){
+	    next if (exists $linksTS{$tid});
+	    push(@{$self->{INSTANCES_SRC}},$sid);
+	    push(@{$self->{INSTANCES_TRG}},$tid);
+	    push(@scores,$tried{$sid}{$tid});
+	}
+    }
+
+    $searcher->search(\%linksST,\@scores,$min_score,
+		      $self->{INSTANCES_SRC},
+		      $self->{INSTANCES_TRG},
+		      $src,$trg);
+
+    $self->{TIME_LINK_SEARCH}+=time()-$self->{START_LINK_SEARCH};
+
+    return %linksST;
+
+}
+
+
 
 
 
@@ -715,7 +944,6 @@ sub skip_node{
     }
     return 0;
 }
-
 
 
 #----------------------------------------------------------------
@@ -1047,19 +1275,17 @@ sub classify_with_history{
     # Bottom-Up: start with leaf nodes
 
     if ($BottomUp){
-	@srcnodes=@{$$src{TERMINALS}};
-
 	# special case: "link non-terminals only"
-	# ---> we have to start with the parents of all source terminal nodes!
-
-	foreach my $sn (@srcnodes){
-	    my @parents=$self->{TREES}->parents($src,$sn);
-	    foreach my $p (@parents){
-		push(@srcnodes,$p);
+	if ($self->{-nonterminals_only}){
+	    foreach my $sn (@{$$src{TERMINALS}}){
+		my @parents=$self->{TREES}->parents($src,$sn);
+		push(@srcnodes,@parents);
 	    }
 	}
+	else{
+	    @srcnodes=@{$$src{TERMINALS}};
+	}
     }
-
 
     # Top-Down: start with root node
 
@@ -1291,10 +1517,12 @@ sub classify_bottom_up{
     # special case: "link non-terminals only"
     # ---> we have to start with the parents of all source terminal nodes!
 
-    foreach my $sn (@srcnodes){
-	my @parents=$self->{TREES}->parents($src,$sn);
-	foreach my $p (@parents){
-	    push(@srcnodes,$p);
+    if ($self->{-nonterminals_only}){
+	foreach my $sn (@srcnodes){
+	    my @parents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@parents){
+		push(@srcnodes,$p);
+	    }
 	}
     }
 

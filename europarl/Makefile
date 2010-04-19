@@ -25,7 +25,7 @@ SEARCH      = wellformed
 ALIGNTHR    = 0.15
 
 # extra options to be passed to the tree aligner (e.g. link dependencies -C -U)
-# EXTRAOPT    = -C -U
+EXTRAOPT    = -C -U
 
 
 #-------------------------------------------------------------------------
@@ -59,7 +59,8 @@ treealign.megam:
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
-		-X '../bin/megam -maxi 10' \
+		-X '../bin/megam -maxi 50' \
+		-b bottom-up \
 		-I moses/model/aligned.ids \
 		-g moses/giza.src-trg/src-trg.A3.final.gz \
 		-G moses/giza.trg-src/trg-src.A3.final.gz \

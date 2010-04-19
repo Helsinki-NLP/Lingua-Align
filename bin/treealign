@@ -65,11 +65,11 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_M $opt_N $opt_L $opt_k $opt_R
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
-            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i $opt_X);
+            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i $opt_X $opt_b);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:');
 
 
 use Lingua::Align::Trees;
@@ -92,6 +92,9 @@ if (defined $opt_2){$WeightP=$opt_2;}
 my $WeightN = $opt_3 || '1';               # wrong (=negative data)
 my $WeightW = 1;                           # new category: weak links!
 if (defined $opt_4){$WeightW=$opt_4;}
+
+my $alignment = $opt_b || 'inference';     # alignment strategy 
+                                           # (inference|bottom-up)
 
 #--------------------------------------------------------
 # if -L && -N ... align nodes of the same type only
@@ -128,7 +131,8 @@ my $moses_align = $opt_y || $MosesDir.'/model/aligned.intersect';
 
 my $treealigner = new Lingua::Align::Trees(
 
-    -features => $featureStr,             # features to be used
+    -alignment => $alignment,               # type of alignment strategy
+    -features => $featureStr,              # features to be used
 
     -classifier => $classifier,            # classifier used
     -classifier_weight_sure => $WeightS,   # training: weight for sure links
@@ -423,6 +427,10 @@ Keep the feature file extracted for training which usually is removed to save st
 =item -x threshold
 
 Score threshold used for tree alignment. Node pairs obtaining scores below this threshold will not be considered in the alignment process.
+
+=item -b strategy
+
+Type of alignment strategy to be used. Default is 'inference' which refers to a two-step procedure with local classification in the first step and alignment inference in the second (see LinkSearch with argument -l). An alternative strategy is called 'bottom-up' in which the alignment is done in a greedy bottom-up fashion starting with leaf node pairs and going up to the root nodes. Nodes are linked immediately when the classification score (conditional link likelihood) exceeds the threshold (usually 0.5). Aligned nodes are removed from the search space. Therefore, only 1:1 links are returned. In a final step link likelihoods are used to align previously unlinked nodes with the selected alignment inference strategy in the same way as in the two-step procedure.
 
 =item -l LinkSearch
 
