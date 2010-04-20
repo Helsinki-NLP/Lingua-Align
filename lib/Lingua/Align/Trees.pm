@@ -318,8 +318,9 @@ sub align{
 
 
         #############################################
-	# now run the actual alignment
+	# now: run the actual alignment
 	#   - two_step_align = first classify all node pairs, then align
+	#   - bottom_up_align = bottom-up classification & alignment (1 step)
         #############################################
 
 	my %links = ();
@@ -509,6 +510,11 @@ sub bottom_up_align{
 
     do{
 	foreach my $sn (keys %srcnode){
+
+	    # check certain alignment constraints (NT only ...)
+	    my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	    next if ($self->skip_node($sn,$src,$s_is_terminal));
+
 	    foreach my $tn (keys %trgnode){
 
 		# don't try the same things again!
@@ -516,27 +522,22 @@ sub bottom_up_align{
 		    next if (exists $tried{$sn}{$tn});
 		}
 
-		my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
-		next if ($self->skip_node($sn,$src,$s_is_terminal));
+		# check alignment constraints
 		my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
 
-		## align ony terminals with terminals and
-		## nonterminals with nonterminals
+		# - align ony terminals with terminals and
+		#   nonterminals with nonterminals
 		if ($self->{-same_types_only}){
 		    if ($s_is_terminal){next if (not $t_is_terminal);}
 		    elsif ($t_is_terminal){next;}
 		}
+		# - other constraints such as NT only, ...
 		next if ($self->skip_node($tn,$trg,$t_is_terminal));
 
-
-		#####################################
-		# check link constraints here!!!!
-		# wellformedness etc 
-		# via searcher?! 
-		# --> introduce check_constraint as general linksearch method!!!
-		#####################################
-
-
+		# check if the new candidate would meet additional constraints
+		# defined in the selected search algorithm (wellformedness ...)
+		next if (! $searcher->check_constraints($src,$trg,
+							$sn,$tn,\%linksST));
 
 		#---------------------------------------------
 		# feature extraction
@@ -616,8 +617,14 @@ sub bottom_up_align{
     # end main loop
     #------------------------------------------------------------------
 
+#    print STDERR "nr src nodes linked: ",scalar keys %linksST;
+#    print STDERR ", remaining: ",scalar keys %srcnode,"\n";
+#    print STDERR "nr trg nodes linked: ",scalar keys %linksTS;
+#    print STDERR ", remaining: ",scalar keys %trgnode,"\n";
 
-    # finally: should do something with the unlinked nodes here ....
+    # finally: should do something with still unlinked nodes here ....
+    # --> use the link search algorithm to align additional nodes
+    #     below the classification threshold
 
     $self->{START_LINK_SEARCH}=time();
     my @scores=();
@@ -630,7 +637,6 @@ sub bottom_up_align{
 	    push(@scores,$tried{$sid}{$tid});
 	}
     }
-
     $searcher->search(\%linksST,\@scores,$min_score,
 		      $self->{INSTANCES_SRC},
 		      $self->{INSTANCES_TRG},
@@ -722,46 +728,6 @@ sub extract_training_data{
 	# clear the feature value cache
 	$FE->clear_cache();
 
-	#-------------------------------------------------------------------
-	# adaptive "SEARN-like" learning (combine true & predicted values)
-	#-------------------------------------------------------------------
-
-	if (defined $self->{-searn_model}){
-
-	    # make link prob's out of link types ....
-	    # HARDCODED STUFF!!!
-	    # --> good = 1
-	    # --> fuzzy = 0.2
-	    if (not defined $self->{LP}){
-		$self->{LP}={};
-		foreach my $s (keys %{$links}){
-		    foreach my $t (keys %{$$links{$s}}){
-			if ($$links{$s}{$t}=~/(good|S)/){
-			    $$self{LP}{$s}{$t}=1;
-			}
-			elsif ($$links{$s}{$t}=~/(fuzzy|possible|P)/){
-			    $$self{LP}{$s}{$t}=0.2;
-			}
-		    }
-		}
-	    }
-
-	    # interpolation beta: take from $self->{-searn_beta}
-	    # or simply set it to 0.3
-	    # ---> beta should be estimated on development data!!!!
-
-	    my $model = $self->{-searn_model};
-	    my @scores = $self->classify($model,\%src,\%trg);
-	    my $b=$self->{-searn_beta} || 0.3;
-
-	    for (0..$#scores){
-		my $sid = $self->{INSTANCES_SRC}->[$_];
-		my $tid = $self->{INSTANCES_TRG}->[$_];
-		$$self{LP}{$sid}{$tid}=
-		    (1-$b)*$$self{LP}{$sid}{$tid}+$b*$scores[$_];
-	    }
-	}
-
 	# show progress at runtime
 	$count++;
 	if (not($count % 10)){print STDERR '.';}
@@ -776,125 +742,540 @@ sub extract_training_data{
 	}
 
 	#-------------------------------------------------------------------
-	# loop through all node pairs and extract data instances
+	# adaptive "SEARN-like" learning (combine true & predicted values)
 	#-------------------------------------------------------------------
+
+	if (defined $self->{-searn_model}){
+	    $self->searn_interpolation(\%src,\%trg,$links);
+	}
 
 	$self->{SENT_COUNT}++;
 	$self->{SRCNODE_COUNT}+=scalar keys %{$src{NODES}};
 	$self->{TRGNODE_COUNT}+=scalar keys %{$trg{NODES}};
 
-	foreach my $sn (keys %{$src{NODES}}){
-	    next if ($sn!~/\S/);
-	    my $s_is_terminal=$self->{TREES}->is_terminal(\%src,$sn);
-	    next if ($self->skip_node($sn,\%src,$s_is_terminal));
+
+	#-----------------------------------------------------------------
+	# extract data points: different strategies:
+	# 1) negative nodes = neighbors of positive data points
+	# 2) random negative exampels only
+	# 3) all possible node pairs
+	#-----------------------------------------------------------------
+
+	if ($self->{-negative_neighbors}){
+	    my $nr = $self->positive_train_instances($FE,\%src,\%trg,$links,
+						     $weightSure,
+						     $weightPossible,
+						     $weightWeak);
+
+	    $self->negative_neighbors($FE,\%src,\%trg,$links,
+				      $weightNegative);
+	}
+
+	elsif ($self->{-random_negative_examples}){
+
+	    # factor times more negative data than positive
+	    my $factor = $self->{-random_negative_examples} || 10;
+
+	    # 2a) extract all node pairs as training data
+	    my $nr = $self->positive_train_instances($FE,\%src,\%trg,$links,
+						     $weightSure,
+						     $weightPossible,
+						     $weightWeak);
+
+	    print STDERR "## $nr positive data points ..\n";
+	    print STDERR "## now adding ",$factor*$nr," negative data points\n";
+
+	    # 2b) add the same number of random negative data points
+	    $self->random_negative_train_instances($FE,\%src,\%trg,$links,
+						   $factor*$nr,$weightNegative);
+	}
+
+	else{
+
+	    # 3) extract all node pairs as training data
+	    $self->train_instances_all_pairs($FE,\%src,\%trg,$links,
+					     $weightSure,$weightPossible,
+					     $weightWeak,$weightNegative);
+	}
+
+    }
+}
+
+
+
+
+
+# make training instances from all possible node pairs
+# (skip only the ones that do not meet basic constraints 
+#  such as type match (NT-NT, T-T) if this is specified)
+
+sub train_instances_all_pairs{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightS,$weightP,$weightW,$weightN)=@_;
+
+    #-------------------------------------------------------------------
+    # loop through all node pairs and extract data instances
+    #-------------------------------------------------------------------
+
+    my $count=0;
+    foreach my $sn (keys %{$$src{NODES}}){
+	next if ($sn!~/\S/);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
 	    
-	    foreach my $tn (keys %{$trg{NODES}}){
-		next if ($tn!~/\S/);
-		my $t_is_terminal=$self->{TREES}->is_terminal(\%trg,$tn);
+	foreach my $tn (keys %{$$trg{NODES}}){
+	    next if ($tn!~/\S/);
+	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
 
-		## align ony terminals with terminals and
-		## nonterminals with nonterminals
-		if ($self->{-same_types_only}){
-		    if ($s_is_terminal){
-			next if (not $t_is_terminal);
-		    }
-		    elsif ($t_is_terminal){next;}
+	    ## align ony terminals with terminals and
+	    ## nonterminals with nonterminals
+	    if ($self->{-same_types_only}){
+		if ($s_is_terminal){
+		    next if (not $t_is_terminal);
 		}
-		next if ($self->skip_node($tn,\%trg,$t_is_terminal));
+		elsif ($t_is_terminal){next;}
+	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
 
-		#------------------------------------------------
-		# finally: extract features for given node pair!
-		#------------------------------------------------
+	    #------------------------------------------------
+	    # finally: extract features for given node pair!
+	    #------------------------------------------------
 
-		my %values = $FE->features(\%src,\%trg,$sn,$tn);
-		$self->{NODE_COUNT}++;
+	    my %values = $FE->features($src,$trg,$sn,$tn);
+	    $self->{NODE_COUNT}++;
+	    $count++;
 
-		#-----------------------------------------------------------
-		# add history features
-		#------------------------------------------------
+	    #-----------------------------------------------------------
+	    # add history features
+	    #------------------------------------------------
 
-		if ($self->{-linked_children}){
-		    if (defined $self->{LP}){
-			$self->linked_children(\%values,\%src,\%trg,
-					       $sn,$tn,$self->{LP},1);
-		    }
-		    else{
-			$self->linked_children(\%values,\%src,\%trg,
-					       $sn,$tn,$links);
-		    }
-		}
-		if ($self->{-linked_subtree}){
-		    if (defined $self->{LP}){
-			$self->linked_subtree(\%values,\%src,\%trg,
-					      $sn,$tn,$self->{LP},1);
-		    }
-		    else{
-			$self->linked_subtree(\%values,\%src,\%trg,
-					      $sn,$tn,$links);
+	    $self->add_history($src,$trg,$sn,$tn,$links,\%values);
+
+	    #-----------------------------------------------------------
+	    # add positive training events
+	    # (good/sure examples && fuzzy/possible examples)
+	    #-----------------------------------------------------------
+
+	    if ((ref($$links{$sn}) eq 'HASH') && 
+		(exists $$links{$sn}{$tn})){
+
+		if ($$links{$sn}{$tn}=~/(good|S)/){
+		    if ($weightS){
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightS);
 		    }
 		}
-		if ($self->{-linked_parent}){
-		    if (defined $self->{LP}){
-			$self->linked_parent(\%values,\%src,\%trg,
-					     $sn,$tn,$self->{LP},1);
-		    }
-		    else{
-			$self->linked_parent(\%values,\%src,\%trg,
-					     $sn,$tn,$links);
+		elsif ($$links{$sn}{$tn}=~/weak/){
+		    if ($weightW){
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightW);
 		    }
 		}
-		if ($self->{-linked_parent_distance}){
-		    if (defined $self->{LP}){
-			$self->linked_parent_distance(\%values,\%src,\%trg,
-						      $sn,$tn,$self->{LP},1);
-		    }
-		    else{
-			$self->linked_parent_distance(\%values,\%src,\%trg,
-						      $sn,$tn,$links);
+		elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
+		    if ($weightP){
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightP);
 		    }
 		}
+	    }
 
-		#-----------------------------------------------------------
-		# add positive training events
-		# (good/sure examples && fuzzy/possible examples)
-		#-----------------------------------------------------------
+	    #-----------------------------------------------------------
+	    # add negative training events
+	    #-----------------------------------------------------------
 
-		if ((ref($$links{$sn}) eq 'HASH') && 
-		    (exists $$links{$sn}{$tn})){
+	    elsif ($weightN){
+		$self->{CLASSIFIER}->add_train_instance('0',\%values,$weightN);
+	    }
+	}
+    }
+    return $count;
+}
 
-		    if ($$links{$sn}{$tn}=~/(good|S)/){
-			if ($weightSure){
-#			    my %values = $FE->features(\%src,\%trg,$sn,$tn);
-			    $self->{CLASSIFIER}->add_train_instance(
-				1,\%values,$weightSure);
-			}
-		    }
-		    elsif ($$links{$sn}{$tn}=~/weak/){
-			if ($weightWeak){
-			    $self->{CLASSIFIER}->add_train_instance(
-				1,\%values,$weightWeak);
-			}
-		    }
-		    elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
-			if ($weightPossible){
-			    $self->{CLASSIFIER}->add_train_instance(
-				1,\%values,$weightPossible);
-			}
+
+
+
+
+# make positive training instances from all linked node pairs
+
+sub positive_train_instances{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightS,$weightP,$weightW)=@_;
+
+    #-------------------------------------------------------------------
+    # run through all links
+    #-------------------------------------------------------------------
+
+    my $count=0;
+    foreach my $sn (keys %{$links}){
+
+	next if ($sn!~/\S/);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
+
+	foreach my $tn (keys %{$$links{$sn}}){
+
+	    next if ($tn!~/\S/);
+	    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+	    if ($self->{-same_types_only}){
+		if ($s_is_terminal){
+		    next if (not $t_is_terminal);
+		}
+		elsif ($t_is_terminal){next;}
+	    }
+	    next if ($self->skip_node($tn,$trg,$t_is_terminal));
+
+	    #-----------------------------------------------------------
+	    # get all features
+	    #------------------------------------------------
+
+	    $self->{NODE_COUNT}++;
+	    my %values = $FE->features($src,$trg,$sn,$tn);
+	    $self->add_history($src,$trg,$sn,$tn,$links,\%values);
+
+	    #-----------------------------------------------------------
+	    # add positive training events
+	    # (good/sure examples && fuzzy/possible examples)
+	    #-----------------------------------------------------------
+
+	    if ((ref($$links{$sn}) eq 'HASH') && 
+		(exists $$links{$sn}{$tn})){
+
+		if ($$links{$sn}{$tn}=~/(good|S)/){
+		    if ($weightS){
+			$count++;
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightS);
 		    }
 		}
+		elsif ($$links{$sn}{$tn}=~/weak/){
+		    if ($weightW){
+			$count++;
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightW);
+		    }
+		}
+		elsif ($$links{$sn}{$tn}=~/(fuzzy|possible|P)/){
+		    if ($weightP){
+			$count++;
+			$self->{CLASSIFIER}->add_train_instance(
+			    1,\%values,$weightP);
+		    }
+		}
+	    }
+	}
+    }
+    return $count;
+}
 
-		#-----------------------------------------------------------
-		# add negative training events
-		#-----------------------------------------------------------
 
-		elsif ($weightNegative){
-		    $self->{CLASSIFIER}->add_train_instance(
-			'0',\%values,$weightNegative);
+
+
+
+sub add_train_instance{
+    my $self=shift;
+    my ($FE,$src,$trg,$sn,$tn,$links,$label,$weight)=@_;
+
+    next if ($sn!~/\S/);
+    next if ($tn!~/\S/);
+
+    my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+    next if ($self->skip_node($sn,$src,$s_is_terminal));
+    my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+    if ($self->{-same_types_only}){
+	if ($s_is_terminal){
+	    next if (not $t_is_terminal);
+	}
+	elsif ($t_is_terminal){next;}
+    }
+    next if ($self->skip_node($tn,$trg,$t_is_terminal));
+    
+    #-----------------------------------------------------------
+    # get all features
+    #------------------------------------------------
+
+    $self->{NODE_COUNT}++;
+    my %values = $FE->features($src,$trg,$sn,$tn);
+    $self->add_history($src,$trg,$sn,$tn,$links,\%values);
+
+
+    $self->{CLASSIFIER}->add_train_instance($label,\%values,$weight);
+}
+
+
+
+sub negative_neighbors{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightN,$maxdist)=@_;
+    my %done=();
+    $self->negative_parents($FE,$src,$trg,$links,$weightN,$maxdist,\%done);
+    $self->negative_children($FE,$src,$trg,$links,$weightN,$maxdist,\%done);
+}
+
+
+sub negative_parents{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightN,$maxdist,$done)=@_;
+
+    my $count=0;
+    foreach my $sn (keys %{$links}){
+	foreach my $tn (keys %{$$links{$sn}}){
+
+	    ## parents of source + target node
+	    my @srcparents=$self->{TREES}->parents($src,$sn);
+	    foreach my $p (@srcparents) {
+		next if ($$done{"$p:$tn"});             # already done
+		if (exists $$links{$p}){                # link exists?
+		    next if (exists $$links{$p}{$tn});  # --> skip
+		}
+		$self->add_train_instance($FE,$src,$trg,$p,$tn,$links,
+					  0,$weightN);
+	    }
+
+	    ## parents of target + source node
+	    my @trgparents=$self->{TREES}->parents($trg,$tn);
+	    foreach my $p (@trgparents) {
+		next if ($$done{"$sn:$p"});              # already done
+		next if (exists $$links{$sn}{$p});
+		$self->add_train_instance($FE,$src,$trg,$sn,$p,$links,
+					  0,$weightN);
+	    }
+
+	    # source parents + target parents
+	    foreach my $ps (@srcparents) {
+		foreach my $pt (@trgparents) {
+		    next if ($$done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
 		}
 	    }
 	}
     }
 }
+
+
+sub negative_children{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightN,$maxdist,$done)=@_;
+
+    my $count=0;
+    foreach my $sn (keys %{$links}){
+	foreach my $tn (keys %{$$links{$sn}}){
+
+	    ## children of source + target node
+	    my @srcchildren=$self->{TREES}->children($src,$sn);
+	    foreach my $p (@srcchildren) {
+		next if ($$done{"$p:$tn"});             # already done
+		if (exists $$links{$p}){                # link exists?
+		    next if (exists $$links{$p}{$tn});  # --> skip
+		}
+		$self->add_train_instance($FE,$src,$trg,$p,$tn,$links,
+					  0,$weightN);
+	    }
+
+	    ## children of target + source node
+	    my @trgchildren=$self->{TREES}->children($trg,$tn);
+	    foreach my $p (@trgchildren) {
+		next if ($$done{"$sn:$p"});              # already done
+		next if (exists $$links{$sn}{$p});
+		$self->add_train_instance($FE,$src,$trg,$sn,$p,$links,
+					  0,$weightN);
+	    }
+
+	    # source children + target children
+	    foreach my $ps (@srcchildren) {
+		foreach my $pt (@trgchildren) {
+		    next if ($$done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+
+
+
+# make a random number of negative data instances
+
+sub random_negative_train_instances{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$nr,$weightN)=@_;
+
+    my @srcnodes = keys %{$$src{NODES}};
+    my @trgnodes = keys %{$$trg{NODES}};
+
+    my $srcrange = scalar @srcnodes;
+    my $trgrange = scalar @trgnodes;
+
+    my $count=0;
+    my %done=();
+    my $nrpositive=0;
+
+    while ($count<$nr){
+
+	# get a random source node
+	my $srcidx = int(rand($srcrange));
+	my $sn=$srcnodes[$srcidx];
+
+	# check alignment constraints
+	next if ($sn!~/\S/);
+	my $s_is_terminal=$self->{TREES}->is_terminal($src,$sn);
+	next if ($self->skip_node($sn,$src,$s_is_terminal));
+
+	# get a random target node
+	my $trgidx = int(rand($trgrange));
+	my $tn=$trgnodes[$trgidx];
+
+	# exclude identical points?!?!
+	#
+#	next if (exists $done{"$srcidx:$trgidx"});
+#	$done{"$srcidx:$trgidx"}=1;
+
+
+	# check if a link exists between these nodes
+	if (exists $$links{$sn}){
+	    if (exists $$links{$sn}{$tn}){
+		$nrpositive++;
+		next;
+	    }
+	}
+
+	# again, check aligmnent constraints
+	next if ($tn!~/\S/);
+	my $t_is_terminal=$self->{TREES}->is_terminal($trg,$tn);
+	if ($self->{-same_types_only}){
+	    if ($s_is_terminal){
+		next if (not $t_is_terminal);
+	    }
+	    elsif ($t_is_terminal){next;}
+	}
+	next if ($self->skip_node($tn,$trg,$t_is_terminal));
+
+	#-----------------------------------------------------------
+	# get all features
+	#------------------------------------------------
+
+	$self->{NODE_COUNT}++;
+	my %values = $FE->features($src,$trg,$sn,$tn);
+	$self->add_history($src,$trg,$sn,$tn,$links,\%values);
+
+	#-----------------------------------------------------------
+	# add negative training event
+	#-----------------------------------------------------------
+
+	$count++;
+	$self->{CLASSIFIER}->add_train_instance('0',\%values,$weightN);
+
+	# if ($nr > $srcrange*$trgrange-$nrpositive){
+	#     print STDERR "have to reduce $nr to ";
+	#     print STDERR $srcrange*$trgrange-$nrpositive-1,"!\n";
+	#     $nr=$srcrange*$trgrange-$nrpositive-1;
+	# }
+
+    }
+    return $count;
+}
+
+
+
+
+
+
+sub add_history{
+    my $self=shift;
+    my ($src,$trg,$sn,$tn,$links,$values)=@_;
+
+    if ($self->{-linked_children}){
+	if (defined $self->{LP}){
+	    $self->linked_children($values,$src,$trg,$sn,$tn,$self->{LP},1);
+	}
+	else{
+	    $self->linked_children($values,$src,$trg,$sn,$tn,$links);
+	}
+    }
+    if ($self->{-linked_subtree}){
+	if (defined $self->{LP}){
+	    $self->linked_subtree($values,$src,$trg,$sn,$tn,$self->{LP},1);
+	}
+	else{
+	    $self->linked_subtree($values,$src,$trg,$sn,$tn,$links);
+	}
+    }
+    if ($self->{-linked_parent}){
+	if (defined $self->{LP}){
+	    $self->linked_parent($values,$src,$trg,$sn,$tn,$self->{LP},1);
+	}
+	else{
+	    $self->linked_parent($values,$src,$trg,$sn,$tn,$links);
+	}
+    }
+    if ($self->{-linked_parent_distance}){
+	if (defined $self->{LP}){
+	    $self->linked_parent_distance($values,$src,$trg,$sn,$tn,$self->{LP},1);
+	}
+	else{
+	    $self->linked_parent_distance($values,$src,$trg,$sn,$tn,$links);
+	}
+    }
+}
+
+
+
+sub searn_interpolation{
+    my $self=shift;
+    my ($src,$trg,$links)=@_;
+
+    #-------------------------------------------------------------------
+    # adaptive "SEARN-like" learning (combine true & predicted values)
+    #-------------------------------------------------------------------
+
+    if (defined $self->{-searn_model}){
+
+	# make link prob's out of link types ....
+	# HARDCODED STUFF!!!
+	# --> good = 1
+	# --> fuzzy = 0.5
+	# --> weak = 0.1
+	if (not defined $self->{LP}){
+	    $self->{LP}={};
+	    foreach my $s (keys %{$links}){
+		foreach my $t (keys %{$$links{$s}}){
+		    if ($$links{$s}{$t}=~/(good|S)/){
+			$$self{LP}{$s}{$t}=1;
+		    }
+		    elsif ($$links{$s}{$t}=~/(fuzzy|possible|P)/){
+			$$self{LP}{$s}{$t}=0.5;
+		    }
+		    elsif ($$links{$s}{$t}=~/weak/){
+			$$self{LP}{$s}{$t}=0.1;
+		    }
+		}
+	    }
+	}
+
+	# interpolation beta: take from $self->{-searn_beta}
+	# or simply set it to 0.3
+	# ---> beta should be estimated on development data!!!!
+
+	my $model = $self->{-searn_model};
+	my @scores = $self->classify($model,$src,$trg);
+	my $b=$self->{-searn_beta} || 0.3;
+
+	for (0..$#scores){
+	    my $sid = $self->{INSTANCES_SRC}->[$_];
+	    my $tid = $self->{INSTANCES_TRG}->[$_];
+	    $$self{LP}{$sid}{$tid}=
+		(1-$b)*$$self{LP}{$sid}{$tid}+$b*$scores[$_];
+	}
+    }
+}
+
 
 
 

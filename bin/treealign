@@ -65,11 +65,12 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_M $opt_N $opt_L $opt_k $opt_R
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
-            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i $opt_X $opt_b);
+            $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i $opt_X 
+            $opt_b $opt_r $opt_B);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:r:B');
 
 
 use Lingua::Align::Trees;
@@ -78,7 +79,6 @@ my $featureStr = $opt_f || 'insideST2:insideTS2:outsideST2:outsideTS2';
 my $nrTrain = $opt_n;
 my $classifier = $opt_c || 'megam';
 my $modelfile = $opt_m || 'treealign.'.$classifier;
-
 
 my $nrEval = $opt_e;
 my $search = $opt_l || 'greedy';
@@ -95,6 +95,8 @@ if (defined $opt_4){$WeightW=$opt_4;}
 
 my $alignment = $opt_b || 'inference';     # alignment strategy 
                                            # (inference|bottom-up)
+my $randomNegative = $opt_r || 0;
+my $negativeNeighbors = $opt_B || 0;
 
 #--------------------------------------------------------
 # if -L && -N ... align nodes of the same type only
@@ -139,6 +141,14 @@ my $treealigner = new Lingua::Align::Trees(
     -classifier_weight_possible=>$WeightP, # training: weight for possible links
     -classifier_weight_weak=>$WeightW,     # training: weight for weak links
     -classifier_weight_negative=>$WeightN, # training: weight for non-linked
+
+    # some special settings for pruning training and test data
+    # - don't use all possible node pairs to create negative data points
+    # - classification threshold: for bottom-up alignment
+    #
+    -random_negative_examples => $randomNegative,  # use random neg. data points
+    -negative_neighbors => $negativeNeighbors,     # use only neighbors
+#    -score_threshold => 0.3,                      # classification threshold
 
     -megam => $opt_X,
 #    -megam => '/Users/joerg/work/align/MaxEnt/megam_0.92/megam',

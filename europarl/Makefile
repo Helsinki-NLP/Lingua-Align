@@ -54,25 +54,32 @@ all: treealign.megam
 #   -nobias ......... do not use a BIAS feature (?)
 #
 
+#		-r 10  .... random negative exampels (10 x more than positive)
+#               -B ........ negative neighbors
+
+ALIGN=bottom-up
+
 treealign.megam:
 	../bin/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
 		-X '../bin/megam -maxi 50' \
-		-b bottom-up \
+		-b ${ALIGN} \
 		-I moses/model/aligned.ids \
 		-g moses/giza.src-trg/src-trg.A3.final.gz \
 		-G moses/giza.trg-src/trg-src.A3.final.gz \
 		-y moses/model/aligned.intersect \
 		-f ${FEAT} \
-		-1 10 -2 3 -3 1 -4 1 \
+		-1 3 -2 1 -3 1 -4 1 \
 		-n ${NR_TRAIN} \
 		-e ${NR_TEST} \
 		-v \
 		-x ${ALIGNTHR} \
 		-l ${SEARCH} ${EXTRAOPT} > ${TRAINCORPUS}.${NR_TRAIN}.align
 	../bin/eval_sta ${TRAINCORPUS}.xml ${TRAINCORPUS}.${NR_TRAIN}.align
+
+
 
 TESTFEAT=gizae2f:moses
 
@@ -81,11 +88,14 @@ test:
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m test.megam \
+		-b ${ALIGN} \
+		-r 10 \
 		-I moses/model/aligned.ids \
 		-g moses/giza.src-trg/src-trg.A3.final.gz \
 		-G moses/giza.trg-src/trg-src.A3.final.gz \
 		-y moses/model/aligned.intersect \
 		-f ${TESTFEAT} \
+		-1 3 -2 1 -3 1 -4 1 \
 		-n 10 \
 		-e 10 \
 		-v 3 \

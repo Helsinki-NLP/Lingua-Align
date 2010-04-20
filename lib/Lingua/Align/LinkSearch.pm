@@ -94,6 +94,14 @@ sub new{
 }
 
 
+# virtual method for checking additional constraints such as wellformedness
+# (check if a proposed link would meet the constraints!)
+
+sub check_constraints{
+    my $self=shift;
+    my ($srctree,$trgtree,$snode,$tnode,$linksST)=@_;
+}
+
 # remove all candidates which are linked already (exactly that link)
 
 sub remove_existing_links{
