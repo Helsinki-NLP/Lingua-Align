@@ -110,6 +110,16 @@ sub add_train_instance{
     print $fh "\n";
 }
 
+
+# start of development data:
+# in megam this simply means to print DEV to the training file
+
+sub start_development_data{
+    my $self=shift;
+    my $fh=$self->{TRAIN_FH};
+    print $fh "DEV\n";
+}
+
 sub train{
     my $self = shift;
     my $model = shift || '__megam.'.$$;

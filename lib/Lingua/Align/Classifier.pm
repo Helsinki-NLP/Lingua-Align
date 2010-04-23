@@ -48,12 +48,13 @@ sub new{
 }
 
 
-sub initialize_training{};
+sub initialize_training{}
 sub add_train_instance{}
+sub start_development_data{}
 sub train{}
 
 sub initialize_classification{}
-sub load_model{};
+sub load_model{}
 sub add_test_instance{}
 sub classify{}
 

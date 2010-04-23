@@ -17,6 +17,7 @@ DOCUMENTATION
 
 Look at the files in doc/
 To run on some small sample data: look at europarl/
+and run "make test"
 
 ATTENTION:
 

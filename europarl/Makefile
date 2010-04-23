@@ -4,28 +4,47 @@
 # Makefile for testing the tree-aligner with some Europarl data
 #
 #
-# make test .......... train a model on 80 sentences and eval on 20
-# make run ........... train a model and align the given test corpus
-#
+# make run ...... run training and testing using the parameters below
+# make test ..... run a quick test with much less training examples
+#                 and simple features (for fast feature extraction)
 #---------------------------------------------------------------------------
 
 
+
+#-------------------------------------------------------------------------
 # training corpus (STA format)
+#
+# nl-en_125 ........ 125 tree pairs from Europarl (fuzzy & good links)
+# nl-en-weak_125 ... the same 125 trees but some links are marked as 'weak'
+#-------------------------------------------------------------------------
 
 # TRAINCORPUS = nl-en_125
 TRAINCORPUS = nl-en-weak_125
-NR_TRAIN    = 100
+NR_TRAIN    = 90
+NR_DEV      = 10
 NR_TEST     = 25
 CLASSIFIER  = megam
+MEGAMARGS   = -maxi 100 -tune
 
-# link search strategy (greedy|wellformed|threshold)
-# alignment score threshold
+#-------------------------------------------------------------------------
+# training & alignment options
+#
+# - basic alignment algorithm: 
+#      two-step classify+inference (=inference) OR
+#      bottom-up classify+immediate-linking
+# - link search strategy (greedy|wellformed|threshold...)
+# - alignment score threshold
+#-------------------------------------------------------------------------
 
-SEARCH      = wellformed
-ALIGNTHR    = 0.15
+# ALIGN       = bottom-up
+ALIGN       = inference
+# SEARCH      = wellformed
+SEARCH	    = Src2TrgWellFormed
+# ALIGNTHR    = 0.15
+ALIGNTHR    = 0
 
 # extra options to be passed to the tree aligner (e.g. link dependencies -C -U)
-EXTRAOPT    = -C -U
+# EXTRAOPT    = -C -U
 
 
 #-------------------------------------------------------------------------
@@ -35,15 +54,24 @@ EXTRAOPT    = -C -U
 
 FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
 
+
+# run a new experiment (remove old alignment first)
+
 run: clean all
+
+
+# run a fast test alignment
+
+TESTOPT = 	NR_TRAIN=10 NR_DEV=0 NR_TEST=10 \
+		FEAT=gizae2f:moses:catpos MEGAMARGS='-maxi 20'
+
+test: clean
+	make ${TESTOPT} all
+
+
 all: treealign.megam
 
 
-#		-g gideon_100.src-trg.A3 \
-#		-G gideon_100.trg-src.A3 \
-#		-y gideon_100.aligned.intersect \
-
-#		-X '../bin/megam -maxi 10 -bnsfs 50' \
 
 # megam arguments:
 #   -bnfsf int ...... keep only <int> features by the BNS selection criteria
@@ -54,17 +82,16 @@ all: treealign.megam
 #   -nobias ......... do not use a BIAS feature (?)
 #
 
-#		-r 10  .... random negative exampels (10 x more than positive)
-#               -B ........ negative neighbors
-
-ALIGN=bottom-up
+# additional treealign arguments:
+#   -r 10  .... random negative training examples (10 x more than positive)
+#   -B ........ negative neighbors only in training
 
 treealign.megam:
 	../bin/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
-		-X '../bin/megam -maxi 50' \
+		-o '${MEGAMARGS}' \
 		-b ${ALIGN} \
 		-I moses/model/aligned.ids \
 		-g moses/giza.src-trg/src-trg.A3.final.gz \
@@ -73,35 +100,14 @@ treealign.megam:
 		-f ${FEAT} \
 		-1 3 -2 1 -3 1 -4 1 \
 		-n ${NR_TRAIN} \
+		-V ${NR_DEV} \
 		-e ${NR_TEST} \
 		-v \
 		-x ${ALIGNTHR} \
-		-l ${SEARCH} ${EXTRAOPT} > ${TRAINCORPUS}.${NR_TRAIN}.align
-	../bin/eval_sta ${TRAINCORPUS}.xml ${TRAINCORPUS}.${NR_TRAIN}.align
-
-
-
-TESTFEAT=gizae2f:moses
-
-test:
-	../bin/treealign \
-		-c ${CLASSIFIER} \
-		-a ${TRAINCORPUS}.xml \
-		-m test.megam \
-		-b ${ALIGN} \
-		-r 10 \
-		-I moses/model/aligned.ids \
-		-g moses/giza.src-trg/src-trg.A3.final.gz \
-		-G moses/giza.trg-src/trg-src.A3.final.gz \
-		-y moses/model/aligned.intersect \
-		-f ${TESTFEAT} \
-		-1 3 -2 1 -3 1 -4 1 \
-		-n 10 \
-		-e 10 \
-		-v 3 \
-		-x ${ALIGNTHR} \
-		-l ${SEARCH} ${EXTRAOPT} > test.align
-	../bin/eval_sta ${TRAINCORPUS}.xml test.align
+		-l ${SEARCH} ${EXTRAOPT} \
+			> ${TRAINCORPUS}.${NR_TRAIN}.${NR_DEV}.align
+	../bin/eval_sta ${TRAINCORPUS}.xml \
+			${TRAINCORPUS}.${NR_TRAIN}.${NR_DEV}.align
 
 
 

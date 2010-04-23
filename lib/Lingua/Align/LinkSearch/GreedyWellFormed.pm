@@ -78,6 +78,13 @@ sub search{
 }
 
 
+
+sub check_constraints{
+    my $self=shift;
+    return $self->is_wellformed(@_);
+}
+
+
 sub is_wellformed{
     my $self=shift;
     my ($srctree,$trgtree,$snode,$tnode,$linksST)=@_;

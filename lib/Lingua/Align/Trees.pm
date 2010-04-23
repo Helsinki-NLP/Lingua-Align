@@ -71,8 +71,10 @@ sub new{
 #
 #    corpus .... hash parallel treebank used for training
 #    model ..... file for storing base classifier model
-#    max ....... max number of tree pairs to be aligned
+#    max ....... max number of tree pairs to be trained on
 #    skip ...... number of innitial tree pairs to be skipped
+#    dev ....... number of tree pairs used as development data
+#                (makes only sense if max is set as well)
 #    features .. hash of features to be used (optional)
 #                (if not specified: use $aligner->{-features})
 #
@@ -82,8 +84,8 @@ sub train{
     my $self=shift;
 
     $self->{START_TRAINING}=time();
-    my ($corpus,$model,$max,$skip)=@_;
-    my $features = $_[4] || $self->{-features};
+    my ($corpus,$model,$max,$skip,$dev)=@_;
+    my $features = $_[5] || $self->{-features};
 
     # $corpus is a pointer to hash with all parameters necessary 
     # to access the training corpus
@@ -107,7 +109,7 @@ sub train{
 	# extract training data (data instances as feature-vectors)
 	$self->{START_EXTRACT_FEATURES}=time();
 	$self->{CLASSIFIER}->initialize_training();
-	$self->extract_training_data($corpus,$features,$max,$skip);
+	$self->extract_training_data($corpus,$features,$max,$skip,$dev);
 	$self->{TIME_EXTRACT_FEATURES}+=time()-$self->{START_EXTRACT_FEATURES};
 
 	# train the model (call external learner)
@@ -676,7 +678,7 @@ sub bottom_up_align{
 sub extract_training_data{
     my $self=shift;
 
-    my ($corpus,$features,$max,$skip)=@_;
+    my ($corpus,$features,$max,$skip,$dev)=@_;
     if (not $features){$features = $self->{-features};}
     if (ref($corpus) ne 'HASH'){
 	die "please specify a corpus to be used for training!";
@@ -735,9 +737,13 @@ sub extract_training_data{
 
 	# stop after max number of tree pairs (if specified)
 	if (defined $max){
-	    if ($count>$max){
+	    if ($count>($max+$dev)){
 		$CorpusHandle->close();
 		last;
+	    }
+	    if ($count==$max+1){    # this means that we have development data!
+		print STDERR "\nuse the following $dev trees as devset\n";
+		$self->{CLASSIFIER}->start_development_data();
 	    }
 	}
 
@@ -1003,7 +1009,111 @@ sub add_train_instance{
 
 
 
+
+#-------------------------------------------------------------------
+# EXPERIMENTAL:
+#   take only neighboring unlinked node pairs as negative exampels
+#   (neighbors of linked nodes)
+#   - combinations of parent nodes & current nodes, parent-parent
+#   - the same for children nodes, parent+children ...
+#   - not yet implemented: neighbors that are more than one step away
+#      (maxdist arguments!)
+#-------------------------------------------------------------------
+
+
 sub negative_neighbors{
+    my $self=shift;
+    my ($FE,$src,$trg,$links,$weightN,$maxdist)=@_;
+
+    my %done=();
+    my $count=0;
+    foreach my $sn (keys %{$links}){
+
+	## parents and children of source node
+	my @srcparents=$self->{TREES}->parents($src,$sn);
+	my @srcchildren=$self->{TREES}->children($src,$sn);
+
+	foreach my $tn (keys %{$$links{$sn}}){
+
+	    foreach my $p (@srcparents) {
+		next if ($done{"$p:$tn"});              # already done
+		if (exists $$links{$p}){                # link exists?
+		    next if (exists $$links{$p}{$tn});  # --> skip
+		}
+		$self->add_train_instance($FE,$src,$trg,$p,$tn,$links,
+					  0,$weightN);
+	    }
+	    foreach my $p (@srcchildren) {
+		next if ($done{"$p:$tn"});              # already done
+		if (exists $$links{$p}){                # link exists?
+		    next if (exists $$links{$p}{$tn});  # --> skip
+		}
+		$self->add_train_instance($FE,$src,$trg,$p,$tn,$links,
+					  0,$weightN);
+	    }
+
+	    ## parents and children of target node
+	    my @trgparents=$self->{TREES}->parents($trg,$tn);
+	    my @trgchildren=$self->{TREES}->children($trg,$tn);
+
+	    foreach my $p (@trgparents) {
+		next if ($done{"$sn:$p"});              # already done
+		next if (exists $$links{$sn}{$p});
+		$self->add_train_instance($FE,$src,$trg,$sn,$p,$links,
+					  0,$weightN);
+	    }
+	    foreach my $p (@trgchildren) {
+		next if ($done{"$sn:$p"});              # already done
+		next if (exists $$links{$sn}{$p});
+		$self->add_train_instance($FE,$src,$trg,$sn,$p,$links,
+					  0,$weightN);
+	    }
+
+	    # source parents + target parents
+	    foreach my $ps (@srcparents) {
+		foreach my $pt (@trgparents) {
+		    next if ($done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
+		}
+	    }
+
+	    # source children + target children
+	    foreach my $ps (@srcchildren) {
+		foreach my $pt (@trgchildren) {
+		    next if ($done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
+		}
+	    }
+
+	    # source parents + target children
+	    foreach my $ps (@srcparents) {
+		foreach my $pt (@trgchildren) {
+		    next if ($done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
+		}
+	    }
+
+	    # source parents + target parents
+	    foreach my $ps (@srcchildren) {
+		foreach my $pt (@trgparents) {
+		    next if ($done{"$ps:$pt"});              # already done
+		    next if (exists $$links{$ps}{$pt});
+		    $self->add_train_instance($FE,$src,$trg,$ps,$pt,$links,
+					      0,$weightN);
+		}
+	    }
+	}
+    }
+}
+
+
+sub negative_neighbors_old{
     my $self=shift;
     my ($FE,$src,$trg,$links,$weightN,$maxdist)=@_;
     my %done=();
@@ -1098,10 +1208,12 @@ sub negative_children{
 
 
 
-
-
-
-# make a random number of negative data instances
+#-------------------------------------------------------------------
+# EXPERIMENTAL:
+#   make a random number of negative data instances
+#   (instead of using all node pairs)
+#   --> faster but less data to train on
+#-------------------------------------------------------------------
 
 sub random_negative_train_instances{
     my $self=shift;
@@ -1185,7 +1297,9 @@ sub random_negative_train_instances{
 
 
 
-
+#-------------------------------------------------------------------
+# add history features to data instance
+#-------------------------------------------------------------------
 
 sub add_history{
     my $self=shift;
@@ -1226,14 +1340,13 @@ sub add_history{
 }
 
 
+#-------------------------------------------------------------------
+# adaptive "SEARN-like" learning (combine true & predicted values)
+#-------------------------------------------------------------------
 
 sub searn_interpolation{
     my $self=shift;
     my ($src,$trg,$links)=@_;
-
-    #-------------------------------------------------------------------
-    # adaptive "SEARN-like" learning (combine true & predicted values)
-    #-------------------------------------------------------------------
 
     if (defined $self->{-searn_model}){
 
@@ -1595,7 +1708,7 @@ sub linked_children_inside_outside{
 # call classifier for all node pairs
 # - classify_bottom_up .... if linked_children history features are used 
 # - classify_top_down ..... if linked_parent history features are used 
-# - simply run through all pairsotherwise
+# - simply run through all pairs otherwise
 #
 #----------------------------------------------------------------
 
@@ -1636,6 +1749,8 @@ sub classify{
 #
 # classify_with_history
 #
+#    - run sequential classification with history features
+#    - either top-down (parent features) or bottom-up (children features)
 #----------------------------------------------------------------
 
 sub classify_with_history{
@@ -1683,8 +1798,6 @@ sub classify_with_history{
 
     }
 
-
-
     # another special case:
     # --> use existing links (mark them as "done")
 
@@ -1695,7 +1808,6 @@ sub classify_with_history{
 	    }
 	}
     }
-
 
     # run as long as there are srcnodes that we haven't classified yet
 
@@ -1822,6 +1934,12 @@ sub classify_with_history{
 
 
 
+
+#----------------------------------------------------------------
+# extract classification data (used in "classify")
+#     extract features for all node pairs 
+#     and add data instances to be classified
+#----------------------------------------------------------------
 
 
 sub extract_classification_data{
