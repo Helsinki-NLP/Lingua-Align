@@ -16,6 +16,7 @@ use Lingua::Align::Corpus::Parallel::Moses;
 use Lingua::Align::Features::Tree;
 use Lingua::Align::Features::Lexical;
 use Lingua::Align::Features::Alignment;
+use Lingua::Align::Features::Orthography;
 
 my $DEFAULTFEATURES = 'inside2:outside2';
 
@@ -36,9 +37,10 @@ sub new{
     #      TREE: tree features such as span-similarity and label features
     # ALIGNMENT: alignment features such as gizae2f, moses, ...
 
-    $self->{LEXICAL}   = new Lingua::Align::Features::Lexical(%attr);
-    $self->{TREE}      = new Lingua::Align::Features::Tree(%attr);
-    $self->{ALIGNMENT} = new Lingua::Align::Features::Alignment(%attr);
+    $self->{LEXICAL}     = new Lingua::Align::Features::Lexical(%attr);
+    $self->{TREE}        = new Lingua::Align::Features::Tree(%attr);
+    $self->{ALIGNMENT}   = new Lingua::Align::Features::Alignment(%attr);
+    $self->{ORTHOGRAPHY} = new Lingua::Align::Features::Orthography(%attr);
 
     return $self;
 }
@@ -79,6 +81,9 @@ sub initialize_features{
     }
     if (exists $self->{LEXICAL}){
 	$self->{LEXICAL}->initialize_features($features,@_);
+    }
+    if (exists $self->{ORTHOGRAPHY}){
+	$self->{ORTHOGRAPHY}->initialize_features($features,@_);
     }
 }
 
@@ -267,6 +272,7 @@ sub get_features{
     $self->{TREE}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
     $self->{LEXICAL}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
     $self->{ALIGNMENT}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
+    $self->{ORTHOGRAPHY}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
 
 
     ## add features from immediate parents

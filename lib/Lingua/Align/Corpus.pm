@@ -105,6 +105,8 @@ sub read_from_buffer{
 
 sub read_next_sentence{
     my $self=shift;
+    my $sentence=shift;
+
     my $words=shift;
 
     my $file=shift || $self->{-file};
@@ -132,12 +134,45 @@ sub read_next_sentence{
 	$self->{LAST_SENT_ID}=$self->{SENT_ID}->{$file};
 	$sent=~s/^\<s.*?\>\s*//;
 	$sent=~s/\s*\<\/s.*?\>$//;
-	@{$words}=split(/\s+/,$sent);
-	return 1;
+	if (ref($sentence) eq 'ARRAY'){
+	  @{$sentence}=split(/\s+/,$sent);
+	  return 1;
+	}
+	elsif (ref($sentence) eq 'HASH'){   # expect a tree --> make a simple
+	  my @words=split(/\s+/,$sent);     # tree structure
+	  $self->words2tree(\@words,$sentence,$self->{SENT_ID}->{$file});
+	  return 1;
+	}
+	else{ return $sent; }
     }
     $fh->close;
     delete $self->{FH}->{$file};
     return 0;
+}
+
+
+# make a simple hash structure compatible with treebank trees
+# (all words linked to a common root node)
+# ---> can treat word alignment as special case of tree alignment!
+
+sub words2tree{
+    my $self=shift;
+    my ($words,$tree,$sid)=@_;
+    %{$tree}=();
+    $tree->{ID}=$sid;
+    $tree->{NODES}={};
+    $tree->{ROOTNODE}="$sid\_0";
+    $tree->{NODES}->{"$sid\_0"}={ id => "$sid\_0" };
+    $tree->{TERMINALS}=[];
+    my $nr=1;
+    foreach my $w (@{$words}){
+	$tree->{NODES}->{"$sid\_$nr"}->{word}=$w;
+	$tree->{NODES}->{"$sid\_$nr"}->{id}="$sid\_$nr";
+	$tree->{NODES}->{"$sid\_$nr"}->{PARENTS}->[0]="$sid\_0";
+	push(@{$tree->{TERMINALS}},"$sid\_$nr");
+	push(@{$tree->{NODES}->{"$sid\_0"}->{CHILDREN}},"$sid\_$nr");
+	$nr++;
+    }
 }
 
 sub current_id{

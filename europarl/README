@@ -1,0 +1,7 @@
+
+
+
+
+alternative (faster) feature set with good (?) performance:
+
+word:suffix=4:treespansim:treelevelsim:nrleafsratio:catpos:parent_catpos:srcparent_catpos:trgparent_catpos:edge:moses:gizae2f:gizaf2e

@@ -210,6 +210,13 @@ sub children{
     return ();
 }
 
+# return yield of subtree == get_leafs
+
+sub yield{
+  my $self=shift;
+  return $self->get_leafs(@_);
+}
+
 # get all nodes in the subtree
 
 sub subtree_nodes{

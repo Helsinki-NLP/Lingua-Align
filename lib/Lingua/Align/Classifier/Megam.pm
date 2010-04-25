@@ -54,6 +54,10 @@ sub initialize_classification{
 				$self->{MEGAM_OUT}, 
 				$self->{MEGAM_ERR},
 				$command);
+
+    binmode($self->{MEGAM_IN}, ":utf8");
+#    binmode($self->{MEGAM_OUT}, ":utf8");
+
     return $self->{MEGAM_PROC};
 }
 
@@ -89,6 +93,7 @@ sub initialize_training{
     $self->{TRAIN_FH} = new FileHandle;
     $self->{TRAIN_FH}->open(">$self->{TRAINFILE}") || 
 	die "cannot open training data file $self->{TRAINFILE}\n";
+    binmode($self->{TRAIN_FH}, ":utf8");
 }
 
 
