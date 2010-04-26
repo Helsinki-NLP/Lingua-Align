@@ -1,0 +1,806 @@
+<?xml version="1.0" ?>
+<treealign>
+<head>
+  <alignment-metadata>
+    <date>Mon Apr 26 16:36:23 2010</date>
+    <author>Lingua-Align</author>  </alignment-metadata>
+</head>
+  <treebanks>
+    <treebank filename="test.e" id="1"/>
+    <treebank filename="test.f" id="2"/>
+  </treebanks>
+  <alignments>
+    <align author="Lingua-Align" prob="0.24624224387067727982" type="fuzzy">
+      <node node_id="0051_15" treebank_id="1"/>
+      <node node_id="0051_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.86957750772491626545" type="good">
+      <node node_id="0051_21" treebank_id="1"/>
+      <node node_id="0051_21" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.63055340506608270612" type="good">
+      <node node_id="0051_8" treebank_id="1"/>
+      <node node_id="0051_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.87198190757637439319" type="good">
+      <node node_id="0051_3" treebank_id="1"/>
+      <node node_id="0051_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.36851020109585730378" type="fuzzy">
+      <node node_id="0051_19" treebank_id="1"/>
+      <node node_id="0051_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31844586310868167045" type="fuzzy">
+      <node node_id="0051_10" treebank_id="1"/>
+      <node node_id="0051_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.93863168018293929862" type="good">
+      <node node_id="0051_13" treebank_id="1"/>
+      <node node_id="0051_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.00318718517532029857" type="fuzzy">
+      <node node_id="0051_2" treebank_id="1"/>
+      <node node_id="0051_20" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.44374774029613056614" type="fuzzy">
+      <node node_id="0051_9" treebank_id="1"/>
+      <node node_id="0051_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29645819171901793831" type="fuzzy">
+      <node node_id="0051_0" treebank_id="1"/>
+      <node node_id="0051_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.64140251929752989390" type="good">
+      <node node_id="0051_4" treebank_id="1"/>
+      <node node_id="0051_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.84271112082245069885" type="good">
+      <node node_id="0051_20" treebank_id="1"/>
+      <node node_id="0051_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.65716799946189630166" type="good">
+      <node node_id="0051_11" treebank_id="1"/>
+      <node node_id="0051_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35271676736935786423" type="fuzzy">
+      <node node_id="0051_17" treebank_id="1"/>
+      <node node_id="0051_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.15785578317045334540" type="fuzzy">
+      <node node_id="0051_7" treebank_id="1"/>
+      <node node_id="0051_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32835601178925055699" type="fuzzy">
+      <node node_id="0051_22" treebank_id="1"/>
+      <node node_id="0051_22" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99985175164197870323" type="good">
+      <node node_id="0051_12" treebank_id="1"/>
+      <node node_id="0051_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.20185656145039754250" type="fuzzy">
+      <node node_id="0051_14" treebank_id="1"/>
+      <node node_id="0051_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.34764090467472019697" type="fuzzy">
+      <node node_id="0051_23" treebank_id="1"/>
+      <node node_id="0051_23" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25042464061818447973" type="fuzzy">
+      <node node_id="0051_18" treebank_id="1"/>
+      <node node_id="0051_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0051_24" treebank_id="1"/>
+      <node node_id="0051_24" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.30534042186623627790" type="fuzzy">
+      <node node_id="0051_16" treebank_id="1"/>
+      <node node_id="0051_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.90745168568338330228" type="good">
+      <node node_id="0051_6" treebank_id="1"/>
+      <node node_id="0051_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.19690454743371785251" type="fuzzy">
+      <node node_id="0051_1" treebank_id="1"/>
+      <node node_id="0051_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.43322683156707086916" type="fuzzy">
+      <node node_id="0051_5" treebank_id="1"/>
+      <node node_id="0051_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35649647316108273865" type="fuzzy">
+      <node node_id="0052_9" treebank_id="1"/>
+      <node node_id="0052_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23429678734603834322" type="fuzzy">
+      <node node_id="0052_13" treebank_id="1"/>
+      <node node_id="0052_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.27195808096031293122" type="fuzzy">
+      <node node_id="0052_10" treebank_id="1"/>
+      <node node_id="0052_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23163047755328206034" type="fuzzy">
+      <node node_id="0052_5" treebank_id="1"/>
+      <node node_id="0052_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.95949817190223885000" type="good">
+      <node node_id="0052_7" treebank_id="1"/>
+      <node node_id="0052_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.61540431775913362333" type="good">
+      <node node_id="0052_1" treebank_id="1"/>
+      <node node_id="0052_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.65934633006617227036" type="good">
+      <node node_id="0052_4" treebank_id="1"/>
+      <node node_id="0052_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.38552051925275721000" type="fuzzy">
+      <node node_id="0052_2" treebank_id="1"/>
+      <node node_id="0052_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.34958651555713882164" type="fuzzy">
+      <node node_id="0052_11" treebank_id="1"/>
+      <node node_id="0052_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29002623684528722192" type="fuzzy">
+      <node node_id="0052_12" treebank_id="1"/>
+      <node node_id="0052_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32902462603742949065" type="fuzzy">
+      <node node_id="0052_14" treebank_id="1"/>
+      <node node_id="0052_23" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.84345356737586785201" type="good">
+      <node node_id="0052_3" treebank_id="1"/>
+      <node node_id="0052_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25999856247939107101" type="fuzzy">
+      <node node_id="0052_6" treebank_id="1"/>
+      <node node_id="0052_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.21692713988206077658" type="fuzzy">
+      <node node_id="0052_0" treebank_id="1"/>
+      <node node_id="0052_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.36169822187449890416" type="fuzzy">
+      <node node_id="0052_8" treebank_id="1"/>
+      <node node_id="0052_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0052_15" treebank_id="1"/>
+      <node node_id="0052_25" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.59524535838030390167" type="good">
+      <node node_id="0053_9" treebank_id="1"/>
+      <node node_id="0053_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.40116423541838919231" type="fuzzy">
+      <node node_id="0053_12" treebank_id="1"/>
+      <node node_id="0053_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.19853806468860196732" type="fuzzy">
+      <node node_id="0053_13" treebank_id="1"/>
+      <node node_id="0053_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.39393397989110856550" type="fuzzy">
+      <node node_id="0053_0" treebank_id="1"/>
+      <node node_id="0053_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.02191003039532420787" type="fuzzy">
+      <node node_id="0053_7" treebank_id="1"/>
+      <node node_id="0053_21" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23095764551801775677" type="fuzzy">
+      <node node_id="0053_4" treebank_id="1"/>
+      <node node_id="0053_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.69137340909603517414" type="good">
+      <node node_id="0053_10" treebank_id="1"/>
+      <node node_id="0053_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.54968077509964419214" type="good">
+      <node node_id="0053_2" treebank_id="1"/>
+      <node node_id="0053_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0053_21" treebank_id="1"/>
+      <node node_id="0053_23" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.82096184507651936979" type="good">
+      <node node_id="0053_6" treebank_id="1"/>
+      <node node_id="0053_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.33497006338675028303" type="fuzzy">
+      <node node_id="0053_19" treebank_id="1"/>
+      <node node_id="0053_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.30361801898334800365" type="fuzzy">
+      <node node_id="0053_11" treebank_id="1"/>
+      <node node_id="0053_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.13411447730420966717" type="fuzzy">
+      <node node_id="0053_14" treebank_id="1"/>
+      <node node_id="0053_20" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.33669394277663167170" type="fuzzy">
+      <node node_id="0053_5" treebank_id="1"/>
+      <node node_id="0053_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.34715253480535401831" type="fuzzy">
+      <node node_id="0053_17" treebank_id="1"/>
+      <node node_id="0053_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24650082876590015402" type="fuzzy">
+      <node node_id="0053_16" treebank_id="1"/>
+      <node node_id="0053_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.66196954402526531069" type="good">
+      <node node_id="0053_20" treebank_id="1"/>
+      <node node_id="0053_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.60179714407990436698" type="good">
+      <node node_id="0053_18" treebank_id="1"/>
+      <node node_id="0053_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.52905642577962241901" type="good">
+      <node node_id="0053_15" treebank_id="1"/>
+      <node node_id="0053_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26330435615060543419" type="fuzzy">
+      <node node_id="0053_8" treebank_id="1"/>
+      <node node_id="0053_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.36851020109585730378" type="fuzzy">
+      <node node_id="0053_1" treebank_id="1"/>
+      <node node_id="0053_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23059026178830316356" type="fuzzy">
+      <node node_id="0053_3" treebank_id="1"/>
+      <node node_id="0053_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.21692048751870757206" type="fuzzy">
+      <node node_id="0054_11" treebank_id="1"/>
+      <node node_id="0054_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26110732358287486177" type="fuzzy">
+      <node node_id="0054_1" treebank_id="1"/>
+      <node node_id="0054_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.17582696573897108050" type="fuzzy">
+      <node node_id="0054_12" treebank_id="1"/>
+      <node node_id="0054_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.27416328335218720369" type="fuzzy">
+      <node node_id="0054_14" treebank_id="1"/>
+      <node node_id="0054_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24275869490065637990" type="fuzzy">
+      <node node_id="0054_5" treebank_id="1"/>
+      <node node_id="0054_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35840592176819779935" type="fuzzy">
+      <node node_id="0054_4" treebank_id="1"/>
+      <node node_id="0054_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.33281830376056281695" type="fuzzy">
+      <node node_id="0054_0" treebank_id="1"/>
+      <node node_id="0054_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0054_15" treebank_id="1"/>
+      <node node_id="0054_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.76151405706394981188" type="good">
+      <node node_id="0054_8" treebank_id="1"/>
+      <node node_id="0054_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29643351230261383300" type="fuzzy">
+      <node node_id="0054_7" treebank_id="1"/>
+      <node node_id="0054_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32613330982021226934" type="fuzzy">
+      <node node_id="0054_9" treebank_id="1"/>
+      <node node_id="0054_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31754290971417131750" type="fuzzy">
+      <node node_id="0054_2" treebank_id="1"/>
+      <node node_id="0054_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.93498574248580879065" type="good">
+      <node node_id="0054_6" treebank_id="1"/>
+      <node node_id="0054_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.69857326698754718119" type="good">
+      <node node_id="0054_13" treebank_id="1"/>
+      <node node_id="0054_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.97205666633709331137" type="good">
+      <node node_id="0054_3" treebank_id="1"/>
+      <node node_id="0054_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25827073979640141621" type="fuzzy">
+      <node node_id="0054_10" treebank_id="1"/>
+      <node node_id="0054_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99991138535895229822" type="good">
+      <node node_id="0055_9" treebank_id="1"/>
+      <node node_id="0055_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26236205838754095288" type="fuzzy">
+      <node node_id="0055_3" treebank_id="1"/>
+      <node node_id="0055_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.22026900671666438392" type="fuzzy">
+      <node node_id="0055_8" treebank_id="1"/>
+      <node node_id="0055_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28044419744770310299" type="fuzzy">
+      <node node_id="0055_15" treebank_id="1"/>
+      <node node_id="0055_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.14476945578080085975" type="fuzzy">
+      <node node_id="0055_12" treebank_id="1"/>
+      <node node_id="0055_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.49863078598430748967" type="fuzzy">
+      <node node_id="0055_18" treebank_id="1"/>
+      <node node_id="0055_21" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.22331836226033291437" type="fuzzy">
+      <node node_id="0055_16" treebank_id="1"/>
+      <node node_id="0055_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26297716343255983507" type="fuzzy">
+      <node node_id="0055_19" treebank_id="1"/>
+      <node node_id="0055_22" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.57922749019185182373" type="good">
+      <node node_id="0055_17" treebank_id="1"/>
+      <node node_id="0055_24" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29639747733042265398" type="fuzzy">
+      <node node_id="0055_6" treebank_id="1"/>
+      <node node_id="0055_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26634489457343685226" type="fuzzy">
+      <node node_id="0055_0" treebank_id="1"/>
+      <node node_id="0055_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.96810446575957387338" type="good">
+      <node node_id="0055_1" treebank_id="1"/>
+      <node node_id="0055_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.89282279859769420050" type="good">
+      <node node_id="0055_20" treebank_id="1"/>
+      <node node_id="0055_26" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32786965257516376138" type="fuzzy">
+      <node node_id="0055_21" treebank_id="1"/>
+      <node node_id="0055_25" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35065367136048603003" type="fuzzy">
+      <node node_id="0055_11" treebank_id="1"/>
+      <node node_id="0055_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0055_22" treebank_id="1"/>
+      <node node_id="0055_27" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99787373636186105230" type="good">
+      <node node_id="0055_14" treebank_id="1"/>
+      <node node_id="0055_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.56102772322516980541" type="good">
+      <node node_id="0055_10" treebank_id="1"/>
+      <node node_id="0055_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.94937561377049362044" type="good">
+      <node node_id="0055_5" treebank_id="1"/>
+      <node node_id="0055_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.87646637225196888377" type="good">
+      <node node_id="0055_4" treebank_id="1"/>
+      <node node_id="0055_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24428493747183080420" type="fuzzy">
+      <node node_id="0055_7" treebank_id="1"/>
+      <node node_id="0055_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.36947727243164779631" type="fuzzy">
+      <node node_id="0055_13" treebank_id="1"/>
+      <node node_id="0055_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.21881634970784960559" type="fuzzy">
+      <node node_id="0055_2" treebank_id="1"/>
+      <node node_id="0055_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99790498233858804245" type="good">
+      <node node_id="0056_1" treebank_id="1"/>
+      <node node_id="0056_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0056_6" treebank_id="1"/>
+      <node node_id="0056_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.92121457971662379371" type="good">
+      <node node_id="0056_3" treebank_id="1"/>
+      <node node_id="0056_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.95667806552798961839" type="good">
+      <node node_id="0056_4" treebank_id="1"/>
+      <node node_id="0056_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25075191667401153239" type="fuzzy">
+      <node node_id="0056_0" treebank_id="1"/>
+      <node node_id="0056_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29114074928530653263" type="fuzzy">
+      <node node_id="0056_2" treebank_id="1"/>
+      <node node_id="0056_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.27230270520945254464" type="fuzzy">
+      <node node_id="0056_5" treebank_id="1"/>
+      <node node_id="0056_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35386642907854654050" type="fuzzy">
+      <node node_id="0057_5" treebank_id="1"/>
+      <node node_id="0057_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29255487009431740963" type="fuzzy">
+      <node node_id="0057_12" treebank_id="1"/>
+      <node node_id="0057_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.27339542538326871979" type="fuzzy">
+      <node node_id="0057_25" treebank_id="1"/>
+      <node node_id="0057_29" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.30553991251487777614" type="fuzzy">
+      <node node_id="0057_8" treebank_id="1"/>
+      <node node_id="0057_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.11763297483847501290" type="fuzzy">
+      <node node_id="0057_18" treebank_id="1"/>
+      <node node_id="0057_25" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.52425637729755070193" type="good">
+      <node node_id="0057_7" treebank_id="1"/>
+      <node node_id="0057_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.48370226656823722688" type="fuzzy">
+      <node node_id="0057_10" treebank_id="1"/>
+      <node node_id="0057_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0057_26" treebank_id="1"/>
+      <node node_id="0057_30" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.82452392851735201162" type="good">
+      <node node_id="0057_13" treebank_id="1"/>
+      <node node_id="0057_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.34744317541585245657" type="fuzzy">
+      <node node_id="0057_23" treebank_id="1"/>
+      <node node_id="0057_26" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.48835891243958462482" type="fuzzy">
+      <node node_id="0057_4" treebank_id="1"/>
+      <node node_id="0057_20" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.39322030767282273311" type="fuzzy">
+      <node node_id="0057_24" treebank_id="1"/>
+      <node node_id="0057_28" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.76460476237351493456" type="good">
+      <node node_id="0057_11" treebank_id="1"/>
+      <node node_id="0057_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.77949470631634620865" type="good">
+      <node node_id="0057_19" treebank_id="1"/>
+      <node node_id="0057_22" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.22446512662609849342" type="fuzzy">
+      <node node_id="0057_20" treebank_id="1"/>
+      <node node_id="0057_21" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99790498233858804245" type="good">
+      <node node_id="0057_1" treebank_id="1"/>
+      <node node_id="0057_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32946685312392404166" type="fuzzy">
+      <node node_id="0057_14" treebank_id="1"/>
+      <node node_id="0057_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24563977164652872620" type="fuzzy">
+      <node node_id="0057_17" treebank_id="1"/>
+      <node node_id="0057_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31236246809916096145" type="fuzzy">
+      <node node_id="0057_0" treebank_id="1"/>
+      <node node_id="0057_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.36945022204165794966" type="fuzzy">
+      <node node_id="0057_2" treebank_id="1"/>
+      <node node_id="0057_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29079679905111782690" type="fuzzy">
+      <node node_id="0057_22" treebank_id="1"/>
+      <node node_id="0057_24" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.62685274893143094754" type="good">
+      <node node_id="0057_6" treebank_id="1"/>
+      <node node_id="0057_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.95967074783293915274" type="good">
+      <node node_id="0057_3" treebank_id="1"/>
+      <node node_id="0057_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.74766180775441781758" type="good">
+      <node node_id="0057_16" treebank_id="1"/>
+      <node node_id="0057_23" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.74005559380319740903" type="good">
+      <node node_id="0057_21" treebank_id="1"/>
+      <node node_id="0057_27" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23609297204540877213" type="fuzzy">
+      <node node_id="0057_15" treebank_id="1"/>
+      <node node_id="0057_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31416250314635940644" type="fuzzy">
+      <node node_id="0057_9" treebank_id="1"/>
+      <node node_id="0057_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32166891270628389377" type="fuzzy">
+      <node node_id="0058_17" treebank_id="1"/>
+      <node node_id="0058_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.19537743491986631073" type="fuzzy">
+      <node node_id="0058_1" treebank_id="1"/>
+      <node node_id="0058_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24140259811819503311" type="fuzzy">
+      <node node_id="0058_7" treebank_id="1"/>
+      <node node_id="0058_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.18566021126232798433" type="fuzzy">
+      <node node_id="0058_11" treebank_id="1"/>
+      <node node_id="0058_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.11910340088208379306" type="fuzzy">
+      <node node_id="0058_16" treebank_id="1"/>
+      <node node_id="0058_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31369873311777290992" type="fuzzy">
+      <node node_id="0058_0" treebank_id="1"/>
+      <node node_id="0058_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.49449716754342148972" type="fuzzy">
+      <node node_id="0058_14" treebank_id="1"/>
+      <node node_id="0058_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.18892823456419668982" type="fuzzy">
+      <node node_id="0058_6" treebank_id="1"/>
+      <node node_id="0058_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.68488840666883821218" type="good">
+      <node node_id="0058_8" treebank_id="1"/>
+      <node node_id="0058_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.21302486849361976229" type="fuzzy">
+      <node node_id="0058_13" treebank_id="1"/>
+      <node node_id="0058_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.88975954100299603500" type="good">
+      <node node_id="0058_3" treebank_id="1"/>
+      <node node_id="0058_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.22828075416555215771" type="fuzzy">
+      <node node_id="0058_9" treebank_id="1"/>
+      <node node_id="0058_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.63690670572551000284" type="good">
+      <node node_id="0058_4" treebank_id="1"/>
+      <node node_id="0058_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.23021084370235658789" type="fuzzy">
+      <node node_id="0058_15" treebank_id="1"/>
+      <node node_id="0058_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0058_18" treebank_id="1"/>
+      <node node_id="0058_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.04654564430094956795" type="fuzzy">
+      <node node_id="0058_2" treebank_id="1"/>
+      <node node_id="0058_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99992918200769620451" type="good">
+      <node node_id="0058_10" treebank_id="1"/>
+      <node node_id="0058_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28985126592041227100" type="fuzzy">
+      <node node_id="0058_5" treebank_id="1"/>
+      <node node_id="0058_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.58249265075077194531" type="good">
+      <node node_id="0059_13" treebank_id="1"/>
+      <node node_id="0059_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.48637108781955085135" type="fuzzy">
+      <node node_id="0059_7" treebank_id="1"/>
+      <node node_id="0059_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28675924687251747036" type="fuzzy">
+      <node node_id="0059_4" treebank_id="1"/>
+      <node node_id="0059_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.53755110734674704798" type="good">
+      <node node_id="0059_8" treebank_id="1"/>
+      <node node_id="0059_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.48684446761855798558" type="fuzzy">
+      <node node_id="0059_2" treebank_id="1"/>
+      <node node_id="0059_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32777843843285520142" type="fuzzy">
+      <node node_id="0059_10" treebank_id="1"/>
+      <node node_id="0059_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26560621981644949585" type="fuzzy">
+      <node node_id="0059_1" treebank_id="1"/>
+      <node node_id="0059_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0059_16" treebank_id="1"/>
+      <node node_id="0059_19" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25020119313365485336" type="fuzzy">
+      <node node_id="0059_3" treebank_id="1"/>
+      <node node_id="0059_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99993173791685152629" type="good">
+      <node node_id="0059_14" treebank_id="1"/>
+      <node node_id="0059_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.47422272920601571400" type="fuzzy">
+      <node node_id="0059_15" treebank_id="1"/>
+      <node node_id="0059_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.55713277431617092006" type="good">
+      <node node_id="0059_12" treebank_id="1"/>
+      <node node_id="0059_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.24857452492509268804" type="fuzzy">
+      <node node_id="0059_9" treebank_id="1"/>
+      <node node_id="0059_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26848693323900146845" type="fuzzy">
+      <node node_id="0059_5" treebank_id="1"/>
+      <node node_id="0059_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26267178444566968709" type="fuzzy">
+      <node node_id="0059_11" treebank_id="1"/>
+      <node node_id="0059_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28075149724172909771" type="fuzzy">
+      <node node_id="0059_6" treebank_id="1"/>
+      <node node_id="0059_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.25357768361000471158" type="fuzzy">
+      <node node_id="0059_0" treebank_id="1"/>
+      <node node_id="0059_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.40837693314125733668" type="fuzzy">
+      <node node_id="0060_12" treebank_id="1"/>
+      <node node_id="0060_12" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.29149982645134547843" type="fuzzy">
+      <node node_id="0060_22" treebank_id="1"/>
+      <node node_id="0060_21" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26832680164195182870" type="fuzzy">
+      <node node_id="0060_8" treebank_id="1"/>
+      <node node_id="0060_8" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.88168531319352116959" type="good">
+      <node node_id="0060_17" treebank_id="1"/>
+      <node node_id="0060_17" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.30428849313748979055" type="fuzzy">
+      <node node_id="0060_24" treebank_id="1"/>
+      <node node_id="0060_22" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.79485624220606654333" type="good">
+      <node node_id="0060_10" treebank_id="1"/>
+      <node node_id="0060_7" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.20544710850484301790" type="fuzzy">
+      <node node_id="0060_25" treebank_id="1"/>
+      <node node_id="0060_24" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28799155592605552023" type="fuzzy">
+      <node node_id="0060_18" treebank_id="1"/>
+      <node node_id="0060_16" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.56200283721449140195" type="good">
+      <node node_id="0060_5" treebank_id="1"/>
+      <node node_id="0060_2" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.91371500047385811882" type="good">
+      <node node_id="0060_4" treebank_id="1"/>
+      <node node_id="0060_1" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.99060961567068195333" type="good">
+      <node node_id="0060_27" treebank_id="1"/>
+      <node node_id="0060_26" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.35416941658388073622" type="fuzzy">
+      <node node_id="0060_13" treebank_id="1"/>
+      <node node_id="0060_13" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.13874038733932958500" type="fuzzy">
+      <node node_id="0060_21" treebank_id="1"/>
+      <node node_id="0060_23" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31447894984141427921" type="fuzzy">
+      <node node_id="0060_19" treebank_id="1"/>
+      <node node_id="0060_18" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.87809124642597435884" type="good">
+      <node node_id="0060_7" treebank_id="1"/>
+      <node node_id="0060_5" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26054367519971727285" type="fuzzy">
+      <node node_id="0060_3" treebank_id="1"/>
+      <node node_id="0060_3" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.21004064661089713595" type="fuzzy">
+      <node node_id="0060_14" treebank_id="1"/>
+      <node node_id="0060_14" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.26897992724686858867" type="fuzzy">
+      <node node_id="0060_16" treebank_id="1"/>
+      <node node_id="0060_15" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.70767261160703320844" type="good">
+      <node node_id="0060_9" treebank_id="1"/>
+      <node node_id="0060_9" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31720502086955826293" type="fuzzy">
+      <node node_id="0060_6" treebank_id="1"/>
+      <node node_id="0060_6" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.31798360194947100643" type="fuzzy">
+      <node node_id="0060_0" treebank_id="1"/>
+      <node node_id="0060_0" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.48643976888490986221" type="fuzzy">
+      <node node_id="0060_26" treebank_id="1"/>
+      <node node_id="0060_25" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.05873793062016036820" type="fuzzy">
+      <node node_id="0060_1" treebank_id="1"/>
+      <node node_id="0060_10" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.28947485445843140761" type="fuzzy">
+      <node node_id="0060_11" treebank_id="1"/>
+      <node node_id="0060_11" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.22835430776418721988" type="fuzzy">
+      <node node_id="0060_2" treebank_id="1"/>
+      <node node_id="0060_4" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.32263642939974807033" type="fuzzy">
+      <node node_id="0060_15" treebank_id="1"/>
+      <node node_id="0060_20" treebank_id="2"/>
+    </align>
+    <align author="Lingua-Align" prob="0.84325629761054532452" type="good">
+      <node node_id="0060_20" treebank_id="1"/>
+      <node node_id="0060_19" treebank_id="2"/>
+    </align>
+  </alignments>
+</treealign>

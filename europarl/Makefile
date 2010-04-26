@@ -69,7 +69,7 @@ test: clean
 	make ${TESTOPT} all
 
 
-all: treealign.megam
+all: treealign.${CLASSIFIER}
 
 
 
@@ -86,7 +86,7 @@ all: treealign.megam
 #   -r 10  .... random negative training examples (10 x more than positive)
 #   -B ........ negative neighbors only in training
 
-treealign.megam:
+treealign.${CLASSIFIER}:
 	../bin/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
@@ -113,4 +113,4 @@ treealign.megam:
 
 clean:
 	rm -f ${TRAINCORPUS}.${NR_TRAIN}.align
-	rm -f treealign.megam
+	rm -f treealign.${CLASSIFIER}
