@@ -27,11 +27,6 @@ sub get_features{
     my $srclen=length($srcstr);
     my $trglen=length($trgstr);
 
-
-    $self->string_sim_features($srcstr,$trgstr,$srclen,$trglen,
-			       $FeatTypes,$values);
-
-
     if (exists $$FeatTypes{lendiff}){
 	$$values{lendiff}=abs($srclen-$trglen);
     }
@@ -44,7 +39,57 @@ sub get_features{
 	}
     }
 
+    # string similarity features
+    $self->string_sim_features($srcstr,$trgstr,$srclen,$trglen,
+			       $FeatTypes,$values);
 
+    # string class features
+    $self->string_class_features($srcstr,$trgstr,$FeatTypes,$values);
+
+    # sub-string features
+    if ($self->{TREES}->is_terminal($src,$srcN)){
+	if ($self->{TREES}->is_terminal($trg,$trgN)){
+	    $self->substring_features($srcstr,$trgstr,$FeatTypes,$values);
+	}
+    }
+
+}
+
+
+sub substring_features{
+    my $self=shift;
+    my ($srcstr,$trgstr,$FeatTypes,$values)=@_;
+
+    if (exists $FeatTypes->{suffix}){
+	if ($FeatTypes->{suffix}>0){
+	    my $SuffixLength=$FeatTypes->{suffix};
+	    my $suffixSrc = substr($srcstr, 0-$SuffixLength);
+	    my $suffixTrg = substr($trgstr, 0-$SuffixLength);
+	    my $pair = $suffixSrc.'_'.$suffixTrg;
+	    $$values{'suffix_'.$pair} = 1;
+	}
+    }
+
+    if (exists $FeatTypes->{prefix}){
+	if ($FeatTypes->{prefix}>0){
+	    my $PrefixLength=$FeatTypes->{prefix};
+	    my $prefixSrc = substr($srcstr, $PrefixLength);
+	    my $prefixTrg = substr($trgstr, $PrefixLength);
+	    my $pair = $prefixSrc.'_'.$prefixTrg;
+	    $$values{'prefix_'.$pair} = 1;
+	}
+    }
+
+    if (exists $FeatTypes->{word}){
+	my $pair = $srcstr.'_'.$trgstr;
+	$$values{'word_'.$pair} = 1;
+    }
+}
+
+
+sub string_class_features{
+    my $self=shift;
+    my ($srcstr,$trgstr,$FeatTypes,$values)=@_;
 
     if (exists $$FeatTypes{isnumber}){
 	if ($srcstr=~/^[\d\.\,]+\%?$/){
@@ -55,16 +100,16 @@ sub get_features{
     }
 
     if (exists $$FeatTypes{hasdigit}){
-	if ($self->{TREES}->is_terminal($src,$srcN)){
-	    if ($self->{TREES}->is_terminal($trg,$trgN)){
+#	if ($self->{TREES}->is_terminal($src,$srcN)){
+#	    if ($self->{TREES}->is_terminal($trg,$trgN)){
 		if ($srcstr=~/\d/){
 		    if ($trgstr=~/\d/){
 			$$values{digit}=1;
 #			print STDERR "$srcstr .... $trgstr\n";
 		    }
 		}
-	    }
-	}
+#	    }
+#	}
     }
 
     if (exists $$FeatTypes{ispunct}){
@@ -85,41 +130,17 @@ sub get_features{
 
 
     if (exists $$FeatTypes{haspunct}){
-	if ($self->{TREES}->is_terminal($src,$srcN)){
-	    if ($self->{TREES}->is_terminal($trg,$trgN)){
+#	if ($self->{TREES}->is_terminal($src,$srcN)){
+#	    if ($self->{TREES}->is_terminal($trg,$trgN)){
 		if ($srcstr=~/\p{P}/){
 		    if ($trgstr=~/\p{P}/){
 			$$values{haspunct}=1;
 #			print STDERR "$srcstr .... $trgstr\n";
 		    }
 		}
-	    }
-	}
+#	    }
+#	}
     }
-
-    if (exists $FeatTypes->{suffix}){
-	if ($self->{TREES}->is_terminal($src,$srcN)){
-	    if ($self->{TREES}->is_terminal($trg,$trgN)){
-		if ($FeatTypes->{suffix}>0){
-		    my $SuffixLength=$FeatTypes->{suffix};
-		    my $suffixSrc = substr($srcstr, 0-$SuffixLength);
-		    my $suffixTrg = substr($trgstr, 0-$SuffixLength);
-		    my $pair = $suffixSrc.'_'.$suffixTrg;
-		    $$values{'suffix_'.$pair} = 1;
-		}
-	    }
-	}
-    }
-
-    if (exists $FeatTypes->{word}){
-	if ($self->{TREES}->is_terminal($src,$srcN)){
-	    if ($self->{TREES}->is_terminal($trg,$trgN)){
-		my $pair = $srcstr.'_'.$trgstr;
-		$$values{'word_'.$pair} = 1;
-	    }
-	}
-    }
-
 }
 
 
@@ -214,9 +235,6 @@ sub string_sim_features{
 	    }
 	}
     }
-
-
-
 }
 
 

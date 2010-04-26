@@ -169,7 +169,7 @@ sub print_header{
     $string.="    <date>";
     $string.=localtime();
     $string.="</date>\n";
-    $string.="    <author>Lingua-Align</author>";
+    $string.="    <author>Lingua-Align</author>\n";
     $string.="  </alignment-metadata>\n</head>\n";
     $string.="  <treebanks>\n";
     $string.="    <treebank filename=\"$srcfile\" id=\"$srcid\"/>\n";
