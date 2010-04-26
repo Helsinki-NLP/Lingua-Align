@@ -125,7 +125,7 @@ sub read_next_sentence{
     if (my $sent=<$fh>){
 	chomp $sent;
 	$self->{COUNT}->{$file}++;
-	if ($sent=~/^\<s (snum|id)=\"?([^\"]+)\"?(\s|\>)/i){
+	if ($sent=~/^\<s (snum|id)=\"?([^\"\>]+)\"?(\s|\>)/i){
 	    $self->{SENT_ID}->{$file}=$2;
 	}
 	else{

@@ -12,14 +12,19 @@ $VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 
-use Lingua::Align::Corpus::Parallel::STA;
-use Lingua::Align::Corpus::Parallel::Dublin;
-use Lingua::Align::Corpus::Parallel::Giza;
-use Lingua::Align::Corpus::Parallel::Moses;
+# sentence aligned
 use Lingua::Align::Corpus::Parallel::Bitext;
 use Lingua::Align::Corpus::Parallel::OPUS;
 use Lingua::Align::Corpus::Parallel::OrderedIds;
 
+# word aligned
+use Lingua::Align::Corpus::Parallel::Giza;
+use Lingua::Align::Corpus::Parallel::Moses;
+use Lingua::Align::Corpus::Parallel::WPT;
+
+# tree aligned
+use Lingua::Align::Corpus::Parallel::STA;
+use Lingua::Align::Corpus::Parallel::Dublin;
 
 
 sub new{
@@ -37,6 +42,9 @@ sub new{
     }
     if ($attr{-type}=~/moses/i){
 	return new Lingua::Align::Corpus::Parallel::Moses(%attr);
+    }
+    if ($attr{-type}=~/wpt/i){
+	return new Lingua::Align::Corpus::Parallel::WPT(%attr);
     }
     if ($attr{-type}=~/opus/i){
 	return new Lingua::Align::Corpus::Parallel::OPUS(%attr);

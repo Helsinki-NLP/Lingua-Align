@@ -129,8 +129,13 @@ sub print_alignments{
 
     my $str='';
     foreach my $s (keys %{$links}){
+#	my $stype='nt';
+#	$stype='t' if ($self->{TREES}->is_terminal($srctree,$s));
 	foreach my $t (keys %{$$links{$s}}){
-	    my $att="author=\"Lingua::Align\" prob=\"$$links{$s}{$t}\"";
+#	    my $ttype='nt';
+#	    $ttype='t' if ($self->{TREES}->is_terminal($trgtree,$t));
+#	    my $att="author=\"Lingua::Align\" prob=\"$$links{$s}{$t}\"";
+	    my $att="author=\"Lingua-Align\" prob=\"$$links{$s}{$t}\"";
 
 #	    my $att="comment=\"None\"";
 	    # P<0.5 --> fuzzy link?!?
@@ -144,8 +149,12 @@ sub print_alignments{
 		$str.="    <align $att type=\"fuzzy\">\n";
 	    }
 #	    $str.="    <align $att type=\"auto\">\n";
+#	    $str.="      <node type=\"$stype\" node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
+#	    $str.="      <node type=\"$stype\" node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
+
 	    $str.="      <node node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
 	    $str.="      <node node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
+
 	    $str.="    </align>\n";
 	}
     }
@@ -155,7 +164,14 @@ sub print_alignments{
 sub print_header{
     my $self=shift;
     my ($srcfile,$trgfile,$srcid,$trgid)=@_;
-    my $string = "<?xml version=\"1.0\" ?>\n<treealign>\n  <treebanks>\n";
+    my $string = "<?xml version=\"1.0\" ?>\n<treealign>\n";
+    $string.="<head>\n  <alignment-metadata>\n";
+    $string.="    <date>";
+    $string.=localtime();
+    $string.="</date>\n";
+    $string.="    <author>Lingua-Align</author>";
+    $string.="  </alignment-metadata>\n</head>\n";
+    $string.="  <treebanks>\n";
     $string.="    <treebank filename=\"$srcfile\" id=\"$srcid\"/>\n";
     $string.="    <treebank filename=\"$trgfile\" id=\"$trgid\"/>\n";
     $string.="  </treebanks>\n  <alignments>\n";

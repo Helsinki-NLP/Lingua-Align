@@ -31,9 +31,18 @@ sub new{
 
 sub initialize_training{
     my $self=shift;
-    $self->{SVM} = new Algorithm::SVM(Type => 'nu-SVR',
-				      Kernel => 'linear');
+    $self->{SVM} = new Algorithm::SVM(Type => 'C-SVC',
+				      Kernel => 'radial');
     $self->{SVM_TRAINSET}=[];
+
+    ## if we want to create a file with training data ....
+    ## --------------------------------------------------------------
+    # $self->{TRAINFILE} = $self->{-training_data} || '__train.'.$$;
+    # $self->{TRAIN_FH} = new FileHandle;
+    # $self->{TRAIN_FH}->open(">$self->{TRAINFILE}") || 
+    # 	die "cannot open training data file $self->{TRAINFILE}\n";
+    # binmode($self->{TRAIN_FH}, ":utf8");
+
 }
 
 
@@ -43,8 +52,8 @@ sub add_train_instance{
 	$self->initialize_training();
     }
 
-#    if ($label==0){$label='-1';}
-#    if ($label==1){$label='+1';}
+    if ($label==0){$label='-1';}
+    if ($label==1){$label='+1';}
 
     if (defined($weight) && ($weight != 1)){
 	if ($weight<1){
@@ -60,6 +69,7 @@ sub add_train_instance{
 	    $self->{__FEATIDS__}->{$_}=$self->{__FEATCOUNT__};
 	}
 	$data[$self->{__FEATIDS__}->{$_}]=$$feat{$_};
+#	print STDERR "feature $_ ($self->{__FEATIDS__}->{$_}) = $$feat{$_} \n";
     }
 
     my $instance = new Algorithm::SVM::DataSet(Label => $label, 
@@ -67,19 +77,34 @@ sub add_train_instance{
 #    for (my $i=0;$i<$weight;$i++){
 	push(@{$self->{SVM_TRAINSET}},$instance);
 #    }
+
+
+## print data instances to a file .... 
+##----------------------------------------
+#     my $fh=$self->{TRAIN_FH};
+#     print $fh $label;
+#     foreach (0..$#data){
+# 	if ($data[$_]){
+# #	    print STDERR "$_:$data[$_]\n";
+# 	    print $fh " $_:$data[$_]";
+# 	}
+#     }
+#     print $fh "\n";
+
+
 }
 
 sub train{
     my $self = shift;
-    my $model = shift || '__megam.'.$$;
+    my $model = shift || '__svm.'.$$;
 
     $self->{SVM}->train(@{$self->{SVM_TRAINSET}});
 
-#    # cross validation on training set
-#    if ($self->{-verbose}){
-#	my $accuracy = $self->{SVM}->svm_validate(5);
-#	print STDERR "accuracy = $accuracy\n";
-#    }
+    # cross validation on training set
+    if ($self->{-verbose}){
+	my $accuracy = $self->{SVM}->validate(5);
+	print STDERR "accuracy = $accuracy\n";
+    }
 
     $self->{SVM}->save($model);
     $self->save_feature_ids($model.'.ids',$self->{__FEATIDS__});
@@ -126,8 +151,12 @@ sub initialize_classification{
     $self->{__FEATIDS__}={};
 
     $self->{SVM} = new Algorithm::SVM(Model => $model,
-				      Kernel => 'linear',
-				      Type => 'nu-SVR');
+				      Kernel => 'radial',
+				      Type => 'one-class',
+				      Gamma  => 64,
+				      C      => 8);
+#				      Kernel => 'linear',
+#				      Type => 'nu-SVR');
     $self->{SVM_MODEL} = $model;
     $self->load_feature_ids($model.'.ids',$self->{__FEATIDS__});
 
@@ -185,8 +214,12 @@ sub classify{
 #	if ($res>0){
 #	    print STDERR "!!!!! positive!!!!!!\n";
 #	}
-	push (@scores,$val);
-	push (@labels,$res);
+
+	if ($res>0){
+#	    print STDERR "$res ... $val ...\n";
+	    push (@scores,$res);
+	    push (@labels,1);
+	}
     }
 
     delete $self->{TEST_DATA};

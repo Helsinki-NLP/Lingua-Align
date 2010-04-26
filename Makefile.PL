@@ -19,7 +19,7 @@ WriteMakefile(
 	'bin/alpino2tiger',
 	'bin/convert_treebank'
     ],
-    AUTHOR            => 'Joerg Tiedemann <j.tiedemann@rug.nl>'
+    AUTHOR            => 'Joerg Tiedemann <j.tiedemann@rug.nl>',
     PREREQ_PM         => {
         'XML::Parser' => 0,
 	'Algorithm::Munkres' => 0,

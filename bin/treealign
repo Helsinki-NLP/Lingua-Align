@@ -11,7 +11,7 @@
 #
 #  -s source-treebank .. source language treebank file (taken from align-file)
 #  -S src-format ....... format of the source language treebank (default: tiger)
-#  -s target-treebank .. target language treebank file (taken from align-file)
+#  -t target-treebank .. target language treebank file (taken from align-file)
 #  -T trg-format ....... format of the target language treebank (default: tiger)
 #  -w .................. swap alignment direction
 #
