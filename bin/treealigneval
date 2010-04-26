@@ -25,20 +25,24 @@
 use strict;
 use FindBin;
 use lib $FindBin::Bin.'/../lib';
-use Lingua::Align::Corpus::Parallel::STA;
+use Lingua::Align::Corpus::Parallel;
 
-use vars qw($opt_b $opt_e);
+use vars qw($opt_b $opt_e $opt_g $opt_s);
 use Getopt::Std;
-getopts('b:e:');
+getopts('b:e:g:s:');
 
 
 my $gold=shift(@ARGV);
-my $sta1=new Lingua::Align::Corpus::Parallel::STA;
+
+my $goldType=$opt_g || 'sta';
+my $systemType=$opt_s || 'sta';
+
+my $sta1=new Lingua::Align::Corpus::Parallel(-type => $goldType);
 my $GoldLinks;
 my $totalGold = $sta1->read_tree_alignments($gold,\$GoldLinks);
 
 my $system=shift(@ARGV);
-my $sta2=new Lingua::Align::Corpus::Parallel::STA;
+my $sta2=new Lingua::Align::Corpus::Parallel(-type => $systemType);
 my $SystemLinks;
 my $totalSystem = $sta2->read_tree_alignments($system,\$SystemLinks);
 
@@ -61,7 +65,7 @@ if ($opt_b){$EvalThis=0;}
 
 foreach my $s (keys %{$SystemLinks}){
 
-    if ($s=~/^s([0-9]+)\_/){           # check sentence IDs
+    if ($s=~/^s?([0-9]+)\_/){          # check sentence IDs
 	my $id=$1;
 	if ($opt_b){                   # if start ID is given
 	    next if ($id<$opt_b);      # --> skip the ones before
@@ -122,7 +126,7 @@ my $TotalGold=0;
 
 foreach my $s (keys %{$GoldLinks}){
 
-    if ($s=~/^s([0-9]+)\_/){             # check sentence IDs in gold standard
+    if ($s=~/^s?([0-9]+)\_/){            # check sentence IDs in gold standard
 	my $id=$1;
 	if ($opt_b){                     # if start ID is given:
 	    next if ($id<$opt_b);        # skip the ones before
