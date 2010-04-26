@@ -87,7 +87,7 @@ all: treealign.megam
 #   -B ........ negative neighbors only in training
 
 treealign.megam:
-	perl5.10.0 ../bin/treealign \
+	../bin/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
