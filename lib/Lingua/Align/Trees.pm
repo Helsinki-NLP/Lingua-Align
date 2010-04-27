@@ -36,7 +36,7 @@ use Lingua::Align::Corpus::Parallel;
 use Lingua::Align::Classifier;           # binary classifier
 use Lingua::Align::LinkSearch;           # link search algorithms
 use Lingua::Align::Features;             # feature extraction module
-
+use Lingua::Align::Corpus::Treebank;     # for tree manipulation
 
 my $DEFAULTFEATURES = 'inside:outside';
 

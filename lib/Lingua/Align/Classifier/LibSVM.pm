@@ -150,13 +150,31 @@ sub initialize_classification{
     $self->{__FEATCOUNT__}=0;
     $self->{__FEATIDS__}={};
 
+#				      Kernel => 'radial',
+#				      Type => 'one-class',
+#				      Gamma  => 64,
+#				      C      => 8);
+
     $self->{SVM} = new Algorithm::SVM(Model => $model,
+				      C      => 2048,
+				      Gamma  => 0.125,
 				      Kernel => 'radial',
-				      Type => 'one-class',
-				      Gamma  => 64,
-				      C      => 8);
-#				      Kernel => 'linear',
-#				      Type => 'nu-SVR');
+				      Type => 'C-SVC');
+
+# features = catpos:moses ???
+#
+# Best c=2048.0, g=0.125 CV rate=97.9978
+# Training...
+# Output model: __train.28910.model
+# svm_type c_svc
+# kernel_type rbf
+# gamma 0.125
+# nr_class 2
+# total_sv 389
+# rho 19.5711
+# label -1 1
+# nr_sv 213 176
+
     $self->{SVM_MODEL} = $model;
     $self->load_feature_ids($model.'.ids',$self->{__FEATIDS__});
 

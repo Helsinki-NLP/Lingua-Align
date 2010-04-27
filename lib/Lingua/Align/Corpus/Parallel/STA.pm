@@ -12,7 +12,7 @@ use File::Basename;
 
 use XML::Parser;
 use Lingua::Align::Corpus::Parallel;
-
+use Lingua::Align::Corpus::Treebank;
 
 sub new{
     my $class=shift;
@@ -24,6 +24,9 @@ sub new{
     foreach (keys %attr){
 	$self->{$_}=$attr{$_};
     }
+
+    # a treebank object of tree manipulation (used in print_alignments)
+    $self->{TREES} = new Lingua::Align::Corpus::Treebank();
 
     return $self;
 }
@@ -129,11 +132,11 @@ sub print_alignments{
 
     my $str='';
     foreach my $s (keys %{$links}){
-#	my $stype='nt';
-#	$stype='t' if ($self->{TREES}->is_terminal($srctree,$s));
+	my $stype='nt';
+	$stype='t' if ($self->{TREES}->is_terminal($srctree,$s));
 	foreach my $t (keys %{$$links{$s}}){
-#	    my $ttype='nt';
-#	    $ttype='t' if ($self->{TREES}->is_terminal($trgtree,$t));
+	    my $ttype='nt';
+	    $ttype='t' if ($self->{TREES}->is_terminal($trgtree,$t));
 #	    my $att="author=\"Lingua::Align\" prob=\"$$links{$s}{$t}\"";
 	    my $att="author=\"Lingua-Align\" prob=\"$$links{$s}{$t}\"";
 
@@ -149,11 +152,11 @@ sub print_alignments{
 		$str.="    <align $att type=\"fuzzy\">\n";
 	    }
 #	    $str.="    <align $att type=\"auto\">\n";
-#	    $str.="      <node type=\"$stype\" node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
-#	    $str.="      <node type=\"$stype\" node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
+	    $str.="      <node node_id=\"$s\" type=\"$stype\" treebank_id=\"$SrcId\"/>\n";
+	    $str.="      <node node_id=\"$t\" type=\"$stype\" treebank_id=\"$TrgId\"/>\n";
 
-	    $str.="      <node node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
-	    $str.="      <node node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
+#	    $str.="      <node node_id=\"$s\" treebank_id=\"$SrcId\"/>\n";
+#	    $str.="      <node node_id=\"$t\" treebank_id=\"$TrgId\"/>\n";
 
 	    $str.="    </align>\n";
 	}
@@ -188,6 +191,7 @@ sub read_tree_alignments{
     my $self=shift;
     my $file=shift;
     my $links=shift;
+    my ($srctypes,$trgtypes)=@_;    # hash of node types (NTs or Ts)
 
     if (! defined $self->{FH}->{$file}){
 #	$self->{FH}->{$file} = new FileHandle;
@@ -236,6 +240,17 @@ sub read_tree_alignments{
     $self->make_corpus_handles(%attr);
     if (ref($links)){
 	$$links = $self->{__XMLHANDLE__}->{LINKS};
+    }
+    # return reference to node type hashs if necessary
+    if (ref($srctypes)){
+	if (exists $self->{__XMLHANDLE__}->{SRCNODETYPES}){
+	    $$srctypes = $self->{__XMLHANDLE__}->{SRCNODETYPES};
+	}
+    }
+    if (ref($trgtypes)){
+	if (exists $self->{__XMLHANDLE__}->{TRGNODETYPES}){
+	    $$trgtypes = $self->{__XMLHANDLE__}->{TRGNODETYPES};
+	}
     }
 
     return $self->{__XMLHANDLE__}->{LINKCOUNT};
@@ -332,7 +347,11 @@ sub __XMLTagStart{
     }
     elsif ($e eq 'node'){
 	$p->{ALIGN}->{$a{treebank_id}}=$a{node_id}; # (always 1 node/id?)
+	if (exists $a{type}){
+	    $p->{NODETYPE}->{$a{treebank_id}} = $a{type};
+	}
     }
+
 }
 
 sub __XMLTagEnd{
@@ -356,6 +375,13 @@ sub __XMLTagEnd{
 	}
 	else{
 	    $p->{NLINKS}->{"$sid:$tid"}->{$src}->{$trg}=$p->{ALIGN}->{type};
+	}
+	# node types
+	if (exists $p->{NODETYPE}){
+	    my $srctype=$p->{NODETYPE}->{$p->{TREEBANKIDS}->[0]};
+	    my $trgtype=$p->{NODETYPE}->{$p->{TREEBANKIDS}->[1]};
+	    $p->{SRCNODETYPES}->{$src} = $srctype;
+	    $p->{TRGNODETYPES}->{$trg} = $trgtype;
 	}
     }
     elsif ($e eq 'treebanks'){
