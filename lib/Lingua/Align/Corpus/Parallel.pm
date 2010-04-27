@@ -189,6 +189,201 @@ sub trg_treebank{
 
 
 
+sub print_link_matrix{
+    my $self=shift;
+    my ($src,$trg,$links)=@_;
+
+    my @srcwords = $self->{TREES}->get_all_leafs($src);
+    my @trgwords = $self->{TREES}->get_all_leafs($trg);
+
+    my @srcids = $self->{TREES}->get_all_leafs($src,'id');
+    my @trgids = $self->{TREES}->get_all_leafs($trg,'id');
+
+    my @trgchar=();
+    my $maxTrgLen=0;
+    foreach (0..$#trgwords){
+	@{$trgchar[$_]}=split(//,$trgwords[$_]);
+	if ($#{$trgchar[$_]}>$maxTrgLen){$maxTrgLen=$#{$trgchar[$_]};}
+    }
+    foreach my $t (0..$#trgwords){print STDERR '--';}
+    print STDERR "-|--\n";
+    foreach my $s (0..$#srcwords){
+	foreach my $t (0..$#trgwords){
+	    my $sid = $srcids[$s];
+	    my $tid = $trgids[$t];
+	    if (exists $$links{$sid}{$tid}){
+		if ($$links{$sid}{$tid} eq 'S'){
+		    print STDERR ' *';
+		}
+		else{print STDERR ' O';}
+	    }
+	    else{print STDERR '  ';}
+	}
+	print STDERR ' | ',$srcwords[$s],"\n";
+    }
+    foreach my $t (0..$#trgwords){print STDERR '--';}
+    print STDERR "-|--\n";
+#    for (my $x=$maxTrgLen;$x>=0;$x--){
+    foreach my $x (0..$maxTrgLen){
+	foreach my $t (0..$#trgwords){
+	    printf STDERR "%2s",$trgchar[$t][$x];
+	}
+	print STDERR "\n";
+    }
+    print STDERR "\n\n";
+}
+
+
+
+
+sub compare_link_matrix{
+    my $self=shift;
+    my ($src,$trg,$links1,$links2)=@_;
+
+    my @srcwords = $self->{TREES}->get_all_leafs($src);
+    my @trgwords = $self->{TREES}->get_all_leafs($trg);
+
+    my @srcids = $self->{TREES}->get_all_leafs($src,'id');
+    my @trgids = $self->{TREES}->get_all_leafs($trg,'id');
+
+
+    my @trgchar=();
+    my $maxTrgLen=0;
+
+    my ($countS,$countP,$countZ,$countD,$countMS,$countMP,$countWS,$countWP)=
+	(0,0,0,0,0,0,0,0);
+
+    print STDERR "\n\ncompare word alignments for: $src->{ID} -- $trg->{ID}\n";
+
+    foreach (0..$#trgwords){
+	@{$trgchar[$_]}=split(//,$trgwords[$_]);
+	if ($#{$trgchar[$_]}>$maxTrgLen){$maxTrgLen=$#{$trgchar[$_]};}
+    }
+    foreach my $t (0..$#trgwords){print STDERR '--';}
+    print STDERR "-|--\n";
+    foreach my $s (0..$#srcwords){
+	foreach my $t (0..$#trgwords){
+	    my $sid = $srcids[$s];
+	    my $tid = $trgids[$t];
+
+	    if (exists $$links1{$sid}{$tid}){
+		if ($$links1{$sid}{$tid}=~/(good|S)/){
+		    if (exists $$links2{$sid}{$tid}){
+			if ($$links2{$sid}{$tid}=~/(good|S)/){
+			    print STDERR ' S';
+			    $countS++;
+			}
+			else{
+			    print STDERR ' z';
+			    $countZ++;
+			}
+		    }
+		    else{
+			print STDERR ' *';
+			$countWS++;
+		    }
+		}
+		elsif (exists $$links2{$sid}{$tid}){
+		    if ($$links2{$sid}{$tid}=~/(fuzzy|weak|P)/){
+			print STDERR ' P';
+			$countP++;
+		    }
+		    else{
+			print STDERR ' d';
+			$countD++;
+		    }
+		}
+		else{
+		    print STDERR ' +';
+		    $countWP++;
+		}
+	    }
+	    elsif (exists $$links2{$sid}{$tid}){
+		if ($$links2{$sid}{$tid}=~/(fuzzy|weak|P)/){
+		    print STDERR ' ·';
+			$countMP++;
+		}
+		else{
+		    print STDERR ' -';
+		    $countMS++;
+		}
+	    }
+	    else{print STDERR '  ';}
+	}
+	print STDERR ' | ',$srcwords[$s],"\n";
+    }
+    foreach my $t (0..$#trgwords){print STDERR '--';}
+    print STDERR "-|--\n";
+#    for (my $x=$maxTrgLen;$x>=0;$x--){
+    foreach my $x (0..$maxTrgLen){
+	foreach my $t (0..$#trgwords){
+	    printf STDERR "%2s",$trgchar[$t][$x];
+	}
+	print STDERR "\n";
+    }
+    print STDERR "\n";
+
+    printf STDERR "  %2d x %s",$countS,"(S) .... proposed = gold = S\n";
+    printf STDERR "  %2d x %s",$countP,"(P) .... proposed = gold = P\n";
+
+    printf STDERR "  %2d x %s",$countZ,"(z) .... proposed = P, gold = S (ok!)\n";
+    printf STDERR "  %2d x %s",$countD,"(d) .... proposed = S, gold = P (ok!)\n";
+
+    if ($countWS){print STDERR '! ';}else{print STDERR '  ';}
+    printf STDERR "%2d x %s",$countWS,"(*) .... proposed = S, gold = not aligned (wrong!)\n";
+    if ($countWP){print STDERR '! ';}else{print STDERR '  ';}
+    printf STDERR "%2d x %s",$countWP,"(+) .... proposed = P, gold = not aligned (wrong!)\n";
+    if ($countMS){print STDERR '! ';}else{print STDERR '  ';}
+    printf STDERR "%2d x %s",$countMS,"(-) .... proposed = not aligned, gold = S (missing!)\n";
+    printf STDERR "  %2d x %s",$countMP,"(·) .... proposed = not aligned, gold = P (missing!)\n\n";
+
+    print "total: ",$countS+$countP+$countZ+$countD," correct, ";
+    print $countMS+$countMP," missing, ";
+    print $countWS+$countWP," wrong\n";
+
+    my $nrA=$countS+$countP+$countZ+$countD+$countWS+$countWP;
+    my $nrS=$countS+$countZ+$countMS;
+    my $interAP=$countS+$countP+$countZ+$countD;
+    my $interAS=$countS+$countZ;
+
+    my $precision = $nrA ? $interAP/$nrA : 0;
+    my $recall    = $nrS ? $interAS/$nrS : 0;
+    my $AER       = ($nrA+$nrS) ? 1-($interAP+$interAS)/($nrA+$nrS) : 1;
+
+    $self->{COUNTS}++;
+    $self->{nrA}+=$nrA;
+    $self->{nrS}+=$nrS;
+    $self->{interAP}+=$interAP;
+    $self->{interAS}+=$interAS;
+
+    $self->{alignP}+=$precision;
+    $self->{alignR}+=$recall;
+    $self->{AER}+=$AER;
+
+    printf "this sentence: precision = %5.4f",$precision;
+    printf ", recall = %5.4f",$recall;
+    printf ", AER = %5.4f\n",$AER;
+
+    printf "      average: precision = %5.4f",$self->{alignP}/$self->{COUNTS};
+    printf ", recall = %5.4f",$self->{alignR}/$self->{COUNTS};
+    printf ", AER = %5.4f\n",$self->{AER}/$self->{COUNTS};
+
+
+    my $totalPrecision = $self->{nrA} ? $self->{interAP}/$self->{nrA} : 0;
+    my $totalRecall    = $self->{nrS} ? $self->{interAS}/$self->{nrS} : 0;
+    my $totalAER       = ($self->{nrA}+$self->{nrS}) ? 
+	1-($self->{interAP}+$self->{interAS})/($self->{nrA}+$self->{nrS}) : 1;
+    printf "        total: precision = %5.4f",$totalPrecision;
+    printf ", recall = %5.4f",$totalRecall;
+    printf ", AER = %5.4f\n\n",$totalAER;
+    
+
+}
+
+
+
+
+
 1;
 __END__
 

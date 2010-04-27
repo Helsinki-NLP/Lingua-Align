@@ -1,8 +1,8 @@
 
 
 run:
-	rm -f wordalign.megam
-	make wordalign.megam
+	rm -f wordalign.megam test.align
+	make test.align
 
 FEAT=lcsr=3:word:suffix=3:moses:gizae2f:gizaf2e
 # SEARCH=trg2src
@@ -14,7 +14,7 @@ NR_TEST=300
 
 ALIGNTHR=0.15
 
-wordalign.megam:
+test.align:
 	../../bin/treealign \
 		-c megam \
 		-o '-maxi 50 -tune' \
@@ -24,7 +24,7 @@ wordalign.megam:
 		-g moses/giza.e-f/A3.final.447.gz \
 		-G moses/giza.f-e/A3.final.447.gz \
 		-y moses/model/aligned.grow-diag-final.447 \
-		-m $@ \
+		-m wordalign.megam \
 		-f ${FEAT} \
 		-1 3 -2 1 -3 1 \
 		-l ${SEARCH} \
@@ -35,4 +35,11 @@ wordalign.megam:
 		-v  > test.align
 	../../bin/eval_sta -g wpt test.wa.nullalign test.align
 
+
+# print link matrices for comparing alignments with gold standard
+
+compare: test.align
+	../../bin/compare_wordalign.pl -A corpus \
+		-b wpt -B corpus -S test.e -T test.f \
+		test.align test.wa.nullalign
 

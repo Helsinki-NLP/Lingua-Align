@@ -85,6 +85,16 @@ sub read_next_alignment{
     return 1;
 }
 
+sub get_links{
+    my $self=shift;
+    my ($src,$trg)=@_;
+
+    if (ref($self->{WORDLINKS}->{$self->{LINKID}}) eq 'HASH'){
+	return %{$self->{WORDLINKS}->{$self->{LINKID}}};
+    }
+    return ();
+}
+
 
 1;
 __END__
