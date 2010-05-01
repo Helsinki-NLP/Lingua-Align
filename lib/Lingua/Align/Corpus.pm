@@ -106,7 +106,6 @@ sub read_from_buffer{
 sub read_next_sentence{
     my $self=shift;
     my $sentence=shift;
-
     my $words=shift;
 
     my $file=shift || $self->{-file};

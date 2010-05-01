@@ -17,6 +17,7 @@ use Lingua::Align::Features::Tree;
 use Lingua::Align::Features::Lexical;
 use Lingua::Align::Features::Alignment;
 use Lingua::Align::Features::Orthography;
+use Lingua::Align::Features::Cooccurrence;
 
 my $DEFAULTFEATURES = 'inside2:outside2';
 
@@ -37,10 +38,11 @@ sub new{
     #      TREE: tree features such as span-similarity and label features
     # ALIGNMENT: alignment features such as gizae2f, moses, ...
 
-    $self->{LEXICAL}     = new Lingua::Align::Features::Lexical(%attr);
-    $self->{TREE}        = new Lingua::Align::Features::Tree(%attr);
-    $self->{ALIGNMENT}   = new Lingua::Align::Features::Alignment(%attr);
-    $self->{ORTHOGRAPHY} = new Lingua::Align::Features::Orthography(%attr);
+    $self->{LEXICAL}      = new Lingua::Align::Features::Lexical(%attr);
+    $self->{TREE}         = new Lingua::Align::Features::Tree(%attr);
+    $self->{ALIGNMENT}    = new Lingua::Align::Features::Alignment(%attr);
+    $self->{ORTHOGRAPHY}  = new Lingua::Align::Features::Orthography(%attr);
+    $self->{COOCCURRENCE} = new Lingua::Align::Features::Cooccurrence(%attr);
 
     return $self;
 }
@@ -85,6 +87,10 @@ sub initialize_features{
     if (exists $self->{ORTHOGRAPHY}){
 	$self->{ORTHOGRAPHY}->initialize_features($features,@_);
     }
+    if (exists $self->{COOCCURRENCE}){
+	$self->{COOCCURRENCE}->initialize_features($features,@_);
+    }
+
 }
 
 
@@ -273,6 +279,7 @@ sub get_features{
     $self->{LEXICAL}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
     $self->{ALIGNMENT}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
     $self->{ORTHOGRAPHY}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
+    $self->{COOCCURRENCE}->get_features($src,$trg,$srcN,$trgN,\%todo,\%values);
 
 
     ## add features from immediate parents
@@ -411,6 +418,104 @@ sub get_features{
     }
 
     return %values;	
+}
+
+
+
+
+
+
+
+sub feature{
+    my $self=shift;
+    my ($tree,$node)=@_;
+
+    my @values=();
+    foreach my $f (keys %{$self->{FEATURES}}){
+	my $val = $self->get_feature($tree,$node,$f,$self->{FEATURES}->{$f});
+	push(@values,$val) if ($val);
+    }
+    return join(':',@values);
+}
+
+
+
+# get features for a node in a tree
+
+sub get_feature{
+    my $self=shift;
+    my ($tree,$node,$feature,$val)=@_;
+
+    my $key = "$tree->{ID}:$node";
+    if (exists $self->{CACHE}->{$key}->{$feature}){
+	return $self->{CACHE}->{$key}->{$feature};
+    }
+
+
+    if ($feature=~/^parent_(.*)$/){
+	my $newfeature = $1;
+	my $parent=$self->{TREES}->parent($tree,$node);
+	if (defined $parent){
+	    return $self->get_feature($tree,$parent,$newfeature,$val);
+	}
+	return undef;
+    }
+    elsif ($feature=~/^children_(.*)$/){
+	my $newfeature = $1;
+	my @children=$self->{TREES}->children($tree,$node);
+	my @feat=();
+	foreach my $c (@children){
+	    if (defined $c){
+		push (@feat,$self->get_feature($tree,$c,$newfeature,$val))
+	    }
+	}
+	return join(':',@feat);
+    }
+    elsif ($feature=~/^sister_(.*)$/){
+	my $newfeature = $1;
+	my @sisters=$self->{TREES}->sisters($tree,$node);
+	my @feat=();
+	foreach my $s (@sisters){
+	    if (defined $s){
+		push (@feat,$self->get_feature($tree,$s,$newfeature,$val))
+	    }
+	}
+	return join(':',@feat);
+    }
+
+
+
+    elsif ($feature eq 'suffix'){
+	if ($val>0){
+	    if (exists $tree->{NODES}->{$node}->{word}){
+		my $str = $tree->{NODES}->{$node}->{word};
+		return substr($str, 0-$val);
+	    }
+	}
+    }
+
+    elsif ($feature eq 'prefix'){
+	if ($val>0){
+	    if (exists $tree->{NODES}->{$node}->{word}){
+		my $str = $tree->{NODES}->{$node}->{word};
+		return substr($str, $val);
+	    }
+	}
+    }
+
+    elsif ($feature eq 'edge'){
+	if (exists $tree->{NODES}->{$node}->{RELATION}){
+	    if (ref($tree->{NODES}->{$node}->{RELATION}) eq 'ARRAY'){
+		return $tree->{NODES}->{$node}->{RELATION}->[0];
+	    }
+	}
+    }
+
+    
+    elsif (exists $tree->{NODES}->{$node}->{$feature}){
+	return $tree->{NODES}->{$node}->{$feature};
+    }
+    return undef;
 }
 
 

@@ -1,17 +1,17 @@
 
-SMULTRON=${HOME}/projects/SMULTRON
-# SMULTRON=.
-SOPHIE=Alignments_SMULTRON_Sophies_World_SV_EN
-SOPHIE_DEEN=Alignments_SMULTRON_Sophies_World_DE_EN
-ECO=Alignments_SMULTRON_Economy_Texts_SV_EN
-
+SMULTRON    = ${HOME}/projects/SMULTRON
+# SMULTRON  = .
+SOPHIE      = Alignments_SMULTRON_Sophies_World_SV_EN
+SOPHIE_DEEN = Alignments_SMULTRON_Sophies_World_DE_EN
+ECO         = Alignments_SMULTRON_Economy_Texts_SV_EN
+TRAINCORPUS = ${SMULTRON}/${SOPHIE}
 
 #-------------------------------------------------------------------------
 # nr sentences used for training and testing
 # STARTEVAL: gives first sentID that will be aligned (for evaluation!)
 # ENDEVAL: gives last sentID that will be aligned (for evaluation!)
 
-NR_TRAIN = 100
+NR_TRAIN  = 100
 STARTEVAL = 104
 
 # NR_TEST = 100
@@ -51,7 +51,7 @@ SEARCH = wellformed
 #
 
 ALIGNTHR = 0.1
-# EXTRAOPT = -C -U
+EXTRAOPT = -C -U
 
 MOSES = ${SMTHOME}/moses-irstlm/moses-cmd/src/moses
 MOSESTRAINING = ${SCRIPTS_ROOTDIR}/training
@@ -82,6 +82,18 @@ NEWTEST = 'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS' \
 	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:moses.catpos:giza.catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos:parent_giza:sister_giza.catpos:sister_moses.catpos:children_giza.catpos:treelevelsim.catpos:maxinside.catpos'
 
 all: sophie
+
+dice-test: cat.cooc pos.cooc word.cooc wordpcat.cooc pospcat.cooc \
+		suffixpcat.cooc suffixpos.cooc suffix.cooc other.cooc
+	make FEAT=dicecat=cat.src+cat.trg+cat.cooc:dicepos=pos.src+pos.trg+pos.cooc:diceword=word.src+word.trg+word.cooc:dicewordpcat=wordpcat.src+wordpcat.trg+wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc+suffixpcat.src+suffixpcat.trg:dicesuffixpos=suffixpos.src+suffixpos.trg+suffixpos.cooc:dicesuffix=suffix.src+suffix.trg+suffix.cooc:treelevelsim:treespansim:parent_dicecat=cat.src+cat.trg+cat.cooc:srcparent_dicecat=cat.src+cat.trg+cat.cooc:trgparent_dicecat=cat.src+cat.trg+cat.cooc:diceother=other.src+other.trg+other.cooc:catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:dicepospcat=pospcat.src+pospcat.trg+pospcat.cooc sophie
+
+dice-test2: cat.cooc pos.cooc word.cooc wordpcat.cooc \
+	suffixpcat.cooc suffixpos.cooc suffix.cooc other.cooc pospcat.cooc
+	make FEAT=dicecat=cat.src+cat.trg+cat.cooc:dicepos=pos.src+pos.trg+pos.cooc:diceword=word.src+word.trg+word.cooc:dicewordpcat=wordpcat.src+wordpcat.trg+wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc+suffixpcat.src+suffixpcat.trg:dicesuffixpos=suffixpos.src+suffixpos.trg+suffixpos.cooc:dicesuffix=suffix.src+suffix.trg+suffix.cooc:parent_dicecat=cat.src+cat.trg+cat.cooc:srcparent_dicecat=cat.src+cat.trg+cat.cooc:trgparent_dicecat=cat.src+cat.trg+cat.cooc:diceother=other.src+other.trg+other.cooc:dicepospcat=pospcat.src+pospcat.trg+pospcat.cooc sophie
+
+test3:
+	make FEAT=catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:treelevelsim:treespansim sophie
+
 
 newtest: newtest1 newtest2
 
@@ -414,3 +426,55 @@ moses-all/model/aligned.%: all.${SRC} all.${TRG}
 	    --last-step 4
 
 
+
+
+
+
+
+
+
+pos.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos -y pos \
+			-f pos.src -e pos.trg -c $@
+
+pospcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos:parent_cat -y pos:parent_cat \
+			-f pospcat.src -e pospcat.trg -c $@
+
+
+cat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x cat -y cat \
+			-f cat.src -e cat.trg -c $@
+
+other.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x edge:cat:pos -y edge:morph:cat:pos \
+			-f other.src -e other.trg -c $@
+
+word.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word -y word \
+			-f word.src -e word.trg -c $@
+
+wordpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word:parent_cat -y word:parent_cat \
+			-f wordpcat.src -e wordpcat.trg -c $@
+
+suffixpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=3:parent_cat -y suffix=3:parent_cat \
+			-f suffixpcat.src -e suffixpcat.trg -c $@
+
+suffixpos.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=3:parent_cat -y suffix=3:pos \
+			-f suffixpos.src -e suffixpos.trg -c $@
+
+suffix.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=4 -y suffix=4 \
+			-f suffix.src -e suffix.trg -c $@

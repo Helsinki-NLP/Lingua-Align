@@ -1,0 +1,230 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+#  -a ...... sentence alignment file
+#  -A ...... alignment file format (OPUS, STA ...)
+#  -s ...... source language file
+#  -S ...... format of source language file (Corpus, Tiger, ....)
+#  -t ...... target language file
+#  -T ...... format of target language file (Corpus, Tiger, ....)
+#  -x ...... source language features (default = word)
+#  -y ...... target language features (default = word)
+#  -m ...... freq threshold (default = 2)
+
+use strict;
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
+use Lingua::Align::Corpus::Parallel;
+use Lingua::Align::Features;
+
+use DB_File;
+use POSIX;
+
+use vars qw($opt_a $opt_A $opt_x $opt_y $opt_s $opt_S $opt_t $opt_T $opt_m
+            $opt_d $opt_D $opt_C $opt_c $opt_e $opt_f);
+
+use Getopt::Std;
+getopts('a:A:m:s:S:t:T:x:y:dDc:e:f:');
+
+my $SrcFeatures = $opt_x || 'word';
+my $TrgFeatures = $opt_y || 'word';
+my $threshold   = $opt_m || 2;
+
+my $SrcFreqFile = $opt_f || 'src.freq';
+my $TrgFreqFile = $opt_e || 'trg.freq';
+my $CoocFreqFile = $opt_c || 'cooc.freq';
+
+# nr of sentences for which counts can be kept in memory
+my $CoocCache   = $opt_C || 200000;
+
+my $corpus     = new Lingua::Align::Corpus::Parallel(
+    -alignfile => $opt_a,
+    -type      => $opt_A,
+    -src_file  => $opt_s,
+    -src_type  => $opt_S,
+    -trg_file  => $opt_t,
+    -trg_type  => $opt_T);
+my $SrcExtract = new Lingua::Align::Features;
+my $TrgExtract = new Lingua::Align::Features;
+$SrcExtract->initialize_features($SrcFeatures);
+$TrgExtract->initialize_features($TrgFeatures);
+
+my %SrcVoc=();
+my %TrgVoc=();
+if ($opt_D){
+    tie %SrcVoc, "DB_File", "$SrcFreqFile.voc", O_CREAT|O_RDWR, 0664, $DB_HASH ;
+    tie %TrgVoc, "DB_File", "$TrgFreqFile.voc", O_CREAT|O_RDWR, 0664, $DB_HASH ;
+}
+
+my @SrcFreq=();
+my @TrgFreq=();
+
+my %CoocFreq=();
+my %CoocDB=();
+if ($opt_d){
+    tie %CoocDB, "DB_File", $CoocFreqFile, O_CREAT|O_RDWR, 0664, $DB_HASH ;
+#    $DB_HASH->{'cachesize'} = 10000 ;
+}
+
+
+my $srcid;
+my $trgid;
+
+
+
+# run through the corpus
+
+my $srcsent={};
+my $trgsent={};
+
+# check if we can do something simple
+# (without looking at trees & extracting features)
+# --> just word co-occurrences from plain text corpora
+# --> sentences = arrays of plain text tokens
+my $simple=0;
+if ($SrcFeatures eq 'word' && $TrgFeatures eq 'word'){
+    if ((not defined $opt_S) || ($opt_S=~/corpus|text/i)){
+ 	if ((not defined $opt_T) || ($opt_T=~/corpus|text/i)){
+	    if ((not defined $opt_A) || ($opt_A!~/sta|opus/i)){
+		$simple=1;
+		$srcsent=[];
+		$trgsent=[];
+	    }
+	}
+    }
+}
+
+
+my $count=0;
+while ($corpus->next_alignment($srcsent,$trgsent)){
+
+    $count++;   
+    if (not($count % 5000)){
+	print STDERR '.';
+    }
+    if (not($count % 100000)){
+	print STDERR " $count\n";
+    }
+
+    # get source and target node features for all nodes in the tree
+    # and count their frequencies
+    my %srccount=();
+    my %trgcount=();
+
+    # simple: just count all tokens
+    if ($simple){
+	foreach (@{$srcsent}){$srccount{$_}++;}
+	foreach (@{$trgsent}){$trgcount{$_}++;}
+    }
+    # complex: get features from trees
+    # (this is much slower!)
+    else{
+	foreach my $sn (keys %{$$srcsent{NODES}}){
+	    my $feat = $SrcExtract->feature($srcsent,$sn);
+	    if ($feat=~/\S/){$srccount{$feat}++;}
+	}
+	foreach my $tn (keys %{$$trgsent{NODES}}){
+	    my $feat = $TrgExtract->feature($trgsent,$tn);
+	    if ($feat=~/\S/){$trgcount{$feat}++;}
+	}
+    }
+
+
+    # for each word type combination --> add min(srcfreq,trgfreq) to cooc count
+    # (co-occurrence = number of word type pairs that could be linked)
+
+    foreach my $s (keys %srccount){
+	if (! exists $SrcVoc{$s} ){
+	    $srcid++;
+	    $SrcVoc{$s} = $srcid;
+	}
+	my $sid = $SrcVoc{$s};
+	my $freq = $srccount{$s};
+	$SrcFreq[$sid]+=$freq;
+	foreach my $t (keys %trgcount){
+	    if (! exists $TrgVoc{$t} ){
+		$trgid++;
+		$TrgVoc{$t} = $trgid;
+	    }
+	    my $tid = $TrgVoc{$t};
+	    $freq = $trgcount{$t} if ($trgcount{$t} < $freq);
+	    $CoocFreq{$sid}{$tid}+=$freq;
+	}
+    }
+    foreach my $t (keys %trgcount){
+	my $tid = $TrgVoc{$t};
+	my $freq = $trgcount{$t};
+	$TrgFreq[$tid]+=$freq;
+    }
+
+    if ($opt_d){
+	if (! ($count % $CoocCache)){
+	    write2DB(\%CoocFreq,\%CoocDB);
+	}
+    }
+
+}
+
+if ($opt_d){
+    write2DB(\%CoocFreq,\%CoocDB);
+}
+
+
+
+open F,">$SrcFreqFile" || die "cannot write to $SrcFreqFile";
+binmode(F,":utf8");
+print F "# $SrcFeatures\n";
+foreach my $w (keys %SrcVoc){
+    if ($SrcFreq[$SrcVoc{$w}]>$threshold){
+	print F $w,"\t",$SrcVoc{$w},"\t";
+	print F $SrcFreq[$SrcVoc{$w}],"\n";
+    }
+}
+close F;
+
+open F,">$TrgFreqFile" || die "cannot write to $TrgFreqFile";
+binmode(F,":utf8");
+print F "# $TrgFeatures\n";
+foreach my $w (keys %TrgVoc){
+    if ($TrgFreq[$TrgVoc{$w}]>$threshold){
+	print F $w,"\t",$TrgVoc{$w},"\t";
+	print F $TrgFreq[$TrgVoc{$w}],"\n";
+    }
+}
+close F;
+
+
+if (! $opt_d){
+    open F,">$CoocFreqFile" || die "cannot write to CoocFreqFile";
+    binmode(F,":utf8");
+    foreach my $s (keys %CoocFreq){
+	foreach my $t (keys %{$CoocFreq{$s}}){
+	    if ($CoocFreq{$s}{$t} > $threshold){
+		print F $s,"\t",$t,"\t",$CoocFreq{$s}{$t},"\n";
+	    }
+	}
+    }
+    close F;
+}
+
+
+sub write2DB{
+    my ($hash,$db)=@_;
+    print STDERR "add cooc counts to the DB\n";
+    my $c=0;
+    foreach my $s (keys %{$hash}){
+	$c++;
+	if (not($c % 2000)){
+	    print STDERR '.';
+	}
+	if (not($c % 10000)){
+	    print STDERR "$c\n";
+	}
+	foreach my $t (keys %{$$hash{$s}}){
+	    $$db{"$s\t$t"}+=$$hash{$s}{$t};
+	    delete $$hash{$s}{$t};
+	}
+	delete $$hash{$s};
+    }
+    print STDERR "done!\n";
+}

@@ -4,7 +4,11 @@ run:
 	rm -f wordalign.megam test.align
 	make test.align
 
-FEAT=lcsr=3:word:suffix=3:moses:gizae2f:gizaf2e
+# FEAT=lcsr=3:word:suffix=3:moses:gizae2f:gizaf2e
+# FEAT=lcsr=3:suffix=3:dice1=src.freq+trg.freq+cooc.freq
+
+FEAT=lcsr=3:suffix=3:dice1=src.freq+trg.freq+cooc.freq
+
 # SEARCH=trg2src
 SEARCH=munkres
 
@@ -43,3 +47,10 @@ compare: test.align
 		-b wpt -B corpus -S test.e -T test.f \
 		test.align test.wa.nullalign
 
+
+cooc:
+	perl  ../../bin/coocfreq -s hansard.e -t hansard.f \
+		-x word:suffix=3 -y word:suffix=3
+
+wordcooc:
+	perl  ../../bin/wordcooc -s hansard100000.e -t hansard100000.f

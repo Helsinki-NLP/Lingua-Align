@@ -62,8 +62,10 @@ run: clean all
 
 # run a fast test alignment
 
-TESTOPT = 	NR_TRAIN=10 NR_DEV=0 NR_TEST=10 \
-		FEAT=gizae2f:moses:catpos MEGAMARGS='-maxi 20'
+TESTOPT = 	NR_TRAIN=10 NR_DEV=0 NR_TEST=10 MEGAMARGS='-maxi 20' \
+		FEAT=dice1=pos.src+pos.trg+pos.cooc:dice2=word.src+word.trg+word.cooc:dice3=wordpcat.src+wordpcat.trg+wordpcat.cooc:dice4=cat.src+cat.trg+cat.cooc:dice5=suffixpcat.src+suffixpcat.trg+suffixpcat.cooc
+#		FEAT=gizae2f:moses:catpos 
+
 
 test: clean
 	make ${TESTOPT} all
@@ -109,6 +111,32 @@ treealign.${CLASSIFIER}:
 	../bin/eval_sta ${TRAINCORPUS}.xml \
 			${TRAINCORPUS}.${NR_TRAIN}.${NR_DEV}.align
 
+
+
+pos.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos -y pos \
+			-f pos.src -e pos.trg -c $@
+
+cat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x cat -y cat \
+			-f cat.src -e cat.trg -c $@
+
+word.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word -y word \
+			-f word.src -e word.trg -c $@
+
+wordpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word:parent_cat -y word:parent_cat \
+			-f wordpcat.src -e wordpcat.trg -c $@
+
+suffixpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=3:parent_cat -y suffix=3:parent_cat \
+			-f suffixpcat.src -e suffixpcat.trg -c $@
 
 
 clean:

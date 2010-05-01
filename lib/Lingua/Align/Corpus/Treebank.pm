@@ -427,7 +427,7 @@ sub subtree_span{
 	$tree->{NODES}->{$node}->{end} = $end;
 	return ($start,$end);
     }
-    print STDERR "Strange? no start & end of the tree-span? $start-$end\n";
+    print STDERR "Strange? no start & end of the tree-span? ('$node' $start-$end)\n";
     return ();
 }
 
