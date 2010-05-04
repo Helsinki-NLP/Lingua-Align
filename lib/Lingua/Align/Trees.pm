@@ -26,7 +26,7 @@ use strict;
 
 use vars qw($VERSION @ISA);
 @ISA = qw(Lingua::Align);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use FileHandle;
 use Time::HiRes qw ( time alarm sleep );

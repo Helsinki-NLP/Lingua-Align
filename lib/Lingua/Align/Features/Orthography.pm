@@ -41,6 +41,8 @@ sub get_features{
     }
 
     # string similarity features
+    # (is this really a good idea to do for all nodes? ---> expensive & slow!)
+
     $self->string_sim_features($srcstr,$trgstr,$srclen,$trglen,
 			       $FeatTypes,$values);
 

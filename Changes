@@ -1,6 +1,10 @@
 Revision history for Perl extension Lingua::Align.
 
+0.02  May 04 2010
+      - some kind of pre-release with basic documentation and lot's of
+      	experimental stuff
+
 0.01  Tue Mar 31 17:32:40 2009
-	- original version; created by h2xs 1.23 with options
-		-b 5.5.0 -AXc -n Lingua::Align
+      - initial version
+
 

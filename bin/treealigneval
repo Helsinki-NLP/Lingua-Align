@@ -32,23 +32,28 @@ use Getopt::Std;
 getopts('b:e:g:s:');
 
 
-my $gold=shift(@ARGV);
-
 my $goldType=$opt_g || 'sta';
 my $systemType=$opt_s || 'sta';
 
+# read all gold standard alignments
+# SystemS & SystemT point to hash with node type information (if available)
+my $gold=shift(@ARGV);
 my $sta1=new Lingua::Align::Corpus::Parallel(-type => $goldType);
-my $GoldLinks;
-my $totalGold = $sta1->read_tree_alignments($gold,\$GoldLinks);
+my ($GoldLinks,$GoldS,$GoldT)=({},{},{});
+my $totalGold = $sta1->read_tree_alignments($gold,\$GoldLinks,\$GoldS,\$GoldT);
 
+# read all links proposed by the system
+# SystemS & SystemT point to hash with node type information (if available)
 my $system=shift(@ARGV);
 my $sta2=new Lingua::Align::Corpus::Parallel(-type => $systemType);
-my $SystemLinks;
-my $totalSystem = $sta2->read_tree_alignments($system,\$SystemLinks);
+my ($SystemLinks,$SystemS,$SystemT)=({},{},{});
+my $totalSystem = $sta2->read_tree_alignments($system,\$SystemLinks,
+					      \$SystemS,\$SystemT);
 
 # keep a hash of source sentence IDs which we actually have aligned
-# this is a it tricky because we will not count sentences for which the
+# this is a bit tricky because we will not count sentences for which the
 # aligner didn't find any alignments ... hmmm ...
+# ---> use -b and -e to specify exactly where to start and where to end!!!
 
 my %srcIDs=();
 my $s_is_term;
@@ -76,15 +81,22 @@ foreach my $s (keys %{$SystemLinks}){
 	$srcIDs{$id}=1;                # otherwise: use all proposed links
     }
 
-
-    if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+    if (exists $$SystemS{$s}){
+	if ($$SystemS{$s} eq 't'){ $s_is_term=1; }
+	else{ $s_is_term=0; }
+    }
+    elsif ($s=~/s?[0-9]+\_([0-9]+)$/){     # assume that node ID's < 500 
 	if ($1 < 500){$s_is_term=1;}       # are terminal nodes
 	else{$s_is_term=0;}
     }
 
     foreach my $t (keys %{$$SystemLinks{$s}}){
 
-	if ($t=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	if (exists $$SystemT{$t}){
+	    if ($$SystemT{$t} eq 't'){ $t_is_term=1; }
+	    else{ $t_is_term=0; }
+	}
+	elsif ($t=~/s?[0-9]+\_([0-9]+)$/){     # assume that node ID's < 500 
 	    if ($1 < 500){$t_is_term=1;}       # are terminal nodes
 	    else{$t_is_term=0;}
 	}
@@ -140,14 +152,22 @@ foreach my $s (keys %{$GoldLinks}){
 	$srcIDs{$id}=1;
     }
 
-    if ($s=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+    if (exists $$GoldS{$s}){
+	if ($$GoldS{$s} eq 't'){ $s_is_term=1; }
+	else{ $s_is_term=0; }
+    }
+    elsif ($s=~/s?[0-9]+\_([0-9]+)$/){     # assume that node ID's < 500 
 	if ($1 < 500){$s_is_term=1;}       # are terminal nodes
 	else{$s_is_term=0;}
     }
 
     foreach my $t (keys %{$$GoldLinks{$s}}){
 
-	if ($t=~/s?[0-9]+\_([0-9]+)$/){        # assume that node ID's < 500 
+	if (exists $$GoldT{$t}){
+	    if ($$GoldT{$t} eq 't'){ $t_is_term=1; }
+	    else{ $t_is_term=0; }
+	}
+	elsif ($t=~/s?[0-9]+\_([0-9]+)$/){     # assume that node ID's < 500 
 	    if ($1 < 500){$t_is_term=1;}       # are terminal nodes
 	    else{$t_is_term=0;}
 	}

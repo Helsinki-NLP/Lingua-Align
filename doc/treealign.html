@@ -288,6 +288,12 @@ Default = 1</p>
 <p>Score threshold used for tree alignment. Node pairs obtaining scores below this threshold will not be considered in the alignment process.</p>
 </dd>
 </li>
+<dt><strong><a name="item__2db_strategy">-b strategy</a></strong>
+
+<dd>
+<p>Type of alignment strategy to be used. Default is 'inference' which refers to a two-step procedure with local classification in the first step and alignment inference in the second (see LinkSearch with argument -l). An alternative strategy is called 'bottom-up' in which the alignment is done in a greedy bottom-up fashion starting with leaf node pairs and going up to the root nodes. Nodes are linked immediately when the classification score (conditional link likelihood) exceeds the threshold (usually 0.5). Aligned nodes are removed from the search space. Therefore, only 1:1 links are returned. In a final step link likelihoods are used to align previously unlinked nodes with the selected alignment inference strategy in the same way as in the two-step procedure.</p>
+</dd>
+</li>
 <dt><strong><a name="item__2dl_linksearch">-l LinkSearch</a></strong>
 
 <dd>

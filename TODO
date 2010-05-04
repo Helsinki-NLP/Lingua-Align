@@ -1,12 +1,7 @@
 
-- secondary edges when converting from AlpinoXML to TigerXML (?)
-
 - different link search (inference) for terminals and for non-terminals
   terminals: allow many-to-many links
   non-terminals: only 1:1 links
-
-- special features for terminal alignment
-  (lcsr, dice, suffix, prefix, ...
 
 - handle berkeley parser format
 
@@ -18,7 +13,4 @@
   http://www.mathematik.uni-ulm.de/help/perl5/doc/perlthrtut.html
 
 
-- fast, greedy, bottom-up alignment
-  start with leaf-to-leaf, rely on local classifications, greedy alignment
-  --> threshold>0.5, best-first, 1:1 only (is that necessary?)
-
+..... and many other things ....

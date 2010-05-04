@@ -1,43 +1,124 @@
+#--------------------------------------------------------------------------
+# jorg.tiedemann@lingil.uu.se				May 2010
+#
+# run tree alignment experiments with the SMULTRON treebank
+# (this is mainly for testing the aligner aand different settings)
+#
+# Note that Moses/Giza++ features are only derived from the small
+# data set provided by SMULTRON sub corpora! 
+# --> run word alignment on larger data sets for more reliable features!
+#
+# This should run on standard linux.i686 systems.
+# For Mac OSX on Intel machines: set "-c megam.osx" in TREEALIGN (see below)
+#--------------------------------------------------------------------------
+#
+#
+# Exampels:
+#--------------------------------------------------------------------------
+# make sophie ....... run training and alignment on Sophie's World
+# make FEAT=catpos .. run the same with only the "catpos" feature
+# eval .............. evaluate alignments from the "sophie" alignments
+#
+#
+# Cross-domain experiments: 
+# (train on all data in one domain (slow!) and align another one)
+#--------------------------------------------------------------------------
+# make eco-sophie.eval ... make & evaluate eco-alignments done with sophie model
+# make sophie-eco.eval ... make & evaluate sophie-alignments done with eco model
+#
+#
+# Tests with other feature sets (on Sophie's World):
+#--------------------------------------------------------------------------
+# make test-no-moses1 .... use a model without Moses/Giza++ features
+# make test-no-moses2 .... use a model without Moses/Giza++ features but 
+#                          with co-occurrence features (Dice scores)
+# make test-dice ......... use only co-occurrence features (Dice scores)
+#                          (Note that Dice scores are not very reliable
+#                           either because they are also computed on the small
+#                           Sophie's World corpus only!)
+#
+#--------------------------------------------------------------------------
 
-SMULTRON    = ${HOME}/projects/SMULTRON
-# SMULTRON  = .
-SOPHIE      = Alignments_SMULTRON_Sophies_World_SV_EN
-SOPHIE_DEEN = Alignments_SMULTRON_Sophies_World_DE_EN
-ECO         = Alignments_SMULTRON_Economy_Texts_SV_EN
+
+
+#--------------------------------------------------------------------------
+# path to the tree aligner scripts
+#--------------------------------------------------------------------------
+
+TREEALIGNERHOME = ..
+TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
+STA2MOSES       = ${TREEALIGNERHOME}/bin/sta2moses
+ALIGNEVAL       = ${TREEALIGNERHOME}/bin/treealigneval
+
+# uncomment the following line if you want to run the TreeAligner on Mac OSX:
+# TREEALIGN     = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
+
+
+
+#--------------------------------------------------------------------------
+# location of the SMULTRON treebank
+# download from  http://kitt.cl.uzh.ch/kitt/smultron/
+#       info at  http://www.ling.su.se/DaLi/research/smultron
+#--------------------------------------------------------------------------
+
+SMULTRON    = smultron-2.0
+SOPHIE      = alignments_sophie_en_sv
+SOPHIE_DEEN = alignments_sophie_de_sv
+ECO         = alignments_economy_en_sv
+DVDMAN      = alignments_dvdman_en_sv
+
+# old SMULTRON version:
+#
+# SOPHIE      = Alignments_SMULTRON_Sophies_World_SV_EN
+# SOPHIE_DEEN = Alignments_SMULTRON_Sophies_World_DE_EN
+# ECO         = Alignments_SMULTRON_Economy_Texts_SV_EN
+
 TRAINCORPUS = ${SMULTRON}/${SOPHIE}
 
-#-------------------------------------------------------------------------
-# nr sentences used for training and testing
-# STARTEVAL: gives first sentID that will be aligned (for evaluation!)
-# ENDEVAL: gives last sentID that will be aligned (for evaluation!)
 
-NR_TRAIN  = 100
-STARTEVAL = 104
+#--------------------------------------------------------------------------
+# now some important tree aligner parameters:
+#
+# FEAT ......... specifies the features to be used for alignment
+#                (more info: perldoc  ../lib/Lingua/Align/Features.pm)
+# ALIGNTHR ..... alignment score threshold
+# EXTRAOPT ..... extra options (like -C -U for adding history features)
+# CLASSIFIER ... external classifier to be used (only megam is really supported)
+# WEIGHTG ...... weight for positive training examples from "good" links
+# WEIGHTP ...... weight for positive training examples from "possible" links
+# WEIGHTN ...... weight for negative training examples
+#--------------------------------------------------------------------------
 
-# NR_TEST = 100
-# ENDEVAL = 209
+FEAT = 'nrleafsratio:parent_catpos:catpos.parent_catpos:treelevelsim:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:children_giza.catpos'
 
-# big value --> use all remaining sentences for testing!
-
-NR_TEST = 10000
-ENDEVAL = 10000
-
-# for small tests with only 20 sentences:
-# (start and end IDs are not correct --> check that!)
-
-# NR_TRAIN = 20
-# NR_TEST = 20
-# STARTEVAL = 22
-# ENDEVAL = 42
+# other features you might want to use:
+#
+# inside4:outside4:inside4*outside4:parent_inside4:
+# insideST4:insideTS4:maxinsideST:maxinsideTS:inside4*parent_inside4:
+# treelevelsim*inside4:maxinside.catpos
 
 
+ALIGNTHR     = 0.1
+# EXTRAOPT   = -C -U
+CLASSIFIER   = megam
+# MEGAMARGS  = -maxi 50 -tune
 
-CLASSIFIER = megam
+WEIGHTG=3
+WEIGHTP=1
+WEIGHTN=1
+
+
+#--------------------------------------------------------------------------
+# SEARCH is the alignment inference algorithm that is used after 
+# local classification. Lot's of different search strategies are possible
+#--------------------------------------------------------------------------
 
 SEARCH = wellformed
 # SEARCH = greedy
 # SEARCH = assign
 #
+# some examples of complex search strategies with various alignment steps:
+#--------------------------------------------------------------------------
 # 1) GreedyWeaklyWellformedFinal
 #	greedy search, 
 #       check for weak wellformedness, 
@@ -50,26 +131,311 @@ SEARCH = wellformed
 #       align terminals afterwards also with "GreedyWeaklyWellformedFinal"
 #
 
-ALIGNTHR = 0.1
-EXTRAOPT = -C -U
 
-MOSES = ${SMTHOME}/moses-irstlm/moses-cmd/src/moses
+
+
+#-------------------------------------------------------------------------
+# for evaluation: 
+#
+# nr sentences used for training and testing
+# STARTEVAL: gives first sentID that will be aligned (for evaluation!)
+# ENDEVAL: gives last sentID that will be aligned (for evaluation!)
+#-------------------------------------------------------------------------
+
+NR_TRAIN  = 100
+STARTEVAL = 105
+
+# NR_TEST = 100
+# ENDEVAL = 209
+
+# big value --> use all remaining sentences for testing!
+
+NR_TEST = 10000
+ENDEVAL = 10000
+
+
+
+
+#-------------------------------------------------------------------------
+# MOSES is needed if you have to make the word alignment features
+# (giza, gizae2f, gizaf2e, moses, inside, outside, ...)
+#
+# MOSESTRAINING .... training script for moses
+# MOSES_SYM ........ word alignment symmetrization heuristics
+#-------------------------------------------------------------------------
+
 MOSESTRAINING = ${SCRIPTS_ROOTDIR}/training
+MOSES_SYM     = intersect
+# MOSES_SYM   = grow-diag-final-and
 
 SRC=src
 TRG=trg
 
-TREEALIGNERHOME = ..
-# TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
-TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
-
-STA2MOSES       = ${TREEALIGNERHOME}/bin/sta2moses
-ALIGNEVAL       = ${TREEALIGNERHOME}/bin/eval_sta
 
 
-# FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
+###########################################################################
+###########################################################################
+#
+# Experiments:
+#
+# sophie ........... run training and alignment on Sophie's World
+# eval ............. evaluate alignments from the "sophie" alignments
+# eco-sophie.eval .. evaluate eco-alignments done with sophie model
+# sophie-eco.eval .. evaluate sophie-alignments done with eco model
+#
+###########################################################################
+###########################################################################
 
-FEAT = 'nrleafsratio:inside4:outside4:inside4*outside4:parent_inside4:parent_catpos:catpos.parent_catpos:insideST4:insideTS4:maxinsideST:maxinsideTS:inside4*parent_inside4:treelevelsim:treelevelsim*inside4:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
+
+all: sophie
+
+# train model on NR_TRAIN sentences and align the following NR_TEST sentences
+# (deletes previous alignment results!!!!!)
+
+sophie: 
+	rm -f sophie.alg
+	make sophie.alg
+	make eval
+
+sophie.alg: moses-sophie
+	${TREEALIGN} \
+		-a ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-o '${MEGAMARGS}' \
+		-f ${FEAT} \
+		-n ${NR_TRAIN} \
+		-e ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+eval: sophie.alg
+	${ALIGNEVAL} -b ${STARTEVAL} -e ${ENDEVAL} \
+		${SMULTRON}/${SOPHIE}.xml $<
+
+
+
+#-------------------------------------------------------------------------
+# for cross-domain experiments:
+#
+# train an alignment model on Sophie's World or on ECO
+#-------------------------------------------------------------------------
+
+sophie.model: moses-sophie
+	rm -f $@
+	${TREEALIGN} \
+		-a ${SMULTRON}/${SOPHIE}.xml \
+		-M $< \
+		-m $@ \
+		-e 0 \
+		-f ${FEAT} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > /dev/null
+
+eco.model: moses-eco
+	rm -f $@
+	${TREEALIGN} \
+		-a ${SMULTRON}/${ECO}.xml \
+		-M $< \
+		-m $@ \
+		-e 0 \
+		-f ${FEAT} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT}  > /dev/null
+
+
+# run alignment on ECO using the model trained on Sophie's World
+
+eco-sophie.align: sophie.model moses-eco
+	${TREEALIGN} \
+		-a ${SMULTRON}/${ECO}.xml \
+		-M moses-eco \
+		-m sophie.model \
+		-f ${FEAT} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+eco-sophie.eval: eco-sophie.align
+	${ALIGNEVAL} ${SMULTRON}/${ECO}.xml $<
+
+
+# run alignment on Sophie's World using the model trained on ECO
+
+sophie-eco.align: eco.model moses-sophie
+	${TREEALIGN} \
+		-a ${SMULTRON}/${ECO}.xml \
+		-M moses-sophie \
+		-m eco.model \
+		-f ${FEAT} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+sophie-eco.eval: sophie-eco.align
+	${ALIGNEVAL} ${SMULTRON}/${ECO}.xml $<
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------
+# call Moses/Giza++ to run word alignment and extract lexical probabilities
+#-------------------------------------------------------------------------
+
+moses-sophie: moses-sophie/model/aligned.${MOSES_SYM}
+moses-eco: moses-eco/model/aligned.${MOSES_SYM}
+
+${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
+	../bin/sta2moses $<
+
+moses-sophie/model/aligned.%: ${SOPHIE}.${SRC} # ${SOPHIE}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${SOPHIE} \
+	    -root-dir moses-sophie \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+${ECO}.${SRC}: ${SMULTRON}/${ECO}.xml
+	../bin/sta2moses $<
+
+moses-eco/model/aligned.%: ${ECO}.${SRC} # ${ECO}.${TRG}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${ECO} \
+	    -root-dir moses-eco \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+
+
+
+#-------------------------------------------------------------------------
+# run alignment with different feature sets:
+# 
+#  make test-no-moses1 ..... without MOSES/GIZA++ features (no Dice)
+#  make test-no-moses2 ..... without MOSES/GIZA++ features including Dice scores
+#  make test-cooc .......... Dice scores only
+
+NO_MOSES_FEAT1 = catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:treelevelsim:treespansim
+
+NO_MOSES_FEAT2 = dicecat=cat.cooc:dicepos=pos.cooc:diceword=word.cooc:dicewordpcat=wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc:dicesuffixpos=suffixpos.cooc:dicesuffix=suffix.cooc:treelevelsim:treespansim:parent_dicecat=cat.cooc:srcparent_dicecat=cat.cooc:trgparent_dicecat=cat.cooc:diceother=other.cooc:catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:dicepospcat=pospcat.cooc
+
+COOC_FEAT = dicecat=cat.cooc:dicepos=pos.cooc:diceword=word.cooc:dicewordpcat=wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc:dicesuffixpos=suffixpos.cooc:dicesuffix=suffix.cooc:parent_dicecat=cat.cooc:srcparent_dicecat=cat.cooc:trgparent_dicecat=cat.cooc:diceother=other.cooc:dicepospcat=pospcat.cooc
+
+
+test-no-moses1:
+	make FEAT=${NO_MOSES_FEAT1} sophie
+
+test-no-moses2: cooc-freq
+	make FEAT=${NO_MOSES_FEAT2} sophie
+
+# compute various co-occurrence frequencies (for Dice scores)
+
+cooc-freq: cat.cooc pos.cooc word.cooc wordpcat.cooc pospcat.cooc \
+		suffixpcat.cooc suffixpos.cooc suffix.cooc other.cooc
+
+test-dice: cooc-freq
+	make FEAT=${COOC_FEAT} sophie
+
+
+
+
+#-------------------------------------------------------------------------
+# all kind of different co-occurrence frequencies
+# (for different types of features)
+
+pos.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos -y pos \
+			-f pos.src -e pos.trg -c $@
+
+pospcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos:parent_cat -y pos:parent_cat \
+			-f pospcat.src -e pospcat.trg -c $@
+
+
+cat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x cat -y cat \
+			-f cat.src -e cat.trg -c $@
+
+other.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x edge:cat:pos -y edge:morph:cat:pos \
+			-f other.src -e other.trg -c $@
+
+word.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word -y word \
+			-f word.src -e word.trg -c $@
+
+wordpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x word:parent_cat -y word:parent_cat \
+			-f wordpcat.src -e wordpcat.trg -c $@
+
+suffixpcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=3:parent_cat -y suffix=3:parent_cat \
+			-f suffixpcat.src -e suffixpcat.trg -c $@
+
+suffixpos.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=3:parent_cat -y suffix=3:pos \
+			-f suffixpos.src -e suffixpos.trg -c $@
+
+suffix.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x suffix=4 -y suffix=4 \
+			-f suffix.src -e suffix.trg -c $@
+
+
+
+###########################################################################
+###########################################################################
+###########################################################################
+#
+# below: a lot of other (undocumented) tests and tree aligner calls .....
+# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -81,18 +447,6 @@ NEWTEST = 'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS' \
 	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:moses.catpos:giza.catpos:children_catpos:children_catpos.catpos:treelevelsim.catpos:maxinside.catpos' \
 	'maxinsideST:maxinsideTS:maxoutsideST:maxoutsideTS:treespansim:treelevelsim:nrleafsratio:treespansim*treelevelsim:treespansim:nrleafsratio:treelevelsim:nrleafsratio:moses:gizae2f:gizaf2e:giza:moses*gizae2f:moses*gizaf2e:moses*giza:moseslink:catpos:moses.catpos:giza.catpos:parent_catpos:parent_catpos.catpos:sister_catpos:sister_catpos.catpos:children_catpos:children_catpos.catpos:parent_giza:sister_giza.catpos:sister_moses.catpos:children_giza.catpos:treelevelsim.catpos:maxinside.catpos'
 
-all: sophie
-
-dice-test: cat.cooc pos.cooc word.cooc wordpcat.cooc pospcat.cooc \
-		suffixpcat.cooc suffixpos.cooc suffix.cooc other.cooc
-	make FEAT=dicecat=cat.src+cat.trg+cat.cooc:dicepos=pos.src+pos.trg+pos.cooc:diceword=word.src+word.trg+word.cooc:dicewordpcat=wordpcat.src+wordpcat.trg+wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc+suffixpcat.src+suffixpcat.trg:dicesuffixpos=suffixpos.src+suffixpos.trg+suffixpos.cooc:dicesuffix=suffix.src+suffix.trg+suffix.cooc:treelevelsim:treespansim:parent_dicecat=cat.src+cat.trg+cat.cooc:srcparent_dicecat=cat.src+cat.trg+cat.cooc:trgparent_dicecat=cat.src+cat.trg+cat.cooc:diceother=other.src+other.trg+other.cooc:catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:dicepospcat=pospcat.src+pospcat.trg+pospcat.cooc sophie
-
-dice-test2: cat.cooc pos.cooc word.cooc wordpcat.cooc \
-	suffixpcat.cooc suffixpos.cooc suffix.cooc other.cooc pospcat.cooc
-	make FEAT=dicecat=cat.src+cat.trg+cat.cooc:dicepos=pos.src+pos.trg+pos.cooc:diceword=word.src+word.trg+word.cooc:dicewordpcat=wordpcat.src+wordpcat.trg+wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc+suffixpcat.src+suffixpcat.trg:dicesuffixpos=suffixpos.src+suffixpos.trg+suffixpos.cooc:dicesuffix=suffix.src+suffix.trg+suffix.cooc:parent_dicecat=cat.src+cat.trg+cat.cooc:srcparent_dicecat=cat.src+cat.trg+cat.cooc:trgparent_dicecat=cat.src+cat.trg+cat.cooc:diceother=other.src+other.trg+other.cooc:dicepospcat=pospcat.src+pospcat.trg+pospcat.cooc sophie
-
-test3:
-	make FEAT=catpos:edge:parent_catpos:srcparent_catpos:trgparent_catpos:children_catpos:sister_catpos:treelevelsim:treespansim sophie
 
 
 newtest: newtest1 newtest2
@@ -154,29 +508,6 @@ datasize4:
 		NR_TRAIN=$$t sophie >> $@; \
 	done
 
-
-
-WEIGHTG=3
-WEIGHTP=1
-WEIGHTN=1
-
-# train model on NR_TRAIN sentences and align the following NR_TEST sentences
-
-sophie: moses-sophie
-	${TREEALIGN} \
-		-a ${SMULTRON}/${SOPHIE}.xml \
-		-M $< \
-		-f ${FEAT} \
-		-n ${NR_TRAIN} \
-		-e ${NR_TEST} \
-		-x ${ALIGNTHR} \
-		-1 ${WEIGHTG} \
-		-2 ${WEIGHTP} \
-		-3 ${WEIGHTN} \
-		-N -L -v \
-		-l ${SEARCH} ${EXTRAOPT} > $@.alg
-	${ALIGNEVAL} -b ${STARTEVAL} -e ${ENDEVAL} \
-		${SMULTRON}/${SOPHIE}.xml $@.alg
 
 
 sophie.test: moses-sophie
@@ -351,29 +682,11 @@ test_new:
 
 
 
-MOSES_SYM=intersect
-# MOSES_SYM=grow-diag-final-and
-
-moses-sophie: moses-sophie/model/aligned.${MOSES_SYM}
 moses-sophie_deen: moses-sophie_deen/model/aligned.${MOSES_SYM}
-moses-eco: moses-eco/model/aligned.${MOSES_SYM}
 moses-all: moses-all/model/aligned.${MOSES_SYM}
-
-${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
-	../bin/sta2moses $<
 
 ${SOPHIE_DEEN}.${SRC}: ${SMULTRON}/${SOPHIE_DEEN}.xml
 	../bin/sta2moses $<
-
-moses-sophie/model/aligned.%: ${SOPHIE}.${SRC} # ${SOPHIE}.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus ${SOPHIE} \
-	    -root-dir moses-sophie \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
-
 
 moses-sophie_deen/model/aligned.%: ${SOPHIE_DEEN}.${SRC} # ${SOPHIE}.${TRG}
 	${MOSESTRAINING}/train-factored-phrase-model.perl \
@@ -385,18 +698,6 @@ moses-sophie_deen/model/aligned.%: ${SOPHIE_DEEN}.${SRC} # ${SOPHIE}.${TRG}
 	    --last-step 4
 
 
-
-${ECO}.${SRC}: ${SMULTRON}/${ECO}.xml
-	../bin/sta2moses $<
-
-moses-eco/model/aligned.%: ${ECO}.${SRC} # ${ECO}.${TRG}
-	${MOSESTRAINING}/train-factored-phrase-model.perl \
-	    -corpus ${ECO} \
-	    -root-dir moses-eco \
-	    -f ${SRC} --e ${TRG} \
-	    -alignment `echo '$@'|sed 's/^.*\.//'` \
-	    --parallel \
-	    --last-step 4
 
 
 UPLUG = ${HOME}/projects/uplug
@@ -432,49 +733,3 @@ moses-all/model/aligned.%: all.${SRC} all.${TRG}
 
 
 
-
-pos.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x pos -y pos \
-			-f pos.src -e pos.trg -c $@
-
-pospcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x pos:parent_cat -y pos:parent_cat \
-			-f pospcat.src -e pospcat.trg -c $@
-
-
-cat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x cat -y cat \
-			-f cat.src -e cat.trg -c $@
-
-other.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x edge:cat:pos -y edge:morph:cat:pos \
-			-f other.src -e other.trg -c $@
-
-word.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x word -y word \
-			-f word.src -e word.trg -c $@
-
-wordpcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x word:parent_cat -y word:parent_cat \
-			-f wordpcat.src -e wordpcat.trg -c $@
-
-suffixpcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x suffix=3:parent_cat -y suffix=3:parent_cat \
-			-f suffixpcat.src -e suffixpcat.trg -c $@
-
-suffixpos.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x suffix=3:parent_cat -y suffix=3:pos \
-			-f suffixpos.src -e suffixpos.trg -c $@
-
-suffix.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
-			-x suffix=4 -y suffix=4 \
-			-f suffix.src -e suffix.trg -c $@

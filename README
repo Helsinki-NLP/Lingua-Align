@@ -17,7 +17,11 @@ DOCUMENTATION
 
 Look at the files in doc/
 To run on some small sample data: look at europarl/
-and run "make test"
+and run "make test" (look into the Makefile for more information)
+
+Other tests can be run on Smultron data (in smultron/)
+Download the treebank from http://kitt.cl.uzh.ch/kitt/smultron/
+
 
 ATTENTION:
 

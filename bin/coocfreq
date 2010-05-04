@@ -1,6 +1,12 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
+# coocfreq - count co-occurrence frequencies for arbitrary features
+#
+#  -f ...... output file with source language frequencies (default = src.freq)
+#  -e ...... output file with target language frequencies (default = trg.freq)
+#  -c ...... output file with co-occurrence frequencies (default = cooc.freq)
+#
 #  -a ...... sentence alignment file
 #  -A ...... alignment file format (OPUS, STA ...)
 #  -s ...... source language file
@@ -10,6 +16,7 @@
 #  -x ...... source language features (default = word)
 #  -y ...... target language features (default = word)
 #  -m ...... freq threshold (default = 2)
+#  -D ...... store vocabulary in DB_FILE (to save memory)
 
 use strict;
 use FindBin;
@@ -49,8 +56,8 @@ my $TrgExtract = new Lingua::Align::Features;
 $SrcExtract->initialize_features($SrcFeatures);
 $TrgExtract->initialize_features($TrgFeatures);
 
-my %SrcVoc=();
-my %TrgVoc=();
+my %SrcVoc=(__ALL__ => 0);
+my %TrgVoc=(__ALL__ => 0);
 if ($opt_D){
     tie %SrcVoc, "DB_File", "$SrcFreqFile.voc", O_CREAT|O_RDWR, 0664, $DB_HASH ;
     tie %TrgVoc, "DB_File", "$TrgFreqFile.voc", O_CREAT|O_RDWR, 0664, $DB_HASH ;
@@ -140,7 +147,8 @@ while ($corpus->next_alignment($srcsent,$trgsent)){
 	}
 	my $sid = $SrcVoc{$s};
 	my $freq = $srccount{$s};
-	$SrcFreq[$sid]+=$freq;
+	$SrcFreq[$sid] += $freq;
+	$SrcFreq[0]    += $freq;        # total src word counts!
 	foreach my $t (keys %trgcount){
 	    if (! exists $TrgVoc{$t} ){
 		$trgid++;
@@ -148,13 +156,15 @@ while ($corpus->next_alignment($srcsent,$trgsent)){
 	    }
 	    my $tid = $TrgVoc{$t};
 	    $freq = $trgcount{$t} if ($trgcount{$t} < $freq);
-	    $CoocFreq{$sid}{$tid}+=$freq;
+	    $CoocFreq{$sid}{$tid} += $freq;
+	    $CoocFreq{0}{0}       += $freq;    # total nr of pairs
 	}
     }
     foreach my $t (keys %trgcount){
 	my $tid = $TrgVoc{$t};
 	my $freq = $trgcount{$t};
-	$TrgFreq[$tid]+=$freq;
+	$TrgFreq[$tid] += $freq;
+	$TrgFreq[0]    += $freq;        # total counts!
     }
 
     if ($opt_d){
@@ -197,6 +207,8 @@ close F;
 if (! $opt_d){
     open F,">$CoocFreqFile" || die "cannot write to CoocFreqFile";
     binmode(F,":utf8");
+    print F "# source frequencies: $SrcFreqFile\n";
+    print F "# target frequencies: $TrgFreqFile\n";
     foreach my $s (keys %CoocFreq){
 	foreach my $t (keys %{$CoocFreq{$s}}){
 	    if ($CoocFreq{$s}{$t} > $threshold){

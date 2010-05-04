@@ -1,5 +1,5 @@
 #---------------------------------------------------------------------------
-# j.tiedemann@rug.nl			18 June 2009
+# jorg.tiedemann@lingfil.uu.se
 #
 # Makefile for testing the tree-aligner with some Europarl data
 #
@@ -37,11 +37,11 @@ MEGAMARGS   = -maxi 100 -tune
 #-------------------------------------------------------------------------
 
 # ALIGN       = bottom-up
-ALIGN       = inference
+ALIGN         = inference
 # SEARCH      = wellformed
-SEARCH	    = Src2TrgWellFormed
+SEARCH	      = Src2TrgWellFormed
 # ALIGNTHR    = 0.15
-ALIGNTHR    = 0
+ALIGNTHR      = 0
 
 # extra options to be passed to the tree aligner (e.g. link dependencies -C -U)
 # EXTRAOPT    = -C -U
@@ -59,23 +59,25 @@ FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_cat
 
 run: clean all
 
+all: treealign.${CLASSIFIER}
+
+
 
 # run a fast test alignment
 
 TESTOPT = 	NR_TRAIN=10 NR_DEV=0 NR_TEST=10 MEGAMARGS='-maxi 20' \
-		FEAT=dice1=pos.src+pos.trg+pos.cooc:dice2=word.src+word.trg+word.cooc:dice3=wordpcat.src+wordpcat.trg+wordpcat.cooc:dice4=cat.src+cat.trg+cat.cooc:dice5=suffixpcat.src+suffixpcat.trg+suffixpcat.cooc
-#		FEAT=gizae2f:moses:catpos 
+		FEAT=gizae2f:moses:catpos 
+
+#		FEAT=dicepos=pos.src+pos.trg+pos.cooc:diceword=word.src+word.trg+word.cooc:dicewordpcat=wordpcat.src+wordpcat.trg+wordpcat.cooc:dicecat=cat.src+cat.trg+cat.cooc:dicesuffixpcat=suffixpcat.src+suffixpcat.trg+suffixpcat.cooc:dicepospcat=pospcat.src+pospcat.trg+pospcat.cooc
+
 
 
 test: clean
 	make ${TESTOPT} all
 
 
-all: treealign.${CLASSIFIER}
 
-
-
-# megam arguments:
+# other megam arguments:
 #   -bnfsf int ...... keep only <int> features by the BNS selection criteria
 #   -minfc int ...... remove features with freq <= <int>
 #   -lambda float ... precision of Gaussian (default=1)
@@ -122,6 +124,11 @@ cat.cooc:
 	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x cat -y cat \
 			-f cat.src -e cat.trg -c $@
+
+pospcat.cooc:
+	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+			-x pos:parent_cat -y pos:parent_cat \
+			-f pospcat.src -e pospcat.trg -c $@
 
 word.cooc:
 	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \

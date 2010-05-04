@@ -1,9 +1,9 @@
 adbackoff 0
-c moses-sophie/corpus/trg-src-int-train.snt
+c moses-eco/corpus/trg-src-int-train.snt
 compactadtable 1
 compactalignmentformat 0
-coocurrencefile moses-sophie/giza.trg-src/trg-src.cooc
-corpusfile moses-sophie/corpus/trg-src-int-train.snt
+coocurrencefile moses-eco/giza.trg-src/trg-src.cooc
+corpusfile moses-eco/corpus/trg-src-int-train.snt
 countcutoff 1e-06
 countcutoffal 1e-05
 countincreasecutoff 1e-06
@@ -20,9 +20,9 @@ emprobforempty 0.4
 emsmoothhmm 2
 hmmdumpfrequency 0
 hmmiterations 5
-l 110-05-04.112711.joerg.log
+l 110-05-04.135226.joerg.log
 log 0
-logfile 110-05-04.112711.joerg.log
+logfile 110-05-04.135226.joerg.log
 m1 5
 m2 0
 m3 3
@@ -63,9 +63,9 @@ noiterationsmodel6 0
 nsmooth 4
 nsmoothgeneral 0
 numberofiterationsforhmmalignmentmodel 5
-o moses-sophie/giza.trg-src/trg-src
+o moses-eco/giza.trg-src/trg-src
 onlyaldumps 1
-outputfileprefix moses-sophie/giza.trg-src/trg-src
+outputfileprefix moses-eco/giza.trg-src/trg-src
 outputpath 
 p 0
 p0 0.999
@@ -74,15 +74,15 @@ pegging 0
 probcutoff 1e-07
 probsmooth 1e-07
 readtableprefix 
-s moses-sophie/corpus/src.vcb
-sourcevocabularyfile moses-sophie/corpus/src.vcb
-t moses-sophie/corpus/trg.vcb
+s moses-eco/corpus/src.vcb
+sourcevocabularyfile moses-eco/corpus/src.vcb
+t moses-eco/corpus/trg.vcb
 t1 1
 t2 0
 t2to3 0
 t3 0
 t345 0
-targetvocabularyfile moses-sophie/corpus/trg.vcb
+targetvocabularyfile moses-eco/corpus/trg.vcb
 tc 
 testcorpusfile 
 th 0

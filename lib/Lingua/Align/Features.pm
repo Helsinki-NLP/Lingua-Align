@@ -729,6 +729,123 @@ This feature refers to the pairs of edge labels (relations) of the current nodes
 =back
 
 
+=head3 co-occurrence features
+
+Measures of co-occurrence can also be used as features. Currently Dice scores are supported that will be computed "on-the-fly" from co-occurrence frequency counts. Frequencies should be stored in plain text files using a simple format:
+
+Source/target language frequencies: First line starts with '#' and specifies the node features used (for example '# word' means that the actual surface words will be used). All other lines should contain three items, the actual token, a unique token ID and the frequency (all separated by one TAB character). A file should look like this:
+
+  # word
+  learned 682     4
+  stamp   722     3
+  hat     1056    5
+  what    399     20
+  again   220     14
+
+Co-occurrence frequencies are also stored in plain text files with the following format: The first two lines specify the files which are used to store source and target language frequencies. All other lines contain source token ID, target token ID and the corresponding co-occurrence frequency. An example could look like this:
+
+  # source frequencies: word.src
+  # target frequencies: word.trg
+  127     32      4
+  127     898     3
+  127     31      3
+  798     64      3
+  798     861     4
+
+The easiest way to produce such frequency files is to use the script C<coocfreq> in the C<bin> directory of Lingua-Align. Look at the header of this script for possible options. 
+
+Features for the frequency counts can be quite complex. Any node attribute can be used. Special features are C<suffix=X>, C<prefix=X> which refer to word-suffix resp. word-prefix of length X (number of characters). Another special feature is C<edge> which refers to the relation to the head of the current node. Features can also be combined (separate each feature with one ':' character). You may also use features of context nodes using 'parent_', 'children_' and 'sister_' as for the alignment features. Here is an example of a complex feature:
+
+  word:pos:parent_suffix=3:parent_cat
+
+This refers to the surface word at the current node, its POS label, the 3-letter-suffix and the category label of the parent node. All these feature values will be concatenated with ':' and frequencies refer to those concatenated strings.
+
+=over
+
+=item C<diceNAME=COOCFILE>
+
+Using features that start with the prefix 'dice' you can use Dice scores as features which will be computed from the frequencies in COOCFILE (and the source/target frequencies in the files specified in COOCFILE). You have to give each dice-feature a unique name (NAME) if you want to use several Dice score features. For example C<dicePOS=pos.coocfreq> enables Dice score features over POS-label co-occurrence frequencies stored in pos.coocfreq (if that's what you've stored in pos.coocfreq).
+
+You may again use context features in the same way as for all other features, for example, 'sister_dicePOS=pos.coocfreq'. Note that co-occurrence features not always exist for all nodes in the tree (for example POS labels do not exist for non-terminal nodes).
+
+
+=back
+
+
+=head3 "orthographic" features
+
+You can also use features that are based on the comparison and combination of strings. There are (sub)string features, string similarity features, string class features and length comparison features.
+
+=over
+
+=item C<lendiff>
+
+This is the absolute character length difference of the source and the target language strings dominated by the current nodes.
+
+=item C<lenratio>
+
+This is the character-length ratio of the source and the target language strings dominated by the current nodes (shorter string divided by longer string)
+
+=item C<word>
+
+This is the pair of words at the current node (leaf nodes only).
+
+=item C<suffix=X>
+
+This is the pair of suffixes of length X from both source and target language words (leaf nodes only).
+
+=item C<prefix=X>
+
+This is the pair of prefixes of length X from both source and target language words (leaf nodes only).
+
+=item C<isnumber>
+
+This feature is set to 1 if both strings match the pattern /^[\d\.\,]+\%?$/
+
+=item C<hasdigit>
+
+This feature is set to 1 if both strings contain at least one digit.
+
+=item C<haspunct>
+
+This feature is set to 1 if both strings contain punctuations.
+
+=item C<ispunct>
+
+This feature is set to 1 if both strings are single character punctuations.
+
+=item C<punct>
+
+This feature is set to the actual pair of strings if both strings are single character punctuations.
+
+=item C<identical=minlength>
+
+This feature is 1 if both strings are longer than C<minlength> and are identical.
+
+=item C<lcsr=minlength>
+
+This feature is the longest subsequence ratio between the two strings if they are both longer than C<minlength> characters.
+
+=item C<lcsrlc=minlength>
+
+This is the same as C<lcsr> but using lowercased strings.
+
+=item C<lcsrascii=minlength>
+
+This is the same as C<lcsr> but using only the ASCII characters in both strings.
+
+=item C<lcsrcons=minlength>
+
+This is the same as C<lcsr> but uses a simple regex to remove all vowels (using a fixed set of characters to match).
+
+
+
+
+
+
+
+=back
+
 
 
 

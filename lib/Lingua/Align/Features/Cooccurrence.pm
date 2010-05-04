@@ -51,15 +51,26 @@ sub get_features{
 
     foreach my $f (keys %{$FeatTypes}){
 	if ($f=~/^dice/){
+
+	    # read frequencies
+
 	    if (not defined $self->{"COOCFREQ$f"}){
-		my ($srcfreq,$trgfreq,$coocfreq) = split(/\+/,$$FeatTypes{$f});
+		my $coocfreq = $$FeatTypes{$f};
+		my ($srcfreq,$trgfreq) = (undef,undef);
+		if ($$FeatTypes{$f}=~/\+.*\+/){
+		    ($srcfreq,$trgfreq,$coocfreq) = split(/\+/,$$FeatTypes{$f});
+		}
+		my ($s,$t) = $self->read_cooc_frequencies($f,$coocfreq);
+		if (not defined $srcfreq){ $srcfreq = $s; }
+		if (not defined $trgfreq){ $trgfreq = $t; }
 		$self->read_frequencies($f,$srcfreq,$trgfreq);
-		$self->read_cooc_frequencies($f,$coocfreq);
+
 	    }
+
+	    # get source/target features & compute Dice score
+
 	    my $srcword = $self->{"SRCFE$f"}->feature($src,$srcN);
 	    my $trgword = $self->{"TRGFE$f"}->feature($trg,$trgN);
-#	    my $srcword = $$src{NODES}{$srcN}{word};
-#	    my $trgword = $$trg{NODES}{$trgN}{word};
 	    $$values{$f} = $self->dice($f,$srcword,$trgword);
 	}
     }
@@ -118,6 +129,7 @@ sub read_frequencies{
 sub read_cooc_frequencies{
     my $self=shift;
     my ($feat,$coocfreqfile) = @_;
+
     print STDERR "read co-occurrence frequencies from $coocfreqfile!\n" 
 	if $self->{-verbose};
 
@@ -125,9 +137,19 @@ sub read_cooc_frequencies{
     open F,"<$coocfreqfile" || 
 	die "cannot open cooccurrence frequency file $coocfreqfile!\n";
 
+    my ($srcfreqfile,$trgfreqfile)=('src.freq','trg.freq');
+
     my $count=0;    
     while (<F>){
 	chomp;
+	if (/^\#\s+source.*:\s*(\S+)\s*$/){   # source frequency file
+	    $srcfreqfile=$1;
+	    next;
+	}
+	if (/^\#\s+target.*:\s*(\S+)\s*$/){   # target frequency file
+	    $trgfreqfile=$1;
+	    next;
+	}
 	$count++;
 	if ($self->{-verbose}){
 	    if (not($count % 1000000)){
@@ -144,8 +166,8 @@ sub read_cooc_frequencies{
 	}
     }
     print STDERR " done!\n";
-
     close F;
+    return ($srcfreqfile,$trgfreqfile);
 }
 
 

@@ -445,7 +445,7 @@ och där stannar de .
 där har de det så bra att de aldrig mer vågar krypa upp och ta sig ut på de tunna håren igen .
 det är bara filosoferna som ger sig iväg på den farofyllda färden till språkets och tillvarons yttersta gränser .
 några av dem trillar ner , men några klamrar sig fast i hårstråna i kaninpälsen och skriker åt människorna djupt där nere i den mjuka kaninpälsen , som frossar i god mat och njuter av goda drycker :
-&quot; mina damer och herrar &quot; , ropar de .
+&quot; vi svävar i tomma intet ! &quot;
 men människorna nere i pälsen struntar i filosofernas rop .
 sådana bråkmakare &quot; , säger de och fortsätter att prata igen .
 &quot; kan du skicka mig smöret ?

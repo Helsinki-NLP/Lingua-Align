@@ -1,5 +1,17 @@
 package Lingua::Align::Features::Lexical;
 
+#
+# this is basically a collection of inside/outside scores using 
+# probabilistic dictionaries (usually from Moses/Giza++)
+#
+# TODO:
+# - make it possible to use several alternative dictionaries
+# - match scores using ordinary (non-probabilistic) dictionaries
+# - scores between other attributes? (POS labels, other factors? etc)
+# - negative scores for matches between inside and outside nodes?
+#
+
+
 use 5.005;
 use strict;
 
@@ -310,10 +322,9 @@ sub lex_inside_features{
 
 	$$values{unioninside}=$ST*$TS;
     }
-
-
-
 }
+
+
 
 sub lex_outside_features{
     my $self=shift;
@@ -443,7 +454,6 @@ sub lex_outside_features{
 # 	}
 
     }
-
 
 
 
