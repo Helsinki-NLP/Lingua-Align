@@ -13,7 +13,32 @@ SYNOPSIS
 
 DESCRIPTION
     Currently, training data has to be in Stockholm Tree Aligner format. The
-    output format is the same format.
+    output format is the same format. Here is a short example of this format
+    (taking from the output of the TreeAligner):
+
+     <?xml version="1.0" ?>
+     <treealign>
+     <head>
+      <alignment-metadata>
+        <date>Tue May  4 16:23:04 2010</date>
+        <author>Lingua-Align</author>
+      </alignment-metadata>
+     </head>
+      <treebanks>
+        <treebank filename="treebanks/en/smultron_en_sophie.xml" id="en"/>
+        <treebank filename="treebanks/sv/smultron_sv_sophie.xml" id="sv"/>
+      </treebanks>
+      <alignments>
+        <align author="Lingua-Align" prob="0.11502659612149206125" type="fuzzy">
+          <node node_id="s105_17" type="t" treebank_id="en"/>
+          <node node_id="s109_23" type="t" treebank_id="sv"/>
+        </align>
+        <align author="Lingua-Align" prob="0.45281832125339427364" type="fuzzy">
+          <node node_id="s105_34" type="t" treebank_id="en"/>
+          <node node_id="s109_15" type="t" treebank_id="sv"/>
+        </align>
+      </alignments>
+     </treealign>
 
   OPTIONS
     There is a number of options that can be specified on the command line.
@@ -248,10 +273,10 @@ DESCRIPTION
     -v  Verbose output
 
 SEE ALSO
-    Lingua::Align::Trees, Lingua::Align::Features
+    Lingua::Align::Trees, Lingua::Align::Features, Lingua::Align::Corpus
 
 AUTHOR
-    Joerg Tiedemann, <j.tiedemann@rug.nl>
+    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann

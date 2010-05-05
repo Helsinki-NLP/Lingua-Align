@@ -60,3 +60,37 @@ while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
     print '';
 }
 
+__END__
+
+=head1 NAME
+
+sta2phrases - This script extracts all aligned phrase pairs from a tree-aligned parallel treebank. The output is written to STDOUT in Moses (phrase extract) format.
+
+=head1 SYNOPSIS
+
+    sta2phrases alignments.xml
+
+=head1 DESCRIPTION
+
+C<sta2moses> runs through all node alignments and extracts pairs of phrases (yield of source and target language subtree) and prints those phrases in Moses compatible format. These phrases can then be used in phrase-based SMT if you like.
+
+
+=head1 SEE ALSO
+
+L<Lingua::Align::Trees>, L<Lingua::treealign>
+ 
+
+=head1 AUTHOR
+
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by Joerg Tiedemann
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

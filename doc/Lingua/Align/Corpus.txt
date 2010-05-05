@@ -27,7 +27,7 @@ SYNOPSIS
 DESCRIPTION
 SEE ALSO
 AUTHOR
-    Joerg Tiedemann, <j.tiedemann@rug.nl>
+    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann

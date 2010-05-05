@@ -6,7 +6,8 @@ modules = Lingua/Align.pm Lingua/Align/Trees.pm Lingua/Align/Corpus.pm \
 	Lingua/Align/Corpus/Parallel.pm
 
 binhome = ../bin
-scripts = treealign
+scripts = treealign treealigneval convert_treebank \
+		sta2moses sta2phrases coocfreq
 
 textdoc = $(patsubst %.pm,%.txt,$(modules))
 htmldoc = $(patsubst %.pm,%.html,$(modules))
@@ -33,9 +34,13 @@ $(textdocbin): %.txt: $(binhome)/%
 
 $(htmldoc): %.html: $(modulehome)/%.pm
 	mkdir -p `dirname $@`
-	pod2html --htmlroot='/~'`whoami` $(modulehome)/$< > $@
+	pod2html --htmlroot='/~'`whoami` \
+		--css='/~'`whoami`/css/pod.css \
+		$(modulehome)/$< > $@
 
 $(htmldocbin): %.html: $(binhome)/%
 	mkdir -p `dirname $@`
-	pod2html --htmlroot='/~'`whoami` $(modulehome)/$< > $@
+	pod2html --htmlroot='/~'`whoami` \
+		--css='/~'`whoami`/css/pod.css \
+		$(modulehome)/$< > $@
 

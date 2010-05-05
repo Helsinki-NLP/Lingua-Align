@@ -853,13 +853,13 @@ This is the same as C<lcsr> but uses a simple regex to remove all vowels (using 
 
 =head1 SEE ALSO
 
-For the tree structure see L<Lingua::Align::Corpus::Treebank>.
-For the tree aligner look at L<Lingua::Align::Trees>
+For the tree structure see Lingua::Align::Corpus::Treebank.
+For information on the tree aligner look at L<Lingua::Align::Trees>
 
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

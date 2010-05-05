@@ -3,11 +3,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>treealign - a simple frontend for training and applying a tree aligner model using Lingua::Align::Trees and a standard binary classifier</title>
+<link rel="stylesheet" href="/~joerg/css/pod.css" type="text/css" />
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rev="made" href="mailto:root@localhost" />
 </head>
 
-<body style="background-color: white">
+<body>
 
 <p><a name="__index__"></a></p>
 <!-- INDEX BEGIN -->
@@ -57,7 +58,31 @@
 </p>
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
-<p>Currently, training data has to be in Stockholm Tree Aligner format. The output format is the same format.</p>
+<p>Currently, training data has to be in Stockholm Tree Aligner format. The output format is the same format. Here is a short example of this format (taking from the output of the TreeAligner):</p>
+<pre>
+ &lt;?xml version=&quot;1.0&quot; ?&gt;
+ &lt;treealign&gt;
+ &lt;head&gt;
+  &lt;alignment-metadata&gt;
+    &lt;date&gt;Tue May  4 16:23:04 2010&lt;/date&gt;
+    &lt;author&gt;Lingua-Align&lt;/author&gt;
+  &lt;/alignment-metadata&gt;
+ &lt;/head&gt;
+  &lt;treebanks&gt;
+    &lt;treebank filename=&quot;treebanks/en/smultron_en_sophie.xml&quot; id=&quot;en&quot;/&gt;
+    &lt;treebank filename=&quot;treebanks/sv/smultron_sv_sophie.xml&quot; id=&quot;sv&quot;/&gt;
+  &lt;/treebanks&gt;
+  &lt;alignments&gt;
+    &lt;align author=&quot;Lingua-Align&quot; prob=&quot;0.11502659612149206125&quot; type=&quot;fuzzy&quot;&gt;
+      &lt;node node_id=&quot;s105_17&quot; type=&quot;t&quot; treebank_id=&quot;en&quot;/&gt;
+      &lt;node node_id=&quot;s109_23&quot; type=&quot;t&quot; treebank_id=&quot;sv&quot;/&gt;
+    &lt;/align&gt;
+    &lt;align author=&quot;Lingua-Align&quot; prob=&quot;0.45281832125339427364&quot; type=&quot;fuzzy&quot;&gt;
+      &lt;node node_id=&quot;s105_34&quot; type=&quot;t&quot; treebank_id=&quot;en&quot;/&gt;
+      &lt;node node_id=&quot;s109_15&quot; type=&quot;t&quot; treebank_id=&quot;sv&quot;/&gt;
+    &lt;/align&gt;
+  &lt;/alignments&gt;
+ &lt;/treealign&gt;</pre>
 <p>
 </p>
 <h2><a name="options">OPTIONS</a></h2>
@@ -328,12 +353,12 @@ Default = 1</p>
 </p>
 <hr />
 <h1><a name="see_also">SEE ALSO</a></h1>
-<p>Lingua::Align::Trees, Lingua::Align::Features</p>
+<p><a href="/~joerg/Lingua/Align/Trees.html">the Lingua::Align::Trees manpage</a>, <a href="/~joerg/Lingua/Align/Features.html">the Lingua::Align::Features manpage</a>, <a href="/~joerg/Lingua/Align/Corpus.html">the Lingua::Align::Corpus manpage</a></p>
 <p>
 </p>
 <hr />
 <h1><a name="author">AUTHOR</a></h1>
-<p>Joerg Tiedemann, &lt;<a href="mailto:j.tiedemann@rug.nl">j.tiedemann@rug.nl</a>&gt;</p>
+<p>Joerg Tiedemann, &lt;<a href="mailto:jorg.tiedemann@lingfil.uu.se">jorg.tiedemann@lingfil.uu.se</a>&gt;</p>
 <p>
 </p>
 <hr />

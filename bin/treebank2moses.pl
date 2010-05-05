@@ -46,3 +46,37 @@ while ($corpus->next_alignment(\%src,\%trg,\$links)){
 
 close S;
 close T;
+
+
+__END__
+
+=head1 NAME
+
+treebank2moses.pl - a script that converts an aligned parallel treebank to plain text format (Moses/Giza++ format). Sentence alignments have to be stored in OPUS (xces) format.
+
+=head1 SYNOPSIS
+
+    treebank2moses.pl alignfile STrees SFormat TTrees TFormat SOut TOut
+
+=head1 DESCRIPTION
+
+
+=head1 SEE ALSO
+
+L<Lingua::Align::Corpus>
+ 
+
+=head1 AUTHOR
+
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 by Joerg Tiedemann
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

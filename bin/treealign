@@ -267,7 +267,32 @@ treealign - a simple frontend for training and applying a tree aligner model usi
 
 =head1 DESCRIPTION
 
-Currently, training data has to be in Stockholm Tree Aligner format. The output format is the same format.
+Currently, training data has to be in Stockholm Tree Aligner format. The output format is the same format. Here is a short example of this format (taking from the output of the TreeAligner):
+
+ <?xml version="1.0" ?>
+ <treealign>
+ <head>
+  <alignment-metadata>
+    <date>Tue May  4 16:23:04 2010</date>
+    <author>Lingua-Align</author>
+  </alignment-metadata>
+ </head>
+  <treebanks>
+    <treebank filename="treebanks/en/smultron_en_sophie.xml" id="en"/>
+    <treebank filename="treebanks/sv/smultron_sv_sophie.xml" id="sv"/>
+  </treebanks>
+  <alignments>
+    <align author="Lingua-Align" prob="0.11502659612149206125" type="fuzzy">
+      <node node_id="s105_17" type="t" treebank_id="en"/>
+      <node node_id="s109_23" type="t" treebank_id="sv"/>
+    </align>
+    <align author="Lingua-Align" prob="0.45281832125339427364" type="fuzzy">
+      <node node_id="s105_34" type="t" treebank_id="en"/>
+      <node node_id="s109_15" type="t" treebank_id="sv"/>
+    </align>
+  </alignments>
+ </treealign>
+
 
 =head2 OPTIONS
 
@@ -474,12 +499,12 @@ Verbose output
 
 =head1 SEE ALSO
 
-Lingua::Align::Trees, Lingua::Align::Features
+L<Lingua::Align::Trees>, L<Lingua::Align::Features>, L<Lingua::Align::Corpus>
  
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
