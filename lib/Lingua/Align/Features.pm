@@ -117,9 +117,47 @@ sub add_history{
     if ($self->{-linked_parent_distance}){
 	$FE->linked_parent_distance($values,$src,$trg,$sn,$tn,$links,$soft);
     }
+    if ($self->{-linked_children_proper}){
+	$FE->linked_children_proper($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_subtree_proper}){
+	$FE->linked_subtree_proper($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_children_inout}){
+	$FE->linked_children_inout($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_subtree_inout}){
+	$FE->linked_subtree_inout($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_subtree_catpos}){
+	$FE->linked_subtree_catpos($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
 }
 
+sub need_history{
+    my $self=shift;
+    return 1 if ($self->need_subtree_history());
+    return 1 if ($self->need_parent_history());
+    return 0;
+}
 
+sub need_subtree_history{
+    my $self=shift;
+    return 1 if ($self->{-linked_children});
+    return 1 if ($self->{-linked_subtree});
+    return 1 if ($self->{-linked_children_proper});
+    return 1 if ($self->{-linked_subtree_proper});
+    return 1 if ($self->{-linked_children_inout});
+    return 1 if ($self->{-linked_subtree_inout});
+    return 0;
+}
+
+sub need_parent_history{
+    my $self=shift;
+    return 1 if ($self->{-linked_parent});
+    return 1 if ($self->{-linked_parent_distance});
+    return 0;
+}
 
 # return feature types used in all features used (simple or complex ones)
 

@@ -107,6 +107,16 @@ WEIGHTG=3
 WEIGHTP=1
 WEIGHTN=1
 
+#--------------------------------------------------------------------------
+# ALIGN is the basic alignment strategy
+# - inference refers to the two-step strategy: 1) classification 
+#                                              2) alignment inference (search)
+# - bottom-up refers to greedy bottom-up linking using classifier decision
+#   (final step: align nodes that have not been linked yet using link search)
+#--------------------------------------------------------------------------
+
+# ALIGN       = bottom-up
+ALIGN         = inference
 
 #--------------------------------------------------------------------------
 # SEARCH is the alignment inference algorithm that is used after 
@@ -202,6 +212,7 @@ sophie.alg: moses-sophie
 		-a ${SMULTRON}/${SOPHIE}.xml \
 		-M $< \
 		-o '${MEGAMARGS}' \
+		-b ${ALIGN} \
 		-f ${FEAT} \
 		-n ${NR_TRAIN} \
 		-e ${NR_TEST} \

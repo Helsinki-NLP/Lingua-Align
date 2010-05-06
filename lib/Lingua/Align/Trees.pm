@@ -1438,9 +1438,11 @@ sub skip_node{
 
 sub classify{
     my $self=shift;
+   
+#    if ($self->{-linked_children} || $self->{-linked_subtree} ||
+#	$self->{-linked_parent} || $self->{-linked_parent_distance}){
 
-    if ($self->{-linked_children} || $self->{-linked_subtree} ||
-	$self->{-linked_parent} || $self->{-linked_parent_distance}){
+    if ($self->{FEATURE_EXTRACTOR}->need_history()){
 	return $self->classify_with_history(@_);
     }
 
@@ -1480,12 +1482,15 @@ sub classify_with_history{
     my $self=shift;
     my ($model,$src,$trg,$links)=@_;
 
+    my $FE=$self->{FEATURE_EXTRACTOR};
+
     my $BottomUp = 1;
-    if ($self->{-linked_parent} || $self->{-linked_parent_distance}){
+#    if ($self->{-linked_parent} || $self->{-linked_parent_distance}){
+    if ($FE->need_parent_history()){
 	$BottomUp = 0;
     }
 
-    my $FE=$self->{FEATURE_EXTRACTOR};
+
     my @srcnodes=();
     my %srcdone=();
     my @scores=();

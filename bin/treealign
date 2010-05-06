@@ -67,11 +67,12 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
             $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i 
             $opt_X $opt_o
-            $opt_b $opt_r $opt_B $opt_V);
+            $opt_b $opt_r $opt_B $opt_V
+            $opt_6 $opt_7 $opt_8 $opt_9);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:r:BV:o:');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:r:BV:o:6789');
 
 
 use Lingua::Align::Trees;
@@ -172,6 +173,11 @@ my $treealigner = new Lingua::Align::Trees(
     -linked_subtree => $opt_U,            # (proportion of linked descendents)
     -linked_parent => $opt_P,             # linked parent feature
     -linked_parent_distance => $opt_J,    # distance of parent link
+    -linked_children_proper => $opt_6,
+    -linked_subtree_proper => $opt_7,
+    -linked_children_inout => $opt_8,
+    -linked_subtree_inout => $opt_9,
+
 
     -searn => $opt_R,                     # adaptive SEARN training
 

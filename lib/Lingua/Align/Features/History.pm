@@ -15,6 +15,13 @@ sub get_features{
 }
 
 
+# What else can we do?
+#
+# - other (more specific) history features?!
+#   (e.g., category labels between established links in subtree?)
+# - treat good & fuzzy links differently in training
+# - test the "proper" & inside/outside versions?
+#
 
 
 
@@ -84,6 +91,11 @@ sub linked_subtree{
 		    if ($softcount){
 			$nr+=$$links{$s}{$t};
 		    }
+#		    else{     # normal training: distinguish good/fuzzy/weak!
+#			if ($$links{$s}{$t}=~/(fuzzy|P)/){ $nr+=0.5; }
+#			elsif ($$links{$s}{$t}=~/(weak)/){ $nr+=0.25; }
+#			else{ $nr++; }
+#		    }
 		    else{$nr++;}
 		}
 	    }
@@ -209,7 +221,7 @@ sub linked_children_proper{
 	}
     }
     if ($nr){
-	$$values{linkedchildren}=$nr/$total;
+	$$values{linkedchildren2}=$nr/$total;
     }
 }
 
@@ -235,7 +247,7 @@ sub linked_subtree_proper{
 	}
     }
     if ($nr){
-	$$values{linkedsubtree}=$nr/$total;
+	$$values{linkedsubtree2}=$nr/$total;
     }
 }
 
@@ -245,7 +257,7 @@ sub linked_subtree_proper{
 # ratio between links within the subtree pair 
 # and links outside of the subtree pair
 
-sub linked_children_inside_outside{
+sub linked_children_inout{
     my $self=shift;
     my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
     my @srcchildren=$self->{TREES}->children($src,$sn);
@@ -272,7 +284,86 @@ sub linked_children_inside_outside{
 	}
     }
     if ($inside){
-	$$values{linkedchildren}=$inside/($inside+$outside);
+	$$values{linkedchildren3}=$inside/($inside+$outside);
+    }
+}
+
+
+# linked_subtree_inside_outside
+#
+# ratio between links within the subtree pair 
+# and links outside of the subtree pair
+
+sub linked_subtree_inout{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
+    my @srcchildren=$self->{TREES}->subtree_nodes($src,$sn);
+    my @trgchildren=$self->{TREES}->subtree_nodes($trg,$tn);
+
+    my %trgLeafIDs=();
+    foreach (@trgchildren){$trgLeafIDs{$_}=1;}
+
+    my $inside=0;
+    my $outside=0;
+
+    foreach my $s (@srcchildren){
+	if (exists $$links{$s}){
+	    foreach my $t (keys %{$$links{$s}}){
+		if (exists $trgLeafIDs{$t}){
+		    if ($softcount){$inside+=$$links{$s}{$t};}
+		    else{$inside++;}
+		}
+		else{
+		    if ($softcount){$outside+=$$links{$s}{$t};}
+		    else{$outside++;}
+		}
+	    }
+	}
+    }
+    if ($inside){
+	$$values{linkedsubtree3}=$inside/($inside+$outside);
+    }
+}
+
+
+
+
+
+sub linked_subtree_catpos{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$softcount)=@_;
+    my @srcchildren=$self->{TREES}->subtree_nodes($src,$sn);
+    my @trgchildren=$self->{TREES}->subtree_nodes($trg,$tn);
+    my $nr=0;
+    foreach my $s (@srcchildren){
+	foreach my $t (@trgchildren){
+	    if (exists $$links{$s}){
+		if (exists $$links{$s}{$t}){
+		    my $scat;
+		    my $tcat;
+		    if (exists $src->{NODES}->{$s}->{cat}){
+			$scat=$src->{NODES}->{$s}->{cat};
+		    }
+		    elsif (exists $src->{NODES}->{$s}->{pos}){
+			$scat=$src->{NODES}->{$s}->{pos};
+		    }
+		    if (exists $trg->{NODES}->{$t}->{cat}){
+			$tcat=$trg->{NODES}->{$t}->{cat};
+		    }
+		    elsif (exists $trg->{NODES}->{$t}->{pos}){
+			$tcat=$src->{NODES}->{$t}->{pos};
+		    }
+		    if ($scat && $tcat){
+			if ($softcount){
+			    $$values{"linkedsub_$scat\_$tcat"}=$$links{$s}{$t};
+			}
+			else{
+			    $$values{"linkedsub_$scat\_$tcat"}=1;
+			}
+		    }
+		}
+	    }
+	}
     }
 }
 
