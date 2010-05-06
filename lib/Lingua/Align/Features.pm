@@ -18,6 +18,7 @@ use Lingua::Align::Features::Lexical;
 use Lingua::Align::Features::Alignment;
 use Lingua::Align::Features::Orthography;
 use Lingua::Align::Features::Cooccurrence;
+use Lingua::Align::Features::History;
 
 my $DEFAULTFEATURES = 'inside2:outside2';
 
@@ -43,6 +44,7 @@ sub new{
     $self->{ALIGNMENT}    = new Lingua::Align::Features::Alignment(%attr);
     $self->{ORTHOGRAPHY}  = new Lingua::Align::Features::Orthography(%attr);
     $self->{COOCCURRENCE} = new Lingua::Align::Features::Cooccurrence(%attr);
+    $self->{HISTORY}      = new Lingua::Align::Features::History(%attr);
 
     return $self;
 }
@@ -91,6 +93,30 @@ sub initialize_features{
 	$self->{COOCCURRENCE}->initialize_features($features,@_);
     }
 
+}
+
+
+#-------------------------------------------------------------------
+# add history features to data instance
+#-------------------------------------------------------------------
+
+sub add_history{
+    my $self=shift;
+    my ($src,$trg,$sn,$tn,$links,$values,$soft)=@_;
+
+    my $FE = $self->{HISTORY};
+    if ($self->{-linked_children}){
+	$FE->linked_children($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_subtree}){
+	$FE->linked_subtree($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_parent}){
+	$FE->linked_parent($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
+    if ($self->{-linked_parent_distance}){
+	$FE->linked_parent_distance($values,$src,$trg,$sn,$tn,$links,$soft);
+    }
 }
 
 
