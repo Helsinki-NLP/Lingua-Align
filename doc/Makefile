@@ -18,10 +18,20 @@ htmldocbin = $(patsubst %,%.html,$(scripts))
 # textdoc = $(shell echo "$(modules)" | sed 's|Lingua/||g' | tr '/' '-' | sed 's/.pm/.txt/g')
 
 
-all: text html
+all: text html index.html index.txt
+
 
 text: $(textdoc) $(textdocbin)
 html: $(htmldoc) $(htmldocbin)
+
+
+index.html: index.pod
+	pod2html --htmlroot='/~'`whoami` \
+		--css='/~'`whoami`/css/pod.css \
+		index.pod > index.html
+
+index.txt: index.pod
+	pod2text index.pod > index.txt
 
 $(textdoc): %.txt: $(modulehome)/%.pm
 	mkdir -p `dirname $@`

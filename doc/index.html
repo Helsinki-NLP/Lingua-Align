@@ -1,0 +1,156 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Lingua::Align - a toolbox for Tree Alignment</title>
+<link rel="stylesheet" href="/~joerg/css/pod.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#lingua__align__a_toolbox_for_tree_alignment">Lingua::Align - a toolbox for Tree Alignment</a></li>
+	<li><a href="#installation">Installation</a></li>
+	<li><a href="#documentation">Documentation</a></li>
+	<li><a href="#quickstart">Quickstart</a></li>
+	<li><a href="#main_concepts">Main concepts</a></li>
+	<li><a href="#author">Author</a></li>
+	<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<h1><a name="lingua__align__a_toolbox_for_tree_alignment">Lingua::Align - a toolbox for Tree Alignment</a></h1>
+<p>Lingua::Align is a collection of command-line tools for automatic tree and word alignment of parallel corpora. The main purpose is to provide an experimental toolbox for experiments with various feature sets and alignment strategies. Alignment is based on local classification and alignment inference. The local classifier is typically trained on available aligned training data. We use a log-linear model for discriminative binary classification using the maximum entropy learning package megam (Hal Daume III).</p>
+<p>
+</p>
+<hr />
+<h1><a name="installation">Installation</a></h1>
+<p>You can either install the perl modules and binaries as usual:</p>
+<pre>
+   perl Makefile.PL
+   make
+   make install</pre>
+<p>Or you can simply run the treealign script (and the other tools) in the <code>bin/</code> directory without changing anything. The only requirement is a recent version of Perl and <code>XML::Parser</code> installed on your system (the Perl wrapper for the Expat XML parser).</p>
+<p>The Tree Aligner calls an external tool (megam) which is provided as a pre-compiled binary in the <code>bin/</code> directory. The default version is a i686 binary for Linux-based systems. The package also includes a binary for Intel-based Mac OS X. If you want to use this version, please change the link <code>bin/megam</code> to point to <code>bin/megam.osx</code>. For all other platforms please download the source from 
+<a href="http://www.cs.utah.edu/~hal/megam/">http://www.cs.utah.edu/~hal/megam/</a> and compile it on you platform. Make sure that the binary works and link it to <code>bin/megam</code>.</p>
+<p>For some features you will need word alignment information. To produce these features you need to run tools such as Giza++ <a href="http://code.google.com/p/giza-pp/">http://code.google.com/p/giza-pp/</a> and Moses <a href="http://statmt.org/moses/">http://statmt.org/moses/</a>.</p>
+<p>
+</p>
+<hr />
+<h1><a name="documentation">Documentation</a></h1>
+<p>There are several man-pages generated from the ``pod'' information in the Perl modules and scripts included in Lingua::Align. Look at the following pages:</p>
+<dl>
+<dt><strong><a name="item_lingua_3a_3atreealign"><a href="/~joerg/Lingua/treealign.html">the Lingua::treealign manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3atreealigneval"><a href="/~joerg/Lingua/treealigneval.html">the Lingua::treealigneval manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aalign"><a href="/~joerg/Lingua/Align.html">the Lingua::Align manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aalign_3a_3atrees"><a href="/~joerg/Lingua/Align/Trees.html">the Lingua::Align::Trees manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aalign_3a_3afeatures"><a href="/~joerg/Lingua/Align/Features.html">the Lingua::Align::Features manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aalign_3a_3alinksearch"><a href="/~joerg/Lingua/Align/LinkSearch.html">the Lingua::Align::LinkSearch manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aalign_3a_3acorpus"><a href="/~joerg/Lingua/Align/Corpus.html">the Lingua::Align::Corpus manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3acoocfreq"><a href="/~joerg/Lingua/coocfreq.html">the Lingua::coocfreq manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3aconvert_treebank"><a href="/~joerg/Lingua/convert_treebank.html">the Lingua::convert_treebank manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3asta2moses"><a href="/~joerg/Lingua/sta2moses.html">the Lingua::sta2moses manpage</a></a></strong>
+
+<dt><strong><a name="item_lingua_3a_3asta2phrases"><a href="/~joerg/Lingua/sta2phrases.html">the Lingua::sta2phrases manpage</a></a></strong>
+
+</dl>
+<p>Here are some publications (please cite if you use the software)</p>
+<p>Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic Tree-to-Tree Alignment. In Proceedings of the 7th International Conference on Language Resources and Evaluation (LREC'2010), 2010.
+<a href="http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf">http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf</a>,</p>
+<p>Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
+<a href="http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf">http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf</a>,</p>
+<p>Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
+<a href="http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf">http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf</a>,</p>
+<p>
+</p>
+<hr />
+<h1><a name="quickstart">Quickstart</a></h1>
+<p>The easiest way to use the Tree Aligner is to run the frontend script treealign in the bin directory. There are many options and command-line arguments that can be used to adjust the behaviour of the alignment tools. Have a look at <a href="/~joerg/Lingua/treealign.html">the Lingua::treealign manpage</a> for more information.</p>
+<p>For a simple test: go to the directory <code>europarl</code> and run <code>make test</code>.</p>
+<pre>
+  cd europarl
+  make test</pre>
+<p>This will run a simple test with only a few training sentences from the Europarl corpus and simple features for classification. The test consists of two calls to tree aligner scripts: <code>treealign</code> is used to train a classifier and to align unseen sentences from the given data set. <code>treealigneval</code> is used to compute scores of the alignment performed with that model and the alignment strategy that is chosen.</p>
+<p>The example training data is stored in <code>europarl/nl-en-weak_125.xml</code> which has been produced by manual alignment (thanks to Gideon Kotze) using the Stockholm Tree Aligner <a href="http://kitt.cl.uzh.ch/kitt/treealigner">http://kitt.cl.uzh.ch/kitt/treealigner</a>. The format looks like this:</p>
+<pre>
+ &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+ &lt;treealign subversion=&quot;3&quot; version=&quot;2&quot;&gt;
+ &lt;head&gt;
+ ...
+   &lt;treebanks&gt;
+     &lt;treebank id=&quot;en&quot; filename=&quot;ep-00-12-15.125.en.tiger&quot;/&gt;
+     &lt;treebank id=&quot;nl&quot; filename=&quot;ep-00-12-15.125.nl.tiger&quot;/&gt;
+   &lt;/treebanks&gt;
+ ...
+ &lt;/head&gt;
+ &lt;alignments&gt;
+   &lt;align type=&quot;good&quot; last_change=&quot;2010-03-29&quot; author=&quot;Gideon&quot;&gt;
+     &lt;node treebank_id=&quot;en&quot; node_id=&quot;s5_501&quot;/&gt;
+     &lt;node treebank_id=&quot;nl&quot; node_id=&quot;s10_0&quot;/&gt;
+   &lt;/align&gt;
+   &lt;align type=&quot;good&quot; last_change=&quot;2010-03-29&quot; author=&quot;Gideon&quot;&gt;
+     &lt;node treebank_id=&quot;en&quot; node_id=&quot;s5_502&quot;/&gt;
+     &lt;node treebank_id=&quot;nl&quot; node_id=&quot;s10_1&quot;/&gt;
+   &lt;/align&gt;
+ ...</pre>
+<p>The actual treebank data is stored in TigerXML (in this case) and links are pointers to these documents using the unique node IDs. This should be quite straightforward (looking at the example above). Other formats are also supported, for example, Penn Treebank format and AlpinoXML for storing treebanks. There is also support for other alignment formats like the tree alignment format used by the Dublin Subtree Aligner and word alignment formats used by Giza++, Moses and shared tasks on word alignment (WPT2003).</p>
+<p>What you need for running your own experiments:</p>
+<dl>
+<dt><strong><a name="item_training_data">training data</a></strong>
+
+<dd>
+<p>Your own tree-aligned training data. The easiest way is to use the Stockholm Tree Aligner. The format produced by this tool can directly be used by Lingua::Align. You need at least 100 pairs of parse trees in order to obtain reasonable results. More is better of course. The corpus has to be parsed on both sides. You need to use TigerXML for the Stockholm Tree Aligner and this is also most convenient for the tree aligner later on (also for visualizing automatic alignment).</p>
+</dd>
+<dd>
+<p>There is a tool to convert treebanks using the formats supported by Lingua::Align: <code>bin/convert_treebank</code>. For example, if your parse trees are stored in Penn Treebank format (<code>treebank</code>) you might try to use the following command:</p>
+</dd>
+<dd>
+<pre>
+  convert_treebank treebank penn tiger &gt; treebank.tiger</pre>
+</dd>
+<dd>
+<p>Hopefully this will work to create a corpus that can be loaded into the Stockholm Tree Aligner. You might have to check the specifications in the XML header and adjust some (meta) information.</p>
+</dd>
+</li>
+<dt><strong><a name="item_features__26_parameters">features &amp; parameters</a></strong>
+
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="main_concepts">Main concepts</a></h1>
+<p>
+</p>
+<hr />
+<h1><a name="author">Author</a></h1>
+<p>Joerg Tiedemann, &lt;<a href="mailto:jorg.tiedemann@lingfil.uu.se">jorg.tiedemann@lingfil.uu.se</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h1>
+<p>Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze</p>
+<p>This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.</p>
+
+</body>
+
+</html>
