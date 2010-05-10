@@ -40,11 +40,11 @@ MEGAMARGS   = -maxi 100 -tune
 ALIGN         = inference
 # SEARCH      = wellformed
 SEARCH	      = Src2TrgWellFormed
-# ALIGNTHR    = 0.15
-ALIGNTHR      = 0
+ALIGNTHR    = 0.15
+# ALIGNTHR      = 0
 
 # extra options to be passed to the tree aligner (e.g. link dependencies -C -U)
-# EXTRAOPT    = -C -U
+EXTRAOPT    = -C -U
 
 
 #-------------------------------------------------------------------------
@@ -52,7 +52,15 @@ ALIGNTHR      = 0
 #-------------------------------------------------------------------------
 
 
-FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
+FEAT = 'nrleafsratio:parent_catpos:catpos.parent_catpos:treelevelsim:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:children_giza.catpos'
+
+# other features you might want to use:
+#
+# inside4:outside4:inside4*outside4:parent_inside4:
+# insideST4:insideTS4:maxinsideST:maxinsideTS:inside4*parent_inside4:
+# treelevelsim*inside4:maxinside.catpos
+
+# FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
 
 
 # run a new experiment (remove old alignment first)

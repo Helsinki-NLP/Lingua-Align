@@ -38,57 +38,13 @@ Lingua::Align - a toolbox for Tree Alignment
     <http://code.google.com/p/giza-pp/> and Moses
     <http://statmt.org/moses/>.
 
-  Documentation
-    There are several man-pages generated from the "pod" information in the
-    Perl modules and scripts included in Lingua::Align. Look at the
-    following pages:
-
-    Lingua::treealign
-
-    Lingua::treealigneval
-
-    Lingua::Align
-
-    Lingua::Align::Trees
-
-    Lingua::Align::Features
-
-    Lingua::Align::LinkSearch
-
-    Lingua::Align::Corpus
-
-    Lingua::coocfreq
-
-    Lingua::convert_treebank
-
-    Lingua::sta2moses
-
-    Lingua::sta2phrases
-
-    Here are some publications (please cite if you use the software)
-
-    Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic
-    Tree-to-Tree Alignment. In Proceedings of the 7th International
-    Conference on Language Resources and Evaluation (LREC'2010), 2010.
-    <http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>,
-
-    Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel
-    Treebank. In Proceedings of the 8th International Workshop on Treebanks
-    and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy,
-    2009. <http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>,
-
-    Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment.
-    In Proceedings of the International Workshop on Natural Language
-    Processing Methods and Corpora in Translation, Lexicography and Language
-    Learning (in connection with RANLP'09), pages 33 - 39, 2009.
-    <http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>,
-
-  Quickstart
+  Quickstart Tutorial
     The easiest way to use the Tree Aligner is to run the frontend script
     treealign in the bin directory. There are many options and command-line
     arguments that can be used to adjust the behaviour of the alignment
     tools. Have a look at Lingua::treealign for more information.
 
+   Run tests on existing data sets
     For a simple test: go to the directory "europarl" and run "make test".
 
       cd europarl
@@ -136,34 +92,368 @@ Lingua::Align - a toolbox for Tree Alignment
     word alignment formats used by Giza++, Moses and shared tasks on word
     alignment (WPT2003).
 
-    What you need for running your own experiments:
+   Run with your own settings
+    This is what you need for running your own experiments:
 
-    training data
-        Your own tree-aligned training data. The easiest way is to use the
-        Stockholm Tree Aligner. The format produced by this tool can
-        directly be used by Lingua::Align. You need at least 100 pairs of
-        parse trees in order to obtain reasonable results. More is better of
-        course. The corpus has to be parsed on both sides. You need to use
-        TigerXML for the Stockholm Tree Aligner and this is also most
-        convenient for the tree aligner later on (also for visualizing
-        automatic alignment).
+   Training data
+    Your own tree-aligned training data. The easiest way is to use the
+    Stockholm Tree Aligner. The format produced by this tool can directly be
+    used by Lingua::Align. You need at least 100 pairs of parse trees in
+    order to obtain reasonable results. More is better of course. The corpus
+    has to be parsed on both sides. You need to use TigerXML for the
+    Stockholm Tree Aligner and this is also most convenient for the tree
+    aligner later on (also for visualizing automatic alignment).
 
-        There is a tool to convert treebanks using the formats supported by
-        Lingua::Align: "bin/convert_treebank". For example, if your parse
-        trees are stored in Penn Treebank format ("treebank") you might try
-        to use the following command:
+    There is a tool to convert treebanks using the formats supported by
+    Lingua::Align: "bin/convert_treebank". For example, if your parse trees
+    are stored in Penn Treebank format ("treebank") you might try to use the
+    following command:
 
-          convert_treebank treebank penn tiger > treebank.tiger
+      convert_treebank treebank penn tiger > treebank.tiger
 
-        Hopefully this will work to create a corpus that can be loaded into
-        the Stockholm Tree Aligner. You might have to check the
-        specifications in the XML header and adjust some (meta) information.
+    Hopefully this will work to create a corpus that can be loaded into the
+    Stockholm Tree Aligner. You might have to check the specifications in
+    the XML header and adjust some (meta) information.
 
-    features & parameters
+   Features & parameters
+    First of all, you need to decide what kind of features should be used in
+    the classifier model. Quite a lot of features are supported by
+    Lingua::Align and you can easily add new ones. Look at
+    Lingua::Align::Features for more information on classification features.
+    Features are given as a list of features type names separated by ':'
+    using the command-line flag '-f'. Here are some simple exampels assuming
+    that the training corpus is stored in Stockholm Tree Aligner format in a
+    file called "nl-en_125.xml" (from "europarl/"):
+
+      treealign -a nl-en_125.xml -f catpos -n 10 -e 10 > aligned.xml
+
+    This will train a model on the first 10 tree pairs using the "catpos"
+    feature (pairs of category or POS labels) and then align the following
+    10 tree pairs. The classification model is stored in the default file
+    "treealign.megam". Have a look at the parameters if you like (it's just
+    a plain text file). For other training options default settings are used
+    (check the Lingua::treealign script for more details). Also for
+    alignment standard settings are applied. The tree aligner will perform a
+    two-step strategy using local classification and a greedy alignment
+    inference.
+
+    The result is printed to STDOUT and piped to "aligned.xml" in the
+    example above. Use the following command to evaluate the alignment just
+    done:
+
+      treealigneval nl-en_125.xml aligned.xml
+
+    This should give you very low precision and recall values (around 25%;
+    Note that individual recall values for terminal nodes and non-terminal
+    nodes are not correct because nod type information is not available in
+    the gold standard and IDs do not follow the standard to make a clear
+    distinction).
+
+    Another simple example using two feature types ("tree level similarity"
+    and "tree span similarity") is the following:
+
+      treealign -a nl-en_125.xml -f treelevelsim:treespansim -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    The classification model will look something like this:
+
+      **BIAS** -8.23925781250000000000
+      treespansim 3.54736995697021484375
+      treelevelsim 3.76471185684204101562
+
+    Still, these features are not very informative and the scores will be
+    still very low. Try now a combination of the three feature types
+    mentioned above:
+
+      treealign -a nl-en_125.xml -f treelevelsim:treespansim:catpos \
+           -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    This will give you much better results already (around 50% F-scores).
+
+    Now you can start to experiment with contextual features, for example,
+    "catpos" features of parent and children nodes:
+
+      treealign -a nl-en_125.xml \
+         -f treelevelsim:treespansim:catpos:parent_catpos:children_catpos \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    And, surprise, this gives you another improvement (around 60% F-score).
+    Note that these models do not use any other information than the
+    features directly extracted from the parse trees and the alignment
+    information available in the training data. There are also features that
+    need external resources. For example, you may include word alignment
+    information for the tree alignment. For this you need to run automatic
+    word alignment first (on the treebank sentences your using in your
+    experiments) and you need to store the information in the format
+    supported by Lingua::Align. You may use the Viterbi alignment produced
+    by Giza++ ("moses/giza.src-trg/src-trg.A3.final.gz" and
+    "moses/giza.trg-src/trg-src.A3.final.gz"):
+
+      treealign -a nl-en_125.xml \
+         -g moses/giza.src-trg/src-trg.A3.final.gz \
+         -G moses/giza.trg-src/trg-src.A3.final.gz \
+         -f gizae2f:gizaf2e \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    You can see how effective these features are for tree alignment (well,
+    at least they give you already around 55% F-scores with the tiny
+    training data we are using in our examples). Of course, you can use word
+    alignment features from context nodes as well (giving you around 65%
+    F-scores):
+
+      treealign -a nl-en_125.xml \
+         -g moses/giza.src-trg/src-trg.A3.final.gz \
+         -G moses/giza.trg-src/trg-src.A3.final.gz \
+         -f gizae2f:gizaf2e:parent_giza:children_giza \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    Note that we use a combination of "gizae2f" and "gizaf2e" for the
+    context nodes. Now try a combination of all features we mentioned so
+    far. You should get a decent score of around 74% F-score. Nice, isn't
+    it?
+
+    Another word alignment feature is based on the symmetrized alignments
+    produced by Moses. Use them in the following way:
+
+      treealign -a nl-en_125.xml \
+         -y moses/model/aligned.intersect \
+         -f moses:parent_moses:children_moses \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    Don't ask me why the parameter is '-y' for the Moses algnment file.
+    (It's basically because treealign only uses short command-line options
+    and I was running out of letters ....)
+
+    Actually, you could leave out the file specifications in the examples
+    above because we were just using the default names and paths. You can
+    use the flag ("-M moses-dir") if the file-names and sub-directories are
+    the same but the main Moses work-directory is different (for example
+    "my-moses-dir"):
+
+      treealign -a nl-en_125.xml \
+         -M my-moses-dir \
+         -f moses:parent_moses:gizaf2e \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    Finally, we should introduce history features. For now we just did local
+    classification without considering alignment decisions on other nodes.
+    The classifier can also be trained with so-called history features --
+    features based on previous decisions. Using such features will force the
+    tree aligner to use a sequential classification procedure, either
+    bottom-up or top-down. In top-down classification will start with the
+    root-nodes and the classifier uses alignment decisions on the parent
+    nodes as additional features. You can use these so-called parent
+    features like this (adding the flag "-P" to the command-line):
+
+      treealign -a nl-en_125.xml -f moses:gizae2f:gizaf2e \
+                -n 10 -e 10 -P > aligned.xml
+
+    Compare this to the alignment without the "-P" flag and you will see the
+    difference when running evaluation. In bottom-up classification, two
+    types of history features are supported: proportion of links between
+    immediate children nodes ("-C") and proportion of links between all
+    children nodes in the entire subtrees ("-U").
+
+      treealign -a nl-en_125.xml -f moses:gizae2f:gizaf2e \
+                -n 10 -e 10 -C -U > aligned.xml
+
+    Note that history features coming from parent links and coming from
+    children cannot be combined (for obvious reasons). And don't expect
+    improvements in all cases. Especially for rich feature sets no big
+    improvements can be expected. Note that alginment will also be (even)
+    slower.
+
+   Alignment strategies
+    In the default settings a two-step procedure is used: First all node
+    pairs are classified using the local classifier (possibly including
+    history features. The second step comprises the actual alignment step
+    (inference) in which nodes are linked to each other according to the
+    link likelihoods assigned by the local classifier in the first step. The
+    default strategy is a "greedy" alignment procedure, starting with the
+    node pair with the highest link likelihood and running greedily through
+    the set of candidates. A necessary constraint is that all nodes are
+    aligned at most once (on both sides).
+
+    You can use other strategies for example using an additional
+    well-formedness constraint:
+
+      treealign -a nl-en_125.xml \
+                -y moses/model/aligned.intersect \
+                -f moses:parent_moses:children_moses \
+                -l GreedyWellformed \
+                -n 10 -e 10 -C -U > aligned.xml
+
+    Compare this to the result obtained with the standard strategy ("-l
+    greedy"). Another common technique is to use graph-theoretic algorithms
+    modeling tree alignment as a maximum weighted bipartite matching
+    problem. Lingua::Align includes a free implementation of the Hungarian
+    algorithm (Kuhn-Munkres) that solves this problem in polynomial time.
+
+      treealign -a nl-en_125.xml \
+                -y moses/model/aligned.intersect \
+                -f moses:parent_moses:children_moses \
+                -l munkres \
+                -n 10 -e 10 -C -U > aligned.xml
+
+    Several other inference strategies can be used. The documentation of the
+    ones included in Lingua::Align is still rather unexisting. Look at the
+    code in the module Lingua::Align::LinkSearch for more information.
+
+    You can also do without simply using the decisions of the local
+    classifier (default: scores above 0.5 indicate a link):
+
+       treealign -a nl-en_125.xml -f moses:gizae2f:gizaf2e \
+                 -n 10 -e 10 -P -l threshold > aligned.xml
+
+    For simple feature sets these scores will be much lower. Alignment
+    constraints such as the one-to-one link constraint and well-formedness
+    of links are important in those cases. For richer feature sets this
+    difference fades away.
+
+    One problem with the greedy strategies is that alignment is slow because
+    all node pairs have to be considered as candidates for classification
+    (and alignment). This is because "feature extraction" is actually the
+    bottle neck in the entire alignment procedure (not classification nor
+    alignment inference). There is a way to speed this up by combining local
+    classification with a greedy alignment strategy. This is (again) called
+    'bottom-up' alignment but this time using classifier scores immediately
+    for establishing links between nodes. Alignment starts at the leaf nodes
+    and each node pair that receives a score above 0.5 will be aligned
+    immediately (and not considered aferwards anymore). After this greedy
+    bottom-up procedure the chosen alignment inference strategy will be used
+    for the remaining unlinked nodes. Use the option "-b bottom-up"):
+
+       treealign -a nl-en_125.xml -f moses:gizae2f:gizaf2e -n 10 -e 10 -C -U -v \
+                 -l GreedyWellformed -b bottom-up > aligned.xml
+
+    Observe that we can use history features again (but not "-P"). This
+    should speed-up the alignment process a bit (not that much as you might
+    have expected ...). You can get information about the runtime by
+    including the verbose output flag (see above "-v").
+
+   Library structure
+    There are several options that can be set. For further information have
+    alook at the manpages linked below or just look at the source code.
+    Extending the code is quite straightforward even though the
+    documentation is not perfect and the coee is partly awful (well, it's
+    Perl ....). Here is a (hopefully up-to-date) list of Modules (many of
+    them are under-developed / experimental / non-functioning possible
+    projects for the future):
+
+    top-level modules:
+          Lingua/Align.pm
+          Lingua/Align/Trees.pm
+
+    modules for feature extraction
+          Lingua/Align/Features.pm
+          Lingua/Align/Features/Cooccurrence.pm
+          Lingua/Align/Features/Lexical.pm
+          Lingua/Align/Features/Alignment.pm
+          Lingua/Align/Features/Tree.pm
+          Lingua/Align/Features/Orthography.pm
+          Lingua/Align/Features/History.pm
+
+    modules for classification
+          Lingua/Align/Classifier.pm
+          Lingua/Align/Classifier/Megam.pm
+          Lingua/Align/Classifier/Clues.pm
+          Lingua/Align/Classifier/Diagonal.pm
+          Lingua/Align/Classifier/LibSVM.pm
+
+    modules for alignment inference
+          Lingua/Align/LinkSearch.pm
+          Lingua/Align/LinkSearch/Assignment.pm
+          Lingua/Align/LinkSearch/AssignmentWellFormed.pm
+          Algorithm/Munkres.pm
+          Lingua/Align/LinkSearch/Cascaded.pm
+          Lingua/Align/LinkSearch/GreedyFinalAnd.pm
+          Lingua/Align/LinkSearch/GreedyFinal.pm
+          Lingua/Align/LinkSearch/Greedy.pm
+          Lingua/Align/LinkSearch/GreedyWellFormed.pm
+          Lingua/Align/LinkSearch/Intersection.pm
+          Lingua/Align/LinkSearch/NTFirst.pm
+          Lingua/Align/LinkSearch/NTonly.pm
+          Lingua/Align/LinkSearch/PaCoMT.pm
+          Lingua/Align/LinkSearch/Src2Trg.pm
+          Lingua/Align/LinkSearch/Src2TrgWellFormed.pm
+          Lingua/Align/LinkSearch/Threshold.pm
+          Lingua/Align/LinkSearch/Tonly.pm
+          Lingua/Align/LinkSearch/Trg2Src.pm
+          Lingua/Align/LinkSearch/Viterbi.pm
+
+    modules for data manipulation
+          Lingua/Align/Corpus.pm
+          Lingua/Align/Corpus/Treebank.pm
+          Lingua/Align/Corpus/Treebank/AlpinoXML.pm
+          Lingua/Align/Corpus/Treebank/Penn.pm
+          Lingua/Align/Corpus/Treebank/Stanford.pm
+          Lingua/Align/Corpus/Treebank/TigerXML.pm
+          Lingua/Align/Corpus/Parallel/Bitext.pm
+          Lingua/Align/Corpus/Parallel/Dublin.pm
+          Lingua/Align/Corpus/Parallel/Giza.pm
+          Lingua/Align/Corpus/Parallel/Moses.pm
+          Lingua/Align/Corpus/Parallel/OPUS.pm
+          Lingua/Align/Corpus/Parallel/OrderedIds.pm
+          Lingua/Align/Corpus/Parallel.pm
+          Lingua/Align/Corpus/Parallel/STA.pm
+          Lingua/Align/Corpus/Parallel/WPT.pm
+          Lingua/Align/Corpus/Factored.pm
+
+  Documentation & References
+    There are several man-pages generated from the "pod" information in the
+    Perl modules and scripts included in Lingua::Align. Look at the
+    following files:
+
+    Lingua::treealign
+
+    Lingua::treealigneval
+
+    Lingua::Align
+
+    Lingua::Align::Trees
+
+    Lingua::Align::Features
+
+    Lingua::Align::LinkSearch
+
+    Lingua::Align::Corpus
+
+    Lingua::coocfreq
+
+    Lingua::convert_treebank
+
+    Lingua::sta2moses
+
+    Lingua::sta2phrases
+
+    Here are some publications (please cite if you use the software):
+
+    Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic
+    Tree-to-Tree Alignment. In Proceedings of the 7th International
+    Conference on Language Resources and Evaluation (LREC'2010), 2010.
+    <http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>,
+
+    Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel
+    Treebank. In Proceedings of the 8th International Workshop on Treebanks
+    and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy,
+    2009. <http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>,
+
+    Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment.
+    In Proceedings of the International Workshop on Natural Language
+    Processing Methods and Corpora in Translation, Lexicography and Language
+    Learning (in connection with RANLP'09), pages 33 - 39, 2009.
+    <http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>,
+
   Author
     Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
-  COPYRIGHT AND LICENSE
+  Copyright and License
     Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze
 
     This library is free software; you can redistribute it and/or modify it
