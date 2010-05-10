@@ -8,7 +8,11 @@ Lingua::Align - a toolbox for Tree Alignment
     discriminative binary classification using the maximum entropy learning
     package megam (Hal Daume III).
 
-Installation
+  Download
+    Lingua::Align is available from here:
+    <http://stp.lingfil.uu.se/~joerg/download.php?f=Lingua-Align.tar.gz>
+
+  Installation
     You can either install the perl modules and binaries as usual:
 
        perl Makefile.PL
@@ -34,21 +38,31 @@ Installation
     <http://code.google.com/p/giza-pp/> and Moses
     <http://statmt.org/moses/>.
 
-Documentation
+  Documentation
     There are several man-pages generated from the "pod" information in the
     Perl modules and scripts included in Lingua::Align. Look at the
     following pages:
 
     Lingua::treealign
+
     Lingua::treealigneval
+
     Lingua::Align
+
     Lingua::Align::Trees
+
     Lingua::Align::Features
+
     Lingua::Align::LinkSearch
+
     Lingua::Align::Corpus
+
     Lingua::coocfreq
+
     Lingua::convert_treebank
+
     Lingua::sta2moses
+
     Lingua::sta2phrases
 
     Here are some publications (please cite if you use the software)
@@ -58,18 +72,18 @@ Documentation
     Conference on Language Resources and Evaluation (LREC'2010), 2010.
     <http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>,
 
-    Tiedemann, J. and KotzÃ©, G. Building a Large Machine-Aligned Parallel
+    Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel
     Treebank. In Proceedings of the 8th International Workshop on Treebanks
     and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy,
     2009. <http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>,
 
-    Tiedemann, J. and KotzÃ©, G. A Discriminative Approach to Tree
-    Alignment. In Proceedings of the International Workshop on Natural
-    Language Processing Methods and Corpora in Translation, Lexicography and
-    Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
+    Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment.
+    In Proceedings of the International Workshop on Natural Language
+    Processing Methods and Corpora in Translation, Lexicography and Language
+    Learning (in connection with RANLP'09), pages 33 - 39, 2009.
     <http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>,
 
-Quickstart
+  Quickstart
     The easiest way to use the Tree Aligner is to run the frontend script
     treealign in the bin directory. There are many options and command-line
     arguments that can be used to adjust the behaviour of the alignment
@@ -146,11 +160,10 @@ Quickstart
         specifications in the XML header and adjust some (meta) information.
 
     features & parameters
-Main concepts
-Author
+  Author
     Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
-COPYRIGHT AND LICENSE
+  COPYRIGHT AND LICENSE
     Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze
 
     This library is free software; you can redistribute it and/or modify it

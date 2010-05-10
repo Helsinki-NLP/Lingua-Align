@@ -16,12 +16,16 @@
 <ul>
 
 	<li><a href="#lingua__align__a_toolbox_for_tree_alignment">Lingua::Align - a toolbox for Tree Alignment</a></li>
-	<li><a href="#installation">Installation</a></li>
-	<li><a href="#documentation">Documentation</a></li>
-	<li><a href="#quickstart">Quickstart</a></li>
-	<li><a href="#main_concepts">Main concepts</a></li>
-	<li><a href="#author">Author</a></li>
-	<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
+	<ul>
+
+		<li><a href="#download">Download</a></li>
+		<li><a href="#installation">Installation</a></li>
+		<li><a href="#documentation">Documentation</a></li>
+		<li><a href="#quickstart">Quickstart</a></li>
+		<li><a href="#author">Author</a></li>
+		<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
+	</ul>
+
 </ul>
 <!-- INDEX END -->
 
@@ -32,8 +36,12 @@
 <p>Lingua::Align is a collection of command-line tools for automatic tree and word alignment of parallel corpora. The main purpose is to provide an experimental toolbox for experiments with various feature sets and alignment strategies. Alignment is based on local classification and alignment inference. The local classifier is typically trained on available aligned training data. We use a log-linear model for discriminative binary classification using the maximum entropy learning package megam (Hal Daume III).</p>
 <p>
 </p>
-<hr />
-<h1><a name="installation">Installation</a></h1>
+<h2><a name="download">Download</a></h2>
+<p>Lingua::Align is available from here:
+<a href="http://stp.lingfil.uu.se/~joerg/download.php?f=Lingua-Align.tar.gz">http://stp.lingfil.uu.se/~joerg/download.php</a></p>
+<p>
+</p>
+<h2><a name="installation">Installation</a></h2>
 <p>You can either install the perl modules and binaries as usual:</p>
 <pre>
    perl Makefile.PL
@@ -45,44 +53,29 @@
 <p>For some features you will need word alignment information. To produce these features you need to run tools such as Giza++ <a href="http://code.google.com/p/giza-pp/">http://code.google.com/p/giza-pp/</a> and Moses <a href="http://statmt.org/moses/">http://statmt.org/moses/</a>.</p>
 <p>
 </p>
-<hr />
-<h1><a name="documentation">Documentation</a></h1>
+<h2><a name="documentation">Documentation</a></h2>
 <p>There are several man-pages generated from the ``pod'' information in the Perl modules and scripts included in Lingua::Align. Look at the following pages:</p>
-<dl>
-<dt><strong><a name="item_lingua_3a_3atreealign"><a href="/~joerg/Lingua/treealign.html">the Lingua::treealign manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3atreealigneval"><a href="/~joerg/Lingua/treealigneval.html">the Lingua::treealigneval manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aalign"><a href="/~joerg/Lingua/Align.html">the Lingua::Align manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aalign_3a_3atrees"><a href="/~joerg/Lingua/Align/Trees.html">the Lingua::Align::Trees manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aalign_3a_3afeatures"><a href="/~joerg/Lingua/Align/Features.html">the Lingua::Align::Features manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aalign_3a_3alinksearch"><a href="/~joerg/Lingua/Align/LinkSearch.html">the Lingua::Align::LinkSearch manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aalign_3a_3acorpus"><a href="/~joerg/Lingua/Align/Corpus.html">the Lingua::Align::Corpus manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3acoocfreq"><a href="/~joerg/Lingua/coocfreq.html">the Lingua::coocfreq manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3aconvert_treebank"><a href="/~joerg/Lingua/convert_treebank.html">the Lingua::convert_treebank manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3asta2moses"><a href="/~joerg/Lingua/sta2moses.html">the Lingua::sta2moses manpage</a></a></strong>
-
-<dt><strong><a name="item_lingua_3a_3asta2phrases"><a href="/~joerg/Lingua/sta2phrases.html">the Lingua::sta2phrases manpage</a></a></strong>
-
-</dl>
+<p><a href="/~joerg/Lingua/treealign.html">the Lingua::treealign manpage</a></p>
+<p><a href="/~joerg/Lingua/treealigneval.html">the Lingua::treealigneval manpage</a></p>
+<p><a href="/~joerg/Lingua/Align.html">the Lingua::Align manpage</a></p>
+<p><a href="/~joerg/Lingua/Align/Trees.html">the Lingua::Align::Trees manpage</a></p>
+<p><a href="/~joerg/Lingua/Align/Features.html">the Lingua::Align::Features manpage</a></p>
+<p><a href="/~joerg/Lingua/Align/LinkSearch.html">the Lingua::Align::LinkSearch manpage</a></p>
+<p><a href="/~joerg/Lingua/Align/Corpus.html">the Lingua::Align::Corpus manpage</a></p>
+<p><a href="/~joerg/Lingua/coocfreq.html">the Lingua::coocfreq manpage</a></p>
+<p><a href="/~joerg/Lingua/convert_treebank.html">the Lingua::convert_treebank manpage</a></p>
+<p><a href="/~joerg/Lingua/sta2moses.html">the Lingua::sta2moses manpage</a></p>
+<p><a href="/~joerg/Lingua/sta2phrases.html">the Lingua::sta2phrases manpage</a></p>
 <p>Here are some publications (please cite if you use the software)</p>
 <p>Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic Tree-to-Tree Alignment. In Proceedings of the 7th International Conference on Language Resources and Evaluation (LREC'2010), 2010.
 <a href="http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf">http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf</a>,</p>
-<p>Tiedemann, J. and KotzÃ©, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
+<p>Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
 <a href="http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf">http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf</a>,</p>
-<p>Tiedemann, J. and KotzÃ©, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
+<p>Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
 <a href="http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf">http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf</a>,</p>
 <p>
 </p>
-<hr />
-<h1><a name="quickstart">Quickstart</a></h1>
+<h2><a name="quickstart">Quickstart</a></h2>
 <p>The easiest way to use the Tree Aligner is to run the frontend script treealign in the bin directory. There are many options and command-line arguments that can be used to adjust the behaviour of the alignment tools. Have a look at <a href="/~joerg/Lingua/treealign.html">the Lingua::treealign manpage</a> for more information.</p>
 <p>For a simple test: go to the directory <code>europarl</code> and run <code>make test</code>.</p>
 <pre>
@@ -135,17 +128,11 @@
 </dl>
 <p>
 </p>
-<hr />
-<h1><a name="main_concepts">Main concepts</a></h1>
-<p>
-</p>
-<hr />
-<h1><a name="author">Author</a></h1>
+<h2><a name="author">Author</a></h2>
 <p>Joerg Tiedemann, &lt;<a href="mailto:jorg.tiedemann@lingfil.uu.se">jorg.tiedemann@lingfil.uu.se</a>&gt;</p>
 <p>
 </p>
-<hr />
-<h1><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h1>
+<h2><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h2>
 <p>Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze</p>
 <p>This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,

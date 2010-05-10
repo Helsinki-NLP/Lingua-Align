@@ -2,7 +2,13 @@
 
 Lingua::Align is a collection of command-line tools for automatic tree and word alignment of parallel corpora. The main purpose is to provide an experimental toolbox for experiments with various feature sets and alignment strategies. Alignment is based on local classification and alignment inference. The local classifier is typically trained on available aligned training data. We use a log-linear model for discriminative binary classification using the maximum entropy learning package megam (Hal Daume III).
 
-=head1 Installation
+=head2 Download
+
+Lingua::Align is available from here:
+L<http://stp.lingfil.uu.se/~joerg/download.php?f=Lingua-Align.tar.gz>
+
+
+=head2 Installation
 
 You can either install the perl modules and binaries as usual:
 
@@ -18,49 +24,47 @@ L<http://www.cs.utah.edu/~hal/megam/> and compile it on you platform. Make sure 
 For some features you will need word alignment information. To produce these features you need to run tools such as Giza++ L<http://code.google.com/p/giza-pp/> and Moses L<http://statmt.org/moses/>.
 
 
-=head1 Documentation
+=head2 Documentation
 
 There are several man-pages generated from the "pod" information in the Perl modules and scripts included in Lingua::Align. Look at the following pages:
 
-=over
 
-=item L<Lingua::treealign>
+L<Lingua::treealign>
 
-=item L<Lingua::treealigneval>
+L<Lingua::treealigneval>
 
-=item L<Lingua::Align>
+L<Lingua::Align>
 
-=item L<Lingua::Align::Trees>
+L<Lingua::Align::Trees>
 
-=item L<Lingua::Align::Features>
+L<Lingua::Align::Features>
 
-=item L<Lingua::Align::LinkSearch>
+L<Lingua::Align::LinkSearch>
 
-=item L<Lingua::Align::Corpus>
+L<Lingua::Align::Corpus>
 
-=item L<Lingua::coocfreq>
+L<Lingua::coocfreq>
 
-=item L<Lingua::convert_treebank>
+L<Lingua::convert_treebank>
 
-=item L<Lingua::sta2moses>
+L<Lingua::sta2moses>
 
-=item L<Lingua::sta2phrases>
+L<Lingua::sta2phrases>
 
-=back
 
 Here are some publications (please cite if you use the software)
 
 Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic Tree-to-Tree Alignment. In Proceedings of the 7th International Conference on Language Resources and Evaluation (LREC'2010), 2010.
 L<http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>,
 
-Tiedemann, J. and KotzÃ©, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
+Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
 L<http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>,
 
-Tiedemann, J. and KotzÃ©, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
+Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
 L<http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>,
 
 
-=head1 Quickstart
+=head2 Quickstart
 
 The easiest way to use the Tree Aligner is to run the frontend script treealign in the bin directory. There are many options and command-line arguments that can be used to adjust the behaviour of the alignment tools. Have a look at L<Lingua::treealign> for more information.
 
@@ -117,13 +121,12 @@ Hopefully this will work to create a corpus that can be loaded into the Stockhol
 =back
 
 
-=head1 Main concepts
 
-=head1 Author
+=head2 Author
 
 Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head2 COPYRIGHT AND LICENSE
 
 Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze
 
