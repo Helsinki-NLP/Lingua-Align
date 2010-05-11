@@ -146,10 +146,17 @@ DESCRIPTION
         Hence, it cannot be combined with the previous two link dependency
         features as the alignment strategy conflicts with this one!
 
+    "-linked_neighbors"
+        ... adds a dependency on the link score of a neigboring node pair.
+        Alignment should be done left-to-right if you use left neighbors and
+        right-to-left for right neighbor dependencies (which is not
+        implemented yet). This is still a bit experimental ... use with
+        care!
+
     Note that the use of link dependency features is not stored together
     with the model. Therefore, you always have to specify these flags even
     in the alignment mode if you want to use them and the model is trained
-    with these features.
+    with these features!
 
 Example feature settings
     A very simple example:

@@ -2075,9 +2075,13 @@ One exeption are B<link dependency features>. These features are not specified a
 
 ... adds a dependency on the link score of the immediate parent nodes. This causes the alignment procedure to run in a top-down fashion starting at the root nodes of the trees to be aligned. Hence, it cannot be combined with the previous two link dependency features as the alignment strategy conflicts with this one!
 
+=item C<-linked_neighbors>
+
+... adds a dependency on the link score of a neigboring node pair. Alignment should be done left-to-right if you use left neighbors and right-to-left for right neighbor dependencies (which is not implemented yet). This is still a bit experimental ... use with care!
+
 =back
 
-Note that the use of link dependency features is not stored together with the model. Therefore, you always have to specify these flags even in the alignment mode if you want to use them and the model is trained with these features.
+Note that the use of link dependency features is not stored together with the model. Therefore, you always have to specify these flags even in the alignment mode if you want to use them and the model is trained with these features!
 
 
 =head1 Example feature settings

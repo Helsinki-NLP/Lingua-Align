@@ -105,6 +105,45 @@ sub add_history{
     my ($src,$trg,$sn,$tn,$links,$values,$soft)=@_;
 
     my $FE = $self->{HISTORY};
+
+
+    # linked neighbors: check if close neighbors are linked to each other
+
+    if ($self->{-linked_neighbors}){
+
+	# if this is not an ARRAY yet --> make it into one
+	#  ---> split parameter into various neighbor specifications
+	#  ---> or use default set ( (-1,-1) (-1,0) (0,-1) )
+
+	if (ref($self->{-linked_neighbors}) ne 'ARRAY'){
+	    if ($self->{-linked_neighbors}=~/\-?[0-9]:\-?[0-9]/){
+		my @types = split(/\+/,$self->{-linked_neighbors});
+		$self->{-linked_neighbors} = [];
+		foreach my $t (@types) {
+		    my $idx = @{$self->{-linked_neighbors}};
+		    @{$self->{-linked_neighbors}->[$idx]} = split(/\+/,$t);
+		}
+	    }
+	    else{
+		$self->{-linked_neighbors} = [];
+		@{$self->{-linked_neighbors}->[0]} = (-1,-1);
+		@{$self->{-linked_neighbors}->[1]} = (-1,0);
+		@{$self->{-linked_neighbors}->[2]} = (0,-1);
+	    }
+	}
+
+	foreach my $t (@{$self->{-linked_neighbors}}){
+	    $FE->linked_neighbors($values,$src,$trg,$sn,$tn,$links,
+				  $t->[0],$t->[1],$soft);
+	}
+	    
+#	$FE->linked_neighbors($values,$src,$trg,$sn,$tn,$links,-1,-1,$soft);
+#	$FE->linked_neighbors($values,$src,$trg,$sn,$tn,$links,-1,0,$soft);
+#	$FE->linked_neighbors($values,$src,$trg,$sn,$tn,$links,0,-1,$soft);
+    }
+
+
+
     if ($self->{-linked_children}){
 	$FE->linked_children($values,$src,$trg,$sn,$tn,$links,$soft);
     }
@@ -143,6 +182,7 @@ sub need_history{
 
 sub need_subtree_history{
     my $self=shift;
+    return 1 if ($self->{-linked_neighbors});
     return 1 if ($self->{-linked_children});
     return 1 if ($self->{-linked_subtree});
     return 1 if ($self->{-linked_children_proper});
@@ -466,6 +506,29 @@ sub get_features{
     }
 
 
+    ## 6) neighbor nodes (only for terminal nodes so far ....)
+
+    my %neighbor_features=();
+    foreach (keys %todo){
+	if (/^neighbor(\-?[0-9])(\-?[0-9])_(.*)$/){
+	    my ($srcdist,$trgdist,$feat) = ($1,$2,$3);
+	    $neighbor_features{$srcdist}{$trgdist}{$feat}=$features->{$_};
+	}
+    }
+    foreach my $srcdist (keys %neighbor_features){
+	foreach my $trgdist (keys %{$neighbor_features{$srcdist}}){
+	    my $s = $self->{TREES}->neighbor($src,$srcN,$srcdist);
+	    my $t = $self->{TREES}->neighbor($trg,$trgN,$trgdist);
+	    my %newvalues = 
+		$self->get_features($src,$trg,$s,$t,
+				    \%{$neighbor_features{$srcdist}{$trgdist}});
+	    foreach (keys %newvalues){
+		$values{"neighbor$srcdist$trgdist\_$_"} = $newvalues{$_};
+	    }
+	}
+    }
+
+
     ## save values in cache
     ## (could be useful if we need features from parents etc ....)
 
@@ -546,6 +609,14 @@ sub get_feature{
 	}
 	return join(':',@feat);
     }
+    elsif ($feature=~/^neighbor(\-?[0-9])_(.*)$/){
+	my ($distance,$newfeature) = ($1,$2,$3);
+	my $neighbor=$self->{TREES}->neighbor($tree,$node,$distance);
+	if (defined $neighbor){
+	    return $self->get_feature($tree,$neighbor,$newfeature,$val);
+	}
+	return undef;
+    }
 
 
 
@@ -574,6 +645,12 @@ sub get_feature{
 	    }
 	}
     }
+
+    elsif ($feature eq 'position'){
+	my ($start,$end)=$self->{TREES}->subtree_span($tree,$node);
+	return ($start+$end)/2;
+    }
+
 
     
     elsif (exists $tree->{NODES}->{$node}->{$feature}){
@@ -642,7 +719,9 @@ merge 2 or more feature keys and compute the average of their scores. This can e
 
 =back
 
-We can also refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation). We can also use 'sister_' features 'children_' features which will refer to the feature with the maximum value among all sister/children nodes, respectively.
+We can also refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation). We can also use 'sister_' features 'children_' features which will refer to the feature with the maximum value among all sister/children nodes, respectively. 
+
+Finally, there is also a way to address neighbor nodes using the prefix 'neighborXY_' where X and Y refer to the distance from the current node (single digits only!). X gives the distance of the source language neighbor and Y the distance of the target language neighbor. Negative values refer to left neighbors and positive values (do not use '+' to indicate positive values!) refer to neighbors to the right. For terminal nodes all surface words are considered to retrieve neighbors. For all other nodes only neighbors that are connected via the same parent node will be retrieved.
 
 
 =head2 FEATURES

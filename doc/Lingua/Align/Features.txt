@@ -76,6 +76,16 @@ DESCRIPTION
     'sister_' features 'children_' features which will refer to the feature
     with the maximum value among all sister/children nodes, respectively.
 
+    Finally, there is also a way to address neighbor nodes using the prefix
+    'neighborXY_' where X and Y refer to the distance from the current node
+    (single digits only!). X gives the distance of the source language
+    neighbor and Y the distance of the target language neighbor. Negative
+    values refer to left neighbors and positive values (do not use '+' to
+    indicate positive values!) refer to neighbors to the right. For terminal
+    nodes all surface words are considered to retrieve neighbors. For all
+    other nodes only neighbors that are connected via the same parent node
+    will be retrieved.
+
   FEATURES
     The following feature types are implemented in the Tree Aligner:
 

@@ -32,8 +32,8 @@ sub new{
 
 sub initialize_training{
     my $self=shift;
-    my $self->{TRAIN_CORRECT}={};
-    my $self->{TRAIN_TOTAL}={};
+    $self->{TRAIN_CORRECT}={};
+    $self->{TRAIN_TOTAL}={};
 
     if (not exists $self->{-clue_min_freq}){
 	$self->{-clue_min_freq}=5;

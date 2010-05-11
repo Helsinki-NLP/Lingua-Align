@@ -133,6 +133,22 @@ sub is_nonterminal{
 sub is_terminal{
     my $self=shift;
     return not $self->is_nonterminal(@_);
+
+    ## caching this information? not really necessary .... 
+    # 
+    # if (exists $_[0]->{NODES}){
+    # 	if (exists $_[0]->{NODES}->{$_[1]}){
+    # 	    if (exists $_[0]->{NODES}->{$_[1]}->{TERMINAL_NODE}){
+    # 		return 1;
+    # 	    }
+    # 	}
+    # }
+    # if (not $self->is_nonterminal(@_)){
+    # 	$_[0]->{NODES}->{$_[1]}->{TERMINAL_NODE} = 1;
+    # 	return 1;
+    # }
+    # $_[0]->{NODES}->{$_[1]}->{NONTERMINAL_NODE} = 1;
+    # return 0;
 }
 
  sub is_descendent{
@@ -248,6 +264,94 @@ sub sisters{
     }
     return @sisters;
 }
+
+
+# get neighbor nodes
+# $pos gives the distance to the current node
+# $pos > 0 ---> right neighbors
+# $pos < 0 ---> left neighbors
+
+sub neighbor{
+    my ($self,$tree,$node,$pos)=@_;
+
+    # terminal node? --> easy!
+
+    if ($self->is_terminal($tree,$node)){
+	my ($start,$end) = $self->subtree_span($tree,$node);
+	my $n = $start + $pos;
+	
+	if ($#{$tree->{TERMINALS}} >= $n-1){
+	    return $tree->{TERMINALS}->[$n-1];
+	}
+    }
+
+    # non-terminals: get left/right neighbors iteratively
+    # (this only gives sister nodes dominated by the same parent)
+    # (should we also try to move into neighboring sub-trees?)
+
+    else{
+	for (0..$pos){
+
+	    if ($pos>0){ $node = $self->right_neighbor($tree,$node); }
+	    else {       $node = $self->left_neighbor($tree,$node); }
+
+	    if (! $node){ return undef; }
+	    return $node;
+	}
+    }
+
+    return undef;
+}
+
+
+
+
+sub left_neighbor{
+    my ($self,$tree,$node)=@_;
+
+    if (exists $tree->{NODES}->{$node}->{LEFTNEIGHBOR}){
+	return $tree->{NODES}->{$node}->{LEFTNEIGHBOR};
+    }
+
+    my ($parent) = $self->parent($tree,$node);
+    if ($parent){
+	my @children = $self->children($tree,$parent);
+	my $left=undef;
+	foreach my $c (@children){
+	    if ($c eq $node){
+		$tree->{NODES}->{$node}->{LEFTNEIGHBOR} = $left;
+		return $left;
+	    }
+	    $left = $c;
+	}
+    }
+    $tree->{NODES}->{$node}->{LEFTNEIGHBOR} = undef;
+    return undef;
+}
+
+
+sub right_neighbor{
+    my ($self,$tree,$node)=@_;
+
+    if (exists $tree->{NODES}->{$node}->{RIGHTNEIGHBOR}){
+	return $tree->{NODES}->{$node}->{RIGHTNEIGHBOR};
+    }
+
+    my ($parent) = $self->parent($tree,$node);
+    if ($parent){
+	my @children = $self->children($tree,$parent);
+	foreach my $c (0..$#children-1){
+	    if ($children[$c] eq $node){
+		$tree->{NODES}->{$node}->{RIGHTNEIGHBOR} = $children[$c+1];
+		return $children[$c+1];
+	    }
+	}
+    }
+    $tree->{NODES}->{$node}->{RIGHTNEIGHBOR} = undef;
+    return undef;
+}
+
+
 
 
 sub is_unary_subtree{

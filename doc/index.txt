@@ -180,7 +180,35 @@ Lingua::Align - a toolbox for Tree Alignment
       treealigneval nl-en_125.xml aligned.xml
 
     And, surprise, this gives you another improvement (around 60% F-score).
-    Note that these models do not use any other information than the
+    You can also get features from neighboring nodes using 'sister_' and
+    'neighborXY_' as prefix. With 'sister_' features will be extracted from
+    ALL sister nodes, i.e. nodes that have the same parent. In case of
+    real-valued features the average (arithmetic mean) of the feature values
+    of these sister nodes will be used. For binary feature templates (for
+    example 'catpos') all of them will be included. (This is exactly the
+    same behaviour for 'children_').
+
+    The 'neighborXY_' prefix is more flexible. You can specify neighbors
+    using X as the distance in the source language tree and Y as the
+    distance in the target language. Negative values will be interpreted as
+    left neighbors and positive values (don't use '+'!) for neighbors to the
+    right. For terminal nodes: All surface words will be considered for
+    retrieving neighbors. For nonterminals: only neighboring nodes with the
+    same parent as the current node will be considered! Observe that the
+    distances have to be less than 10 because the pattern only allows single
+    digits! Here is an example for the use of neighbor feature:
+
+      treealign -a nl-en_125.xml \
+         -f catpos:neighbor-10_catpos:neighbor-11_catpos \
+         -n 10 -e 10 > aligned.xml
+      treealigneval nl-en_125.xml aligned.xml
+
+    This retrieves the 'catpos' feature from the current node pair, from the
+    left source tree neighbor together with the current target node, and
+    from the left source tree neighbor together with the right target node
+    neighbor.
+
+    Note that these models so far do not use any other information than the
     features directly extracted from the parse trees and the alignment
     information available in the training data. There are also features that
     need external resources. For example, you may include word alignment
@@ -404,6 +432,185 @@ Lingua::Align - a toolbox for Tree Alignment
           Lingua/Align/Corpus/Parallel/STA.pm
           Lingua/Align/Corpus/Parallel/WPT.pm
           Lingua/Align/Corpus/Factored.pm
+
+   How to do word alignment
+    Lingua::Align can, of course, also be used for word alignment. It is
+    straightforward if you have parse trees available. Then you can just
+    specify the flag "-L" (leafs only) to only consider terminal nodes
+    during training and alignment. (Note that you can also align
+    non-terminal nodes only using the flag "-N" and if you use both flags
+    "-N -L" only nodes of the same type will be aligned).
+
+    Furthermore, you can also use the software to do word alignment on plain
+    text files (this is still quite experimental). Look at the example in
+    "europarl/wpt03" to see how to run the aligner. Again, you need some
+    training data and you have to specify some features to be used for
+    classification. Training data can be in the format of the shared task on
+    word alignment WPT 2003/2005 (<http://www.cse.unt.edu/~rada/wpt/>):
+
+      0008 4 2 S
+      0008 1 1 P
+      0008 2 1 P
+      0008 3 1 P
+
+    As features you may use, for example, string similarity measures such as
+    LCSR score (longest common sub-sequence reatio), Dice scores based on
+    co-occurrence frequencies, Moses/Giza++ alignments, binary features such
+    as the occurrence of suffix pairs etc. Run "make" in the
+    "europarl/wpt03" to see an example alignment experiment.
+
+    To run your own experiments you can specify your own setup. Here is a
+    simple example:
+
+      treealign -a test.wa.nullalign -A wpt \
+                -s test.e -S text \
+                -t test.f -T text \
+                -f lcsr=3:suffix=4:treespansim \
+                -n 20 -e 20 -L > aligned.xml
+
+    This uses the file "test.wa.nullalign" for training and testing which is
+    in "WPT" format ("-A") and aligns source languages texts ("test.e") to
+    the target language texts ("test.f"), both in plain text format. The
+    features are string similarity (LCSR) between tokens that are at least 3
+    characters long, pairs of 4-character suffixes and "tree span
+    similarity", which is in case of word alignment the relative position
+    difference between the token witin the sentences.
+
+    For evaluation you can use the standard evaluation script just
+    specifying that the gold standard is in WPT format:
+
+      treealigneval -g wpt test.wa.nullalign aligned.xml
+
+    If you want to use Moses/Giza++ alignments as features: Just use the
+    same parameters as for tree alignment.
+
+      treealign -a test.wa.nullalign -A wpt \
+                -s test.e -S text \
+                -t test.f -T text \
+                -g moses/giza.e-f/A3.final.447.gz \
+                -G moses/giza.f-e/A3.final.447.gz \
+                -y moses/model/aligned.grow-diag-final.447 \
+                -f moses:gizae2f:gizaf2e
+                -n 20 -e 20 -L > aligned.xml
+
+    Another common feature is co-occurrence which can be measures in various
+    ways. You can use the script "bin/coocfreq" to generate co-occurrence
+    frequencies from arbitrary parallel corpora that can be plugged into the
+    aligner as a feature. An example computing co-occurrence frequencies
+    from tokens in the test corpus (which is much too small to compute
+    reliable scores) is the following:
+
+      coocfreq -s test.e -t test.f \
+               -x word -y word \
+               -f word.src -e word.trg -c word.cooc
+
+    This uses the parallel corpus "test.e" and "test.f" (in Moses/Giza++
+    plain text format -- corresponding lines are aligned to each other) to
+    count frequencies that will be stored in "word.src" (source language
+    tokens) "word.trg" (target language tokens) and "word.cooc"
+    (co-occurrence frequencies). These scores can then be used in the
+    aligner as a feature:
+
+      treealign -a test.wa.nullalign -A wpt \
+                -s test.e -S text \
+                -t test.f -T text \
+                -f dice=word.cooc \
+                -n 20 -e 20 -L > aligned.xml
+
+    Don't expect too much as these Dice scores are not reliable from such a
+    small corpus! Of course, you can combine these scores with any other
+    feature as described above.
+
+    Co-occurrence frequencies can be computed for various kinds of features
+    and feature combinations. For example, you can compute frequencies of
+    word suffixes with the following command:
+
+      coocfreq -s test.e -t test.f \
+               -x suffix=4 -y suffix=4 \
+               -f suffix.src -e suffix.trg -c suffix.cooc
+
+    In order to use several Dice scores in alignment you can give these
+    feature types different names (they have to start with 'dice'):
+
+      treealign -a test.wa.nullalign -A wpt \
+                -s test.e -S text \
+                -t test.f -T text \
+                -f diceword=word.cooc:dicesuffix=suffix.cooc \
+                -n 20 -e 20 -L > aligned.xml
+
+    It is maybe worth mentioning that these feature types (Dice, LCSR,
+    suffix-pairs, etc) also can be used for tree alignment as explained
+    earlier. Especially Dice scores can also be calculated for any feature
+    connected to arbitrary nodes in a tree. Examples of such co-occurrence
+    measures can be seen in the "smultron/" directory. Here is an example
+    for computing co-occurrence frequencies for POS labels and parent
+    category labels from parse tree pairs:
+
+      coocfreq -a sophie.xml -A sta \
+               -x pos:parent_cat -y pos:parent_cat \
+               -f pospcat.src -e pospcat.trg -c pospcat.cooc
+
+    In tree alignment it would also make sense to use the contextual
+    co-occurrence features, for example, "-f parent_dicecat=cat.cooc" (if
+    "cat.cooc" includes the co-occurrence frequencies of category labels).
+
+    Finally, you can also visualize word alignment using a little tool in
+    the bin directory of Lingua::Align:
+
+      compare_wordalign.pl -A corpus \
+                    -b wpt -B corpus -S test.e -T test.f \
+                    aligned.xml test.wa.nullalign
+
+    This will print link matrices comparing the proposed links with the gold
+    standard links. It also computes cumulative evaluation measures
+    (precision, recall, AER). It looks like this:
+
+      compare word alignments for: 0157 -- 0157
+      -----------------------------------------------|--
+                                       · · · · · ·   | he
+                                       · · · · · ·   | said
+                                       · · · · · ·   | that
+       S                                             | if
+         S                                           | we
+           S                                         | use
+             · S                                     | unemployment
+                 z ·                                 | as
+                 · · · ·                 *           | the
+                 · · · ·               *             | solution
+                 · z · ·                             | to
+                   · · S                             | inflation
+                         S                           | ,
+                           S · · · ·                 | we
+                           · z · · ·                 | will
+                           · · z · ·                 | get
+                           · · · · P                 | recovery
+                                                   S | .
+      -----------------------------------------------|--
+       s n u l c p c l i , n p r l é , v l p d l g .
+       i o t e h o o e n   o o e e c   o a o e e o  
+         u i   ô u m   f   u u l   o   i   s     u  
+         s l   m r b   l   s r a   n   l   i     v  
+           i   a   a   a     r n   o   à   t     e  
+           s   g   t   t     o c   m       i     r  
+           o   e   t   i     n e   i       o     n  
+           n       r   o     s r   e       n     e  
+           s       e   n                         m  
+                                                 e  
+                                                 n  
+                                                 t  
+         8 x (S) .... proposed = gold = S
+         1 x (P) .... proposed = gold = P
+         4 x (z) .... proposed = P, gold = S (ok!)
+         0 x (d) .... proposed = S, gold = P (ok!)
+      !  2 x (*) .... proposed = S, gold = not aligned (wrong!)
+         0 x (+) .... proposed = P, gold = not aligned (wrong!)
+         0 x (-) .... proposed = not aligned, gold = S (missing!)
+        49 x (·) .... proposed = not aligned, gold = P (missing!)
+      ----------------------------------------------------------------  
+      total: 13 correct, 49 missing, 2 wrong
+      this sentence: precision = 0.8667, recall = 1.0000, AER = 0.0741
+            average: precision = 0.8338, recall = 0.9613, AER = 0.1150
+              total: precision = 0.8526, recall = 0.9695, AER = 0.0941
 
   Documentation & References
     There are several man-pages generated from the "pod" information in the

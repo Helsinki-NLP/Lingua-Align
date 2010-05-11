@@ -372,6 +372,34 @@ sub linked_subtree_catpos{
 
 
 
+# linked_neighbors
+#
+
+sub linked_neighbors{
+    my $self=shift;
+    my ($values,$src,$trg,$sn,$tn,$links,$srcdist,$trgdist,$softcount)=@_;
+
+    my $s = $self->{TREES}->neighbor($src,$sn,$srcdist);
+    my $t = $self->{TREES}->neighbor($trg,$tn,$trgdist);
+
+    if ($s && $t){
+	if (exists $$links{$s}){
+	    if (exists $$links{$s}{$t}){
+		if ($softcount){
+		    $values->{"linked$srcdist$trgdist"} = $$links{$s}{$t};
+		}
+		else{
+		    $values->{"linked$srcdist$trgdist"} = 1;
+		}
+	    }
+	}
+    }
+}
+
+
+
+
+
 1;
 __END__
 
