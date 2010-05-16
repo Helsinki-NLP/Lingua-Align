@@ -701,7 +701,42 @@ Extract features from a pair of nodes from two given syntactic trees (source and
 
 Features to be used are specified in the feature string given to the constructor ($FeatString). Default is 'inside2:outside2' which refers to 2 features, the inside score and the outside score as defined by the Dublin Sub-Tree Aligner (see http://www2.sfs.uni-tuebingen.de/ventzi/Home/Software/Software.html, http://ventsislavzhechev.eu/Downloads/Zhechev%20MT%20Marathon%202009.pdf). For this you will need the probabilistic lexicons as created by Moses (http://statmt.org/moses/); see the -lexe2f and -lexf2e parameters in the constructor of the second example.
 
-Features in the feature string are separated by ':'. Feature types can be combined. Possible combinations are:
+Features in the feature string are separated by ':'. Here is an example of a feature string including feature types, tree-level similarity scores, tree span similarity scores and category/POS label pairs (more information about supported feature types can be found below):
+
+  treelevelsim:treespansim:catpos
+
+You can also refer to contextual features, meaning that you can extract all possible feature types from connected nodes. This is done by specifying how the contextual node is connected to the current one. For example, you can refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation). We can also use 'sister_' features 'children_' features which will refer to the feature with the maximum value among all sister/children nodes, respectively. 
+
+Finally, there is also a way to address neighbor nodes using the prefix 'neighborXY_' where X and Y refer to the distance from the current node (single digits only!). X gives the distance of the source language neighbor and Y the distance of the target language neighbor. Negative values refer to left neighbors and positive values (do not use '+' to indicate positive values!) refer to neighbors to the right. For terminal nodes all surface words are considered to retrieve neighbors. For all other nodes only neighbors that are connected via the same parent node will be retrieved. Here are some examples of contextual features:
+
+  # category/POS label pairs from the left neighbor on the source side
+  # and the current node at the target side
+  neighbor-10_catpos
+
+  # Moses word alignment feature from the left source language neighbor
+  # and the neighbor 2 positions to the left on the target side
+  neighbor-1-2_moses
+
+  # tree level similarity between the source parent and the current target node
+  srcparent_treelevelsim
+
+  # average gizae2f score of all children of the current node pair
+  children_gizae2f
+
+  # category/POS label pair of the grandparent on the source side
+  # and the parent of the target side
+  parent_srcparent_catpos
+
+  # lexical "inside2" score feature from the left source neighbor
+  # and the right target neighbor
+  neighbor-11_inside2
+
+  # category/POS label pairs of ALL combinations of sister nodes
+  # of the current node pair (from both sides)
+  sister_catpos
+
+
+Feature types can also be combined to form complex features. Possible combinations are:
 
 =over
 
@@ -715,13 +750,18 @@ compute the average (arithmetic mean) of 2 or more features,  e.g. 'inside2+outs
 
 =item concatenation (.)
 
-merge 2 or more feature keys and compute the average of their scores. This can especially be useful for "nominal" feature types that have several instantiations. For example, 'catpos' refers to the labels of the nodes (category or POS label) and the value of this feature is either 1 (present). This means that for 2 given nodes the feature might be 'catpos_NN_NP => 1' if the label of the source tree node is 'NN' and the label of the target tree node is 'NP'. Such nominal features can be combined with real valued features such as inside2 scores, e.g. 'catpos.inside2' means to concatenate the keys of both feature types and to compute the arithmetic mean of both scores.
+merge 2 or more feature keys and compute the average of their scores. This can especially be useful for "nominal" feature types that have several instantiations. For example, 'catpos' refers to the labels of the nodes (category or POS label) and the value of this feature is either 1 (present). This means that for 2 given nodes the feature might be 'catpos_NN_NP => 1' if the label of the source tree node is 'NN' and the label of the target tree node is 'NP'. Such nominal features can be combined with real valued features such as inside2 scores, e.g. 'catpos.inside2' means to concatenate the keys of both feature types and to compute the arithmetic mean of both scores. Here are some more examples of complex features:
+
+  # product of inside and outside scores
+  inside2*outside2
+
+  # product of tree level similarity score between source parent and
+  # current target and Moses score for parent nodes on both sides
+  srcparent_treelevelsim*parent_moses  
+
+
 
 =back
-
-We can also refer to parent nodes on source and/or target language side. A feature with the prefix 'parent_' makes the feature extractor to take the corresponding values from the first parent nodes in source and target language trees. The prefix 'srcparent_' takes the values from the source language parent (but the current target language node) and 'trgparent_' takes the target language parent but not the source language parent. For example 'parent_catpos' gets the labels of the parent nodes. These feature types can again be combined with others as described above (product, mean, concatenation). We can also use 'sister_' features 'children_' features which will refer to the feature with the maximum value among all sister/children nodes, respectively. 
-
-Finally, there is also a way to address neighbor nodes using the prefix 'neighborXY_' where X and Y refer to the distance from the current node (single digits only!). X gives the distance of the source language neighbor and Y the distance of the target language neighbor. Negative values refer to left neighbors and positive values (do not use '+' to indicate positive values!) refer to neighbors to the right. For terminal nodes all surface words are considered to retrieve neighbors. For all other nodes only neighbors that are connected via the same parent node will be retrieved.
 
 
 =head2 FEATURES
