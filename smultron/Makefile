@@ -21,10 +21,10 @@
 #
 #
 # Cross-domain experiments: 
-# (train on all data in one domain (slow!) and align another one)
+# (train in one domain and align another one)
 #--------------------------------------------------------------------------
-# make eco-sophie.eval ... make & evaluate eco-alignments done with sophie model
-# make sophie-eco.eval ... make & evaluate sophie-alignments done with eco model
+# make cross-eco-sophie... make & evaluate eco-alignments done with sophie model
+# make cross-sophie-eco... make & evaluate sophie-alignments done with eco model
 #
 #
 # Tests with other feature sets (on Sophie's World):
@@ -190,8 +190,14 @@ TRG=trg
 #
 # sophie ........... run training and alignment on Sophie's World
 # eval ............. evaluate alignments from the "sophie" alignments
-# eco-sophie.eval .. evaluate eco-alignments done with sophie model
-# sophie-eco.eval .. evaluate sophie-alignments done with eco model
+# eco .............. run training and alignment on Economy text
+# dvd .............. run training and alignment on DVDman
+# cross-eco-sophie.. evaluate eco-alignments done with sophie model
+# cross-sophie-eco.. evaluate sophie-alignments done with eco model
+# cross-dvd-sophie.. evaluate dvd-alignments done with sophie model
+# cross-sophie-dvd.. evaluate sophie-alignments done with dvd model
+# cross-dvd-eco .... evaluate dvd-alignments done with eco model
+# cross-eco-dvd .... evaluate eco-alignments done with dvd model
 #
 ###########################################################################
 ###########################################################################
@@ -229,19 +235,144 @@ eval: sophie.alg
 
 
 
+# run on economy texts
+
+eco: 
+	rm -f eco.alg
+	make eco.alg
+	make eco.eval
+
+eco.alg: moses-eco
+	${TREEALIGN} \
+		-a ${SMULTRON}/${ECO}.xml \
+		-M $< \
+		-o '${MEGAMARGS}' \
+		-b ${ALIGN} \
+		-f ${FEAT} \
+		-n ${NR_TRAIN} \
+		-e ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+eco.eval: eco.alg
+	${ALIGNEVAL} ${SMULTRON}/${ECO}.xml $<
+
+
+# run on DVDman
+
+dvd: 
+	rm -f dvd.alg
+	make dvd.alg
+	make dvd.eval
+
+dvd.alg: moses-dvd
+	${TREEALIGN} \
+		-a ${SMULTRON}/${DVDMAN}.xml \
+		-M $< \
+		-o '${MEGAMARGS}' \
+		-b ${ALIGN} \
+		-f ${FEAT} \
+		-n ${NR_TRAIN} \
+		-e ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+dvd.eval: eco.alg
+	${ALIGNEVAL} ${SMULTRON}/${DVDMAN}.xml $<
+
+
+
+
 #-------------------------------------------------------------------------
-# for cross-domain experiments:
+# run cross-domain experiments for all possible domain combinations!
 #
-# train an alignment model on Sophie's World or on ECO
+# cross-big = train on all data in one domain and align another
+# cross-all = train on NR_TRAIN sentences in one domain & align another
+#             (default = 100 ---> comparable with in-domain experiments!)
 #-------------------------------------------------------------------------
 
-sophie.model: moses-sophie
+cross-big:
+	make NR_TRAIN=10000 cross-all
+
+cross-all: 	cross-sophie-eco cross-eco-sophie \
+		cross-sophie-dvd cross-dvd-sophie \
+		cross-eco-dvd cross-dvd-eco
+
+
+# train on sophie & align eco
+cross-sophie-eco:
+	make 	TRAINNAME=sophie TRAINALG=${SOPHIE} \
+		TESTNAME=eco TESTALG=${ECO} \
+		STARTEVAL=104 \
+		cross-sophie-eco.eval
+
+cross-eco-sophie:
+	make 	TRAINNAME=eco TRAINALG=${ECO} \
+		TESTNAME=sophie TESTALG=${SOPHIE} \
+		STARTEVAL=105 \
+		cross-eco-sophie.eval
+
+cross-dvd-sophie:
+	make 	TRAINNAME=dvd TRAINALG=${DVDMAN} \
+		TESTNAME=sophie TESTALG=${SOPHIE} \
+		STARTEVAL=105 \
+		cross-dvd-sophie.eval
+
+cross-sophie-dvd:
+	make 	TRAINNAME=sophie TRAINALG=${SOPHIE} \
+		TESTNAME=dvd TESTALG=${DVDMAN} \
+		STARTEVAL=109 \
+		cross-sophie-dvd.eval
+
+cross-dvd-eco:
+	make 	TRAINNAME=dvd TRAINALG=${DVDMAN} \
+		TESTNAME=eco TESTALG=${ECO} \
+		STARTEVAL=105 \
+		cross-dvd-eco.eval
+
+cross-eco-dvd:
+	make 	TRAINNAME=eco TRAINALG=${ECO} \
+		TESTNAME=dvd TESTALG=${DVDMAN} \
+		STARTEVAL=109 \
+		cross-eco-dvd.eval
+
+
+
+
+%.eval: %.align
+	${ALIGNEVAL} -b ${STARTEVAL} ${SMULTRON}/${TESTALG}.xml $< > $@
+
+cross-${TRAINNAME}-${TESTNAME}.align: 	${TRAINNAME}${NR_TRAIN}.model \
+					moses-${TESTNAME}
+	${TREEALIGN} \
+		-a ${SMULTRON}/${TESTALG}.xml \
+		-M moses-${TESTNAME} \
+		-m ${TRAINNAME}${NR_TRAIN}.model \
+		-f ${FEAT} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+
+${TRAINNAME}${NR_TRAIN}.model: moses-${TRAINNAME}
 	rm -f $@
 	${TREEALIGN} \
-		-a ${SMULTRON}/${SOPHIE}.xml \
+		-a ${SMULTRON}/${TRAINALG}.xml \
 		-M $< \
 		-m $@ \
 		-e 0 \
+		-n ${NR_TRAIN} \
 		-f ${FEAT} \
 		-x ${ALIGNTHR} \
 		-1 ${WEIGHTG} \
@@ -250,64 +381,6 @@ sophie.model: moses-sophie
 		-N -L -v \
 		-l ${SEARCH} ${EXTRAOPT} > /dev/null
 
-eco.model: moses-eco
-	rm -f $@
-	${TREEALIGN} \
-		-a ${SMULTRON}/${ECO}.xml \
-		-M $< \
-		-m $@ \
-		-e 0 \
-		-f ${FEAT} \
-		-x ${ALIGNTHR} \
-		-1 ${WEIGHTG} \
-		-2 ${WEIGHTP} \
-		-3 ${WEIGHTN} \
-		-N -L -v \
-		-l ${SEARCH} ${EXTRAOPT}  > /dev/null
-
-
-# run alignment on ECO using the model trained on Sophie's World
-
-eco-sophie.align: sophie.model moses-eco
-	${TREEALIGN} \
-		-a ${SMULTRON}/${ECO}.xml \
-		-M moses-eco \
-		-m sophie.model \
-		-f ${FEAT} \
-		-x ${ALIGNTHR} \
-		-1 ${WEIGHTG} \
-		-2 ${WEIGHTP} \
-		-3 ${WEIGHTN} \
-		-N -L -v \
-		-l ${SEARCH} ${EXTRAOPT} > $@
-
-eco-sophie.eval: eco-sophie.align
-	${ALIGNEVAL} ${SMULTRON}/${ECO}.xml $<
-
-
-# run alignment on Sophie's World using the model trained on ECO
-
-sophie-eco.align: eco.model moses-sophie
-	${TREEALIGN} \
-		-a ${SMULTRON}/${ECO}.xml \
-		-M moses-sophie \
-		-m eco.model \
-		-f ${FEAT} \
-		-x ${ALIGNTHR} \
-		-1 ${WEIGHTG} \
-		-2 ${WEIGHTP} \
-		-3 ${WEIGHTN} \
-		-N -L -v \
-		-l ${SEARCH} ${EXTRAOPT} > $@
-
-sophie-eco.eval: sophie-eco.align
-	${ALIGNEVAL} ${SMULTRON}/${ECO}.xml $<
-
-
-
-
-
-
 
 #-------------------------------------------------------------------------
 # call Moses/Giza++ to run word alignment and extract lexical probabilities
@@ -315,6 +388,7 @@ sophie-eco.eval: sophie-eco.align
 
 moses-sophie: moses-sophie/model/aligned.${MOSES_SYM}
 moses-eco: moses-eco/model/aligned.${MOSES_SYM}
+moses-dvd: moses-dvd/model/aligned.${MOSES_SYM}
 
 ${SOPHIE}.${SRC}: ${SMULTRON}/${SOPHIE}.xml
 	../bin/sta2moses $<
@@ -335,6 +409,19 @@ moses-eco/model/aligned.%: ${ECO}.${SRC} # ${ECO}.${TRG}
 	${MOSESTRAINING}/train-factored-phrase-model.perl \
 	    -corpus ${ECO} \
 	    -root-dir moses-eco \
+	    -f ${SRC} --e ${TRG} \
+	    -alignment `echo '$@'|sed 's/^.*\.//'` \
+	    --parallel \
+	    --last-step 4
+
+
+${DVDMAN}.${SRC}: ${SMULTRON}/${DVDMAN}.xml
+	../bin/sta2moses $<
+
+moses-dvd/model/aligned.%: ${DVDMAN}.${SRC}
+	${MOSESTRAINING}/train-factored-phrase-model.perl \
+	    -corpus ${DVDMAN} \
+	    -root-dir moses-dvd \
 	    -f ${SRC} --e ${TRG} \
 	    -alignment `echo '$@'|sed 's/^.*\.//'` \
 	    --parallel \
@@ -446,8 +533,9 @@ suffix.cooc:
 
 
 
-
-
+#
+# different settings tested for the TLT paper (and for LREC2010)
+#
 
 
 

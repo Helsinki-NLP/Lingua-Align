@@ -285,3 +285,8 @@ COPYRIGHT AND LICENSE
     under the same terms as Perl itself, either Perl version 5.8.8 or, at
     your option, any later version of Perl 5 you may have available.
 
+    Copyright for MegaM by Hal Daume III see
+    http://www.cs.utah.edu/~hal/megam/ for more information Paper: Notes on
+    CG and LM-BFGS Optimization of Logistic Regression, 2004
+    http://www.cs.utah.edu/~hal/docs/daume04cg-bfgs.pdf
+
