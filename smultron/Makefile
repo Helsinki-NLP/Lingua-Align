@@ -63,7 +63,7 @@ ALIGNEVAL       = ${TREEALIGNERHOME}/bin/treealigneval
 
 SMULTRON    = smultron-2.0
 SOPHIE      = alignments_sophie_en_sv
-SOPHIE_DEEN = alignments_sophie_de_sv
+SOPHIE_DEEN = alignments_sophie_de_en
 ECO         = alignments_economy_en_sv
 DVDMAN      = alignments_dvdman_en_sv
 
@@ -443,6 +443,9 @@ NO_MOSES_FEAT2 = dicecat=cat.cooc:dicepos=pos.cooc:diceword=word.cooc:dicewordpc
 
 COOC_FEAT = dicecat=cat.cooc:dicepos=pos.cooc:diceword=word.cooc:dicewordpcat=wordpcat.cooc:dicesuffixpcat=suffixpcat.cooc:dicesuffixpos=suffixpos.cooc:dicesuffix=suffix.cooc:parent_dicecat=cat.cooc:srcparent_dicecat=cat.cooc:trgparent_dicecat=cat.cooc:diceother=other.cooc:dicepospcat=pospcat.cooc
 
+NO_LABELS_FEAT = nrleafsratio:treelevelsim:treespansim:treespansim*treelevelsim:giza:parent_giza:moses:moseslink:treelevelsim*giza:gizaf2e:gizae2f:parent_moses:srcparent_moses:trgparent_moses:neighbor-1-1_giza:neighbor11_giza:neighbor10_giza:neighbor01_giza:neighbor-10_giza:neighbor0-1_giza
+
+
 
 test-no-moses1:
 	make FEAT=${NO_MOSES_FEAT1} sophie
@@ -458,7 +461,40 @@ cooc-freq: cat.cooc pos.cooc word.cooc wordpcat.cooc pospcat.cooc \
 test-dice: cooc-freq
 	make FEAT=${COOC_FEAT} sophie
 
+test-no-cat:
+	make FEAT=${NO_LABELS_FEAT} sophie
 
+test-no-cat_deen:
+	make FEAT=${NO_LABELS_FEAT} sophie
+
+
+
+cross-lang: test-no-cat
+	make NR_TRAIN=0 sophie_deen.eval
+
+sophie_deen: 
+	rm -f sophie_deen.alg
+	make sophie_deen.alg
+	make sophie_deen.eval
+
+sophie_deen.alg: moses-sophie_deen
+	${TREEALIGN} \
+		-a ${SMULTRON}/${SOPHIE_DEEN}.xml \
+		-M $< \
+		-o '${MEGAMARGS}' \
+		-b ${ALIGN} \
+		-f ${FEAT} \
+		-n ${NR_TRAIN} \
+		-e ${NR_TEST} \
+		-x ${ALIGNTHR} \
+		-1 ${WEIGHTG} \
+		-2 ${WEIGHTP} \
+		-3 ${WEIGHTN} \
+		-N -L -v \
+		-l ${SEARCH} ${EXTRAOPT} > $@
+
+sophie_deen.eval: sophie_deen.alg
+	${ALIGNEVAL} ${SMULTRON}/${SOPHIE_DEEN}.xml $<
 
 
 #-------------------------------------------------------------------------
