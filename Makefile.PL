@@ -22,7 +22,6 @@ WriteMakefile(
     AUTHOR            => 'Joerg Tiedemann <j.tiedemann@rug.nl>',
     PREREQ_PM         => {
         'XML::Parser' => 0,
-	'Algorithm::Munkres' => 0,
 	'IPC::Open3' => 0
     },
 );

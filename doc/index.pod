@@ -38,7 +38,7 @@ For a simple test: go to the directory C<europarl> and run C<make test>.
 
 This will run a simple test with only a few training sentences from the Europarl corpus and simple features for classification. The test consists of two calls to tree aligner scripts: C<treealign> is used to train a classifier and to align unseen sentences from the given data set. C<treealigneval> is used to compute scores of the alignment performed with that model and the alignment strategy that is chosen.
 
-The example training data is stored in C<europarl/nl-en-weak_125.xml> which has been produced by manual alignment (thanks to Gideon Kotze) using the Stockholm Tree Aligner L<http://kitt.cl.uzh.ch/kitt/treealigner>. The format looks like this:
+The example training data is stored in C<europarl/nl-en-weak_125.xml> which has been produced by manual alignment (thanks to Gideon Kotzé) using the Stockholm Tree Aligner L<http://kitt.cl.uzh.ch/kitt/treealigner>. The format looks like this:
 
  <?xml version="1.0" encoding="UTF-8"?>
  <treealign subversion="3" version="2">
@@ -76,7 +76,9 @@ There is a tool to convert treebanks using the formats supported by Lingua::Alig
 
   convert_treebank treebank penn tiger > treebank.tiger
 
-Hopefully this will work to create a corpus that can be loaded into the Stockholm Tree Aligner. You might have to check the specifications in the XML header and adjust some (meta) information.
+Hopefully this will work to create a corpus that can be loaded into the Stockholm Tree Aligner. You might have to check the specifications in the XML header and adjust some (meta) information. You can, for example, validate your Tiger-XML against the schema:
+
+  xmllint --schema http://www.cl.uzh.ch/kitt/treealigner/data/schema/TigerXML.xsd --noout <your-tiger-file>
 
 =head4 Features & parameters
 
@@ -90,7 +92,7 @@ The result is printed to STDOUT and piped to C<aligned.xml> in the example above
 
   treealigneval nl-en_125.xml aligned.xml
 
-This should give you very low precision and recall values (around 25%; Note that individual recall values for terminal nodes and non-terminal nodes are not correct because nod type information is not available in the gold standard and IDs do not follow the standard to make a clear distinction).
+This should give you very low precision and recall values (around 25%; Note that individual recall values for terminal nodes and non-terminal nodes are not correct because node type information is not available in the gold standard and IDs do not follow the standard to make a clear distinction).
 
 Another simple example using two feature types ("tree level similarity" and "tree span similarity") is the following:
 
@@ -129,7 +131,7 @@ The 'neighborXY_' prefix is more flexible. You can specify neighbors using X as 
 
 This retrieves the 'catpos' feature from the current node pair, from the left source tree neighbor together with the current target node, and from the left source tree neighbor together with the right target node neighbor.
 
-Note that these models so far do not use any other information than the features directly extracted from the parse trees and the alignment information available in the training data. There are also features that need external resources. For example, you may include word alignment information for the tree alignment. For this you need to run automatic word alignment first (on the treebank sentences your using in your experiments) and you need to store the information in the format supported by Lingua::Align. You may use the Viterbi alignment produced by Giza++ (C<moses/giza.src-trg/src-trg.A3.final.gz> and C<moses/giza.trg-src/trg-src.A3.final.gz>):
+Note that these models so far do not use any other information than the features directly extracted from the parse trees and the alignment information available in the training data. There are also features that need external resources. For example, you may include word alignment information for the tree alignment. For this you need to run automatic word alignment first (on the treebank sentences you're using in your experiments) and you need to store the information in the format supported by Lingua::Align. You may use the Viterbi alignment produced by Giza++ (C<moses/giza.src-trg/src-trg.A3.final.gz> and C<moses/giza.trg-src/trg-src.A3.final.gz>):
 
   treealign -a nl-en_125.xml \
      -g moses/giza.src-trg/src-trg.A3.final.gz \
@@ -157,7 +159,7 @@ Another word alignment feature is based on the symmetrized alignments produced b
      -n 10 -e 10 > aligned.xml
   treealigneval nl-en_125.xml aligned.xml
 
-Don't ask me why the parameter is '-y' for the Moses algnment file. (It's basically because treealign only uses short command-line options and I was running out of letters ....)
+Don't ask me why the parameter is '-y' for the Moses alignment file. (It's basically because treealign only uses short command-line options and I was running out of letters ....)
 
 Actually, you could leave out the file specifications in the examples above because we were just using the default names and paths. You can use the flag (C<-M moses-dir>) if the file-names and sub-directories are the same but the main Moses work-directory is different (for example C<my-moses-dir>):
 
@@ -177,12 +179,12 @@ Compare this to the alignment without the C<-P> flag and you will see the differ
   treealign -a nl-en_125.xml -f moses:gizae2f:gizaf2e \
             -n 10 -e 10 -C -U > aligned.xml
 
-Note that history features coming from parent links and coming from children cannot be combined (for obvious reasons). And don't expect improvements in all cases. Especially for rich feature sets no big improvements can be expected. Note that alginment will also be (even) slower.
+Note that history features coming from parent links and coming from children cannot be combined (for obvious reasons). And don't expect improvements in all cases. Especially for rich feature sets no big improvements can be expected. Note that alignment will also be (even) slower.
 
 
 =head4 Alignment strategies
 
-In the default settings a two-step procedure is used: First all node pairs are classified using the local classifier (possibly including history features. The second step comprises the actual alignment step (inference) in which nodes are linked to each other according to the link likelihoods assigned by the local classifier in the first step. The default strategy is a "greedy" alignment procedure, starting with the node pair with the highest link likelihood and running greedily through the set of candidates. A necessary constraint is that all nodes are aligned at most once (on both sides).
+In the default settings a two-step procedure is used: First all node pairs are classified using the local classifier, possibly including history features. The second step comprises the actual alignment step (inference) in which nodes are linked to each other according to the link likelihoods assigned by the local classifier in the first step. The default strategy is a "greedy" alignment procedure, starting with the node pair with the highest link likelihood and running greedily through the set of candidates. A necessary constraint is that all nodes are aligned at most once (on both sides).
 
 You can use other strategies for example using an additional well-formedness constraint:
 
@@ -220,7 +222,7 @@ Observe that we can use history features again (but not C<-P>). This should spee
 
 =head3 Library structure
 
-There are several options that can be set. For further information have alook at the manpages linked below or just look at the source code. Extending the code is quite straightforward even though the documentation is not perfect and the coee is partly awful (well, it's Perl ....). Here is a (hopefully up-to-date) list of Modules (many of them are under-developed / experimental / non-functioning possible projects for the future):
+There are several options that can be set. For further information have a look at the manpages linked below or just look at the source code. Extending the code is quite straightforward even though the documentation is not perfect and the code is partially awful (well, it's Perl ....). Here is a (hopefully up-to-date) list of modules (many of them are under-developed / experimental / non-functioning possible projects for the future):
 
 =over
 
@@ -302,7 +304,7 @@ Furthermore, you can also use the software to do word alignment on plain text fi
   0008 2 1 P
   0008 3 1 P
 
-As features you may use, for example, string similarity measures such as LCSR score (longest common sub-sequence reatio), Dice scores based on co-occurrence frequencies, Moses/Giza++ alignments, binary features such as the occurrence of suffix pairs etc. Run C<make> in the C<europarl/wpt03> to see an example alignment experiment.
+As features you may use, for example, string similarity measures such as LCSR score (longest common sub-sequence ratio), Dice scores based on co-occurrence frequencies, Moses/Giza++ alignments, binary features such as the occurrence of suffix pairs etc. Run C<make> in the C<europarl/wpt03> to see an example alignment experiment.
 
 To run your own experiments you can specify your own setup. Here is a simple example:
 
@@ -329,7 +331,7 @@ If you want to use Moses/Giza++ alignments as features: Just use the same parame
             -f moses:gizae2f:gizaf2e
             -n 20 -e 20 -L > aligned.xml
 
-Another common feature is co-occurrence which can be measures in various ways. You can use the script C<bin/coocfreq> to generate co-occurrence frequencies from arbitrary parallel corpora that can be plugged into the aligner as a feature. An example computing co-occurrence frequencies from tokens in the test corpus (which is much too small to compute reliable scores) is the following:
+Another common feature is co-occurrence which can be measured in various ways. You can use the script C<bin/coocfreq> to generate co-occurrence frequencies from arbitrary parallel corpora that can be plugged into the aligner as a feature. An example computing co-occurrence frequencies from tokens in the test corpus (which is much too small to compute reliable scores) is the following:
 
   coocfreq -s test.e -t test.f \
            -x word -y word \
@@ -454,16 +456,63 @@ L<Lingua::sta2phrases>
 
 Here are some publications (please cite if you use the software):
 
-Tiedemann, J. Lingua-Align: An Experimental Toolbox for Automatic Tree-to-Tree Alignment. In Proceedings of the 7th International Conference on Language Resources and Evaluation (LREC'2010), 2010.
-L<http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>,
+=over
 
-Tiedemann, J. and Kotzé, G. Building a Large Machine-Aligned Parallel Treebank. In Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
-L<http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>,
+=item Tiedemann, J. (2010)
 
-Tiedemann, J. and Kotzé, G. A Discriminative Approach to Tree Alignment. In Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning (in connection with RANLP'09), pages 33 - 39, 2009.
-L<http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>,
+B<Lingua-Align: An Experimental Toolbox for Automatic Tree-to-Tree Alignment.> In I<Proceedings of the 7th International Conference on Language Resources and Evaluation> (LREC'2010), 2010.
+L<http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>
+
+  @InProceedings{Tiedemann:LREC10,
+    author =	 {Jörg Tiedemann},
+    title =	 {Lingua-Align: An Experimental Toolbox for Automatic
+                  Tree-to-Tree Alignment},
+    booktitle =	 {Proceedings of the 7th International Conference on
+                  Language Resources and Evaluation (LREC'2010)},
+    year =	 2010,
+    address =	 {Valetta, Malta},
+  }
+
+=item Tiedemann, J. and Kotzé, G. (2009)
+
+B<Building a Large Machine-Aligned Parallel Treebank.> In I<Proceedings of the 8th International Workshop on Treebanks and Linguistic Theories> (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
+L<http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>
+
+ @InProceedings{TiedemannKotze:TLT09,
+   author =	 {Jörg Tiedemann and Gideon Kotzé},
+   title =	 {Building a Large Machine-Aligned Parallel Treebank},
+   booktitle =	 {Proceedings of the 8th International Workshop on
+                  Treebanks and Linguistic Theories (TLT'08)},
+   year =	 2009,
+   pages =        {197--208},
+   isbn =	 {978-88-8311-712-1},
+   editor =       {Marco Passarotti and Adam Przepiórkowski and 
+                  Savina Raynaud and Frank Van Eynde},
+   publisher =    {EDUCatt, Milano/Italy}
+ }
+
+=item Tiedemann, J. and Kotzé, G. (2009)
+
+B<A Discriminative Approach to Tree Alignment.> In I<Proceedings of the International Workshop on Natural Language Processing Methods and Corpora in Translation, Lexicography and Language Learning> (in connection with RANLP'09), pages 33 - 39, 2009.
+L<http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>
+
+ @InProceedings{TiedemannKotze:RANLP09,
+   author =	 {Jörg Tiedemann and Gideon Kotzé},
+   title =	 {A Discriminative Approach to Tree Alignment},
+   booktitle =	 {Proceedings of the International Workshop on Natural
+                  Language Processing Methods and Corpora in
+                  Translation, Lexicography and Language Learning (in
+                  connection with RANLP'09)},
+   pages =	 {33 -- 39},
+   year =	 2009,
+   editor =	 {Iustina Ilisei and Viktor Pekar and Silvia
+                  Bernardini},
+   isbn =        {978-954-452-010-6}
+ }
 
 
+
+=back
 
 
 =head2 Author
@@ -472,7 +521,7 @@ Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head2 Copyright and License
 
-Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotze
+Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotzé
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
