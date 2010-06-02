@@ -26,6 +26,7 @@ my %sent=();
 print $output->print_header();
 while ($corpus->next_sentence(\%sent)){
     print $output->print_tree(\%sent);
+    print "\n";
 }
 print $output->print_tail();
 

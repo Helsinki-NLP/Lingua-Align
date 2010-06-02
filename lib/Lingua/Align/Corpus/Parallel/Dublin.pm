@@ -26,12 +26,20 @@ sub new{
 
     my %CorpusAttr=%attr;
     $CorpusAttr{-type} = 'penn';
-    $CorpusAttr{-add_ids} = 1;            # add node id's
-    if ($attr{-skip_node_ids}){           # but skip adding the original
-	$CorpusAttr{-skip_node_ids} = 1;  # node IDs
+    $CorpusAttr{-add_ids} = 1;           # add node id's
+#    if ($attr{-skip_node_ids}){          # but skip adding the original
+#	$CorpusAttr{-skip_node_ids} = 1;  # node IDs
+    if ($attr{-add_node_ids}){
+	$CorpusAttr{-add_node_ids} = 1;
+    }
+    if ($attr{-alignfile}){
+	$CorpusAttr{-file} = $attr{-alignfile};
     }
 
+#    $self->make_corpus_handles(%attr);
     $self->{CORPUS}=new Lingua::Align::Corpus(%CorpusAttr);
+    $self->{SRC}=new Lingua::Align::Corpus(%CorpusAttr);
+    $self->{TRG}=new Lingua::Align::Corpus(%CorpusAttr);
 
     return $self;
 }
@@ -39,9 +47,27 @@ sub new{
 
 sub read_next_alignment{
     my $self=shift;
-    my ($src,$trg)=@_;
+    my ($src,$trg,$links)=@_;
+
     return 0 if (not $self->{CORPUS}->next_sentence($src));
     return 0 if (not $self->{CORPUS}->next_sentence($trg));
+
+    my $fh = $self->{CORPUS}->open_file();
+    my $LinkStr = <$fh>;
+    chomp($LinkStr);
+    my @LinkArr = split(/\s+/,$LinkStr);
+    $$links = {};
+
+    while (@LinkArr){
+	my $sid = shift(@LinkArr);
+	$sid = $src->{ID}.'_'.$sid;
+	my $tid = shift(@LinkArr);
+	$tid = $trg->{ID}.'_'.$tid;
+	$$links->{$sid}{$tid}='good';
+    }
+
+#    return 0 if (not $self->{SRC}->next_sentence($src));
+#    return 0 if (not $self->{TRG}->next_sentence($trg));
 
     ## .... unfinished
     ## do something more to handle collapsed unary sub-trees

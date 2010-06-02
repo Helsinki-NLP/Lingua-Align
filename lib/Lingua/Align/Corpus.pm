@@ -261,10 +261,12 @@ sub open{
 
 sub print_header{
     my $self=shift;
+    return '';
 }
 
 sub print_tail{
     my $self=shift;
+    return '';
 }
 
 sub print_sentence{

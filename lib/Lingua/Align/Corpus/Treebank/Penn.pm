@@ -96,7 +96,10 @@ sub read_next_sentence{
     # parse until first empty line
     if (defined $_){
 	do {
-	    $self->__parse($_,$tree);
+	    if (/\S/){
+		return 1 if ($self->__parse($_,$tree));
+	    }
+#	    $self->__parse($_,$tree);
 	    $_=<$fh>;
 	}
 	until ($_!~/\S/);
@@ -136,10 +139,18 @@ sub __parse{
 	    $self->{NODECOUNT}++;
 #	    my $node = 500+$self->{NODECOUNT};
 	    my $node = $self->{NODECOUNT};
-	    $node=$tree->{ID}.'_'.$node;
+	    if ($pos=~s/\-(s?[0-9]+\_[0-9]+)\-([0-9]+)$//){
+		$node = $1;
+	    }
+	    elsif ($pos=~s/\-([0-9]+)$//){
+		$node=$tree->{ID}.'_'.$1;
+	    }
+	    else{
+		$node=$tree->{ID}.'_'.$node;
+	    }
+	    $tree->{NODES}->{$node}->{id} = $node;
 	    $tree->{NODES}->{$node}->{pos} = $pos;
 	    $tree->{NODES}->{$node}->{word} = $word;
-	    $tree->{NODES}->{$node}->{id} = $node;
 	    push(@{$tree->{TERMINALS}},$node);
 
 	    my $parent = $self->{CURRENTNODE};
@@ -158,7 +169,17 @@ sub __parse{
 	    $self->{OPEN_BRACKETS}++;
 #	    my $node = $self->{NODECOUNT};
 	    my $node = 500+$self->{NODECOUNT};
-	    $node=$tree->{ID}.'_'.$node;
+
+	    if ($cat=~s/\-(s?[0-9]+\_[0-9]+)\-([0-9]+)$//){
+		$node = $1;
+	    }
+	    elsif ($cat=~s/\-([0-9]+)$//){
+		$node=$tree->{ID}.'_'.$1;
+	    }
+	    else{
+		$node=$tree->{ID}.'_'.$node;
+	    }
+
 	    $tree->{NODES}->{$node}->{cat} = $cat;
 	    $tree->{NODES}->{$node}->{id} = $node;
 
@@ -218,7 +239,8 @@ sub print_tree{
     }
     # add node ID if necessary (for Dublin aligner format)
     if ($self->{-add_ids}){
-	if (not $self->{-skip_node_ids}){
+#	if (not $self->{-skip_node_ids}){
+	if (not $self->{-add_node_ids}){
 	    $string.='-'.$tree->{NODES}->{$node}->{id};
 	}
 	my $idx = scalar @{$ids} + 1;

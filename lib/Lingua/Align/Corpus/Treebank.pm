@@ -543,6 +543,7 @@ sub print_sentence{
 sub print_tree{
     my $self=shift;
     my $tree=shift;
+    return '';
 }
 
 1;

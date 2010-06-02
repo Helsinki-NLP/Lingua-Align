@@ -66,13 +66,13 @@ use vars qw($opt_a $opt_A $opt_s $opt_S $opt_t $opt_T
             $opt_d $opt_D $opt_g $opt_G $opt_y
             $opt_C $opt_U $opt_P $opt_J $opt_I $opt_v
             $opt_1 $opt_2 $opt_3 $opt_4 $opt_u $opt_K $opt_i 
-            $opt_X $opt_o
+            $opt_X $opt_o $opt_O
             $opt_b $opt_r $opt_B $opt_V
             $opt_5 $opt_6 $opt_7 $opt_8 $opt_9);
 
 
 use Getopt::Std;
-getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:r:BV:o:5:6789');
+getopts('a:A:s:S:t:T:wf:n:e:x:l:c:m:M:NLd:D:g:G:y:kCPUJI:vR:1:2:3:4:uKiX:b:r:BV:O:o:5:6789');
 
 
 use Lingua::Align::Trees;
@@ -131,13 +131,15 @@ my $gizaA3_f2e = $opt_G || $MosesDir.'/giza.trg-src/trg-src.A3.final.gz';
 
 my $moses_align = $opt_y || $MosesDir.'/model/aligned.intersect';
 
-
+my $OutputFormat = $opt_O || 'sta';
 
 
 my $treealigner = new Lingua::Align::Trees(
 
     -alignment => $alignment,               # type of alignment strategy
     -features => $featureStr,              # features to be used
+
+    -output_format => $OutputFormat,       # output format
 
     -classifier => $classifier,            # classifier used
     -classifier_weight_sure => $WeightS,   # training: weight for sure links
