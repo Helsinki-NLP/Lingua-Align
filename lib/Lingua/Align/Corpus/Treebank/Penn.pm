@@ -240,7 +240,7 @@ sub print_tree{
     # add node ID if necessary (for Dublin aligner format)
     if ($self->{-add_ids}){
 #	if (not $self->{-skip_node_ids}){
-	if (not $self->{-add_node_ids}){
+	if ($self->{-add_node_ids}){
 	    $string.='-'.$tree->{NODES}->{$node}->{id};
 	}
 	my $idx = scalar @{$ids} + 1;
