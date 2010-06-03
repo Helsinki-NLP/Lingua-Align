@@ -188,6 +188,9 @@ sub open_file{
     my $file=shift || $self->{-file};
     my $encoding=shift || $self->{-encoding};
 
+    $self->{-file} = $file;
+    $self->{-encoding} = $encoding;
+
     if (! defined $self->{FH}->{$file}){
 	$self->{FH}->{$file} = new FileHandle;
 	my $filename = $file;

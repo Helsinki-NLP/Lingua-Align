@@ -214,12 +214,12 @@ my $treealigner = new Lingua::Align::Trees(
 
 # corpus to be used for training
 
-my $AlignFile = $opt_a || 'Alignments_SMULTRON_Sophies_World_SV_EN.xml';
-my $AlignFormat = $opt_A || 'sta';
-
-my %corpus = (-alignfile => $AlignFile,
-	      -type => $AlignFormat,
- 	      -swap_alignment => $opt_w);
+my %corpus = ();
+if ($opt_a){
+    $corpus{-alignfile} = $opt_a;
+    $corpus{-type} = $opt_A || 'sta';
+    $corpus{-swap_alignment} = $opt_w if ($opt_w);
+}
 
 # check if source and target files/types are given 
 # (can overwrite the ones specified in the sentence alignment file)
@@ -495,13 +495,18 @@ Similar to -u: switches to 'add-link' mode but now forces the aligner to use exi
 
 =back
 
-=head3 Runtime options
+=head3 Runtime and other options
 
 =over
 
 =item -v
 
 Verbose output
+
+=item -O format
+
+Output format (one of sta (=default) or dublin (= Dublin subtree aligner format)
+
 
 =back
 

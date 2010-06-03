@@ -93,7 +93,41 @@ Lingua::Align - a toolbox for Tree Alignment
     alignment (WPT2003).
 
    Run with your own settings
-    This is what you need for running your own experiments:
+    Basically you can call the tree-aligner frontend with your own data and
+    settings like this:
+
+      treealign -a <ALIGNFILE> -f <FEATURES> -n <NR_TRAIN_SENT> -e <NR_TEST_SENT>
+
+    The alignment file ALIGNFILE has to contain the tree alignments that
+    will be used for training the classifier. The default format is the one
+    explained above (similar to the one used by the Stockholm Tree Aligner).
+    FEATURES is a string specifying the features to be used in
+    classification. NR_TRAIN_SENT is the number of sentences to be used for
+    training and NR_TEST_SENT is the number of test sentences. There are
+    many more options that can be set on the command line. Please look at
+    Lingua::treealign for more information.
+
+    Of course it is also possible to align treebanks using an existing
+    alignment model. The only thing you need are the treebank files in both
+    languages which have to be sentence aligned. Assuming that the alignment
+    model is stored in the default file 'treealign.megam' and the two
+    treebanks ("ep-00-12-15.125.en.penn", "ep-00-12-15.125.nl.penn" from the
+    sample files in "europarl/") are stored in bracketed Penn Treebank
+    format you can call the aligner like this:
+
+      treealign -s ep-00-12-15.125.en.penn -S penn \
+                -t ep-00-12-15.125.nl.penn -T penn \
+                -m treealign.megam > alignments
+
+    This will assume that trees from both treebanks are aligned with each
+    other in the same order as they appear in the given files (corresponding
+    lines in this case). Features to be used for classification have to be
+    stored in "treealign.megam.feat" (they should be if "treealign.megam"
+    has been produced by Lingua-Align). Tree alignments will be stored in
+    "alignments" in STA format.
+
+    Here are some more details about the things you need for running your
+    own experiments:
 
    Training data
     Your own tree-aligned training data. The easiest way is to use the
@@ -117,6 +151,26 @@ Lingua::Align - a toolbox for Tree Alignment
     validate your Tiger-XML against the schema:
 
       xmllint --schema http://www.cl.uzh.ch/kitt/treealigner/data/schema/TigerXML.xsd --noout <your-tiger-file>
+
+    You can also use another format which is similar to the one used by the
+    Dublin Tree aligner which applies a bracketed format for tree structures
+    and links in terms of references to the nodes in these trees. Here is an
+    example (from "europarl/nl-en_125.dublin"):
+
+     (ROOT-1 (S-2 (VP-3 (VBP-4 Are)(RB-5 there)(NP-6 (DT-7 any)(NNS-8 comments)))(.-9 ?)))
+     (top-1 (np-2 (det-3 Geen)(noun-4 bezwaren)(punct-5 ?)))
+     1 1 6 2 7 3 8 4 9 5
+
+    The first row is the source language tree, the second one is the target
+    language row and the third one contains the links between source and
+    target nodes. This format is not entirely compatible with the Dublin
+    Tree Aligner format as it does not support conflated unary productions.
+
+    If you like to use this format for your training data you can call the
+    tree-aligner script with an extra parameter (-A) specifying the
+    alignment format, for example:
+
+       treealign -a nl-en_125.dublin -A dublin -f catpos -n 10 -e 10 > align
 
    Features & parameters
     First of all, you need to decide what kind of features should be used in

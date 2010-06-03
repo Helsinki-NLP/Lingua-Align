@@ -269,8 +269,12 @@ DESCRIPTION
         cause some existing links to disappear, for example, because they
         are not conform to the wellformedness criteria anymore.
 
-   Runtime options
+   Runtime and other options
     -v  Verbose output
+
+    -O format
+        Output format (one of sta (=default) or dublin (= Dublin subtree
+        aligner format)
 
 SEE ALSO
     Lingua::Align::Trees, Lingua::Align::Features, Lingua::Align::Corpus

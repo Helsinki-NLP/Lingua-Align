@@ -38,8 +38,8 @@ sub new{
 
 #    $self->make_corpus_handles(%attr);
     $self->{CORPUS}=new Lingua::Align::Corpus(%CorpusAttr);
-    $self->{SRC}=new Lingua::Align::Corpus(%CorpusAttr);
-    $self->{TRG}=new Lingua::Align::Corpus(%CorpusAttr);
+    $self->{SRC} = $self->{CORPUS};
+    $self->{TRG} = $self->{CORPUS};
 
     return $self;
 }
@@ -63,6 +63,7 @@ sub read_next_alignment{
 	$sid = $src->{ID}.'_'.$sid;
 	my $tid = shift(@LinkArr);
 	$tid = $trg->{ID}.'_'.$tid;
+	$self->{LINKS}->{$sid}->{$tid}='good';
 	$$links->{$sid}{$tid}='good';
     }
 
@@ -77,6 +78,22 @@ sub read_next_alignment{
     return 1;
 }
 
+sub read_tree_alignments{
+    my $self=shift;
+    my $file=shift;
+    my $AllLinks=shift;
+
+    $self->{CORPUS}->open_file($file);
+    my %srctree=();
+    my %trgtree=();
+    my $links;
+    while ($self->next_alignment(\%srctree,\%trgtree,\$links)){
+	# I am reading ....
+    }
+    if (ref($links)){
+	$$AllLinks=$self->{LINKS};
+    }
+}
 
 
 sub print_alignments{
