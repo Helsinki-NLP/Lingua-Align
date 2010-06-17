@@ -162,6 +162,11 @@ sub print_sub_tree{
     my $node=shift;
     my $indent=shift;
     my $rel=shift;
+    my $done=shift;
+
+    if (not ref($done)){ $done = {}; }      # another hash
+    return '' if (defined $done->{$node});  # to avoid inifinite loops
+    $done->{$node} = 1;
 
     if ($rel && (! exists $tree->{NODES}->{$node}->{rel})){
 	$tree->{NODES}->{$node}->{rel}=$rel;
@@ -188,7 +193,7 @@ sub print_sub_tree{
 	foreach my $i (0..$#{$tree->{NODES}->{$node}->{CHILDREN}}){
 	    my $n = $tree->{NODES}->{$node}->{CHILDREN}->[$i];
 	    my $nrel = $tree->{NODES}->{$node}->{RELATION}->[$i];
-	    $str .= $self->print_sub_tree($tree,$n,$indent.'  ',$nrel);
+	    $str .= $self->print_sub_tree($tree,$n,$indent.'  ',$nrel,$done);
 	}
 	$str.= $indent."</node>\n";
     }
