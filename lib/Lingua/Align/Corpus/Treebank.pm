@@ -9,6 +9,7 @@ $VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Treebank::Penn;
+use Lingua::Align::Corpus::Treebank::Berkeley;
 use Lingua::Align::Corpus::Treebank::Stanford;
 use Lingua::Align::Corpus::Treebank::TigerXML;
 use Lingua::Align::Corpus::Treebank::AlpinoXML;
@@ -26,6 +27,9 @@ sub new{
     }
     if ($attr{-type}=~/stanford/i){
 	return new Lingua::Align::Corpus::Treebank::Stanford(%attr);
+    }
+    if ($attr{-type}=~/berkeley/i){
+	return new Lingua::Align::Corpus::Treebank::Berkeley(%attr);
     }
     return new Lingua::Align::Corpus::Treebank::Penn(%attr);
 }
