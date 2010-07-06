@@ -29,6 +29,7 @@ sub read_next_sentence{
     while (<$fh>){
 	chomp;
 	next if ($_!~/\S/);
+	s/^\s*\(\s+(\(.*\))\s+\)\s*$/$1/;
 	return 1 if ($self->__parse($_,$tree));
     }
     return 0;
