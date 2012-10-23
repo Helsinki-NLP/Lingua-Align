@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>convert_treebank - convert a treebank from one format to another</title>
+<link rel="stylesheet" href="/~joerg/css/pod.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:_securityagent@gamma.local" />
+</head>
+
+<body>
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#see_also">SEE ALSO</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>convert_treebank - convert a treebank from one format to another</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<pre>
+    treealign [-i] infile informat outformat &gt; outfile</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This script allows you to convert a treebank to another format. The converted treebank is printed to STDOUT. Currently the following formats are supported:</p>
+<dl>
+<dt><strong><a name="alpinoxml" class="item">AlpinoXML (alpino)</a></strong></dt>
+
+<dd>
+<p>The XML format used by the Dutch dependency parser Alpino. Use the option [-i] to skip index nodes from that format.</p>
+</dd>
+<dt><strong><a name="penntreebank" class="item">PennTreebank (penn)</a></strong></dt>
+
+<dd>
+<p>The bracketing format from the Penn Treebank. Sentences should be separated by empty lines. This can be used to read, for example, the output of the Berkeley Parser.</p>
+</dd>
+<dt><strong><a name="format" class="item">Stanford Parser format (stanford)</a></strong></dt>
+
+<dd>
+<p>This is essentially the same as the PennTreebank format but includes also the depedency relations that can optionally be produced by the Stanford parser. The conversion script tries to attach the relations to the phrase-structure trees. (This is rather experimental and the labeling might be different from what you'd expect -- use with care!).</p>
+</dd>
+<dt><strong><a name="tigerxml" class="item">TigerXML (tiger)</a></strong></dt>
+
+<dd>
+<p>This is the TigerXML format which is used as a standard in the TreeAligner (mainly because it is also used in the Stockholm Tree Aligner which allows to visualize and edit the automatic tree alignments).</p>
+</dd>
+</dl>
+<p>
+</p>
+<hr />
+<h1><a name="see_also">SEE ALSO</a></h1>
+<p><a href="/~joerg/Lingua/Align/Corpus.html">the Lingua::Align::Corpus manpage</a>, Lingua::Align::Corpus::Treebank</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Joerg Tiedemann, &lt;<a href="mailto:jorg.tiedemann@lingfil.uu.se">jorg.tiedemann@lingfil.uu.se</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h1>
+<p>Copyright (C) 2009 by Joerg Tiedemann</p>
+<p>This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.</p>
+
+</body>
+
+</html>
