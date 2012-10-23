@@ -55,7 +55,7 @@ Lingua::Align::Corpus::Parallel::OrderedIds - Perl extension for reading sentenc
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

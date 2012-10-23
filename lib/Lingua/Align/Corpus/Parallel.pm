@@ -421,7 +421,7 @@ L<Lingua::Align::Corpus::Parallel::STA>
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

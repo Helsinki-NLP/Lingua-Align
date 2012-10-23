@@ -71,7 +71,7 @@ Lingua::Align::Corpus::Parallel::Giza - Perl extension to read Viterbi word alig
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

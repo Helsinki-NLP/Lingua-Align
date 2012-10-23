@@ -117,7 +117,7 @@ Lingua::Align::Corpus::Parallel::Moses - Perl extension to read sentence-aligned
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

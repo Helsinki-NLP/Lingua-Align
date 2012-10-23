@@ -78,7 +78,7 @@ Right now only the MaxEnt classifier implemented in megam (L<http://www.cs.utah.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

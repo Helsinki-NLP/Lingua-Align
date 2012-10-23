@@ -60,7 +60,7 @@ Lingua::Align::Corpus::Parallel::Bitext - Perl extension for reading a simple pa
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -10,7 +10,7 @@ Lingua::Align - a toolbox for Tree Alignment
 
   Download
     Lingua::Align is available from here:
-    <http://stp.lingfil.uu.se/~joerg/download.php?f=Lingua-Align.tar.gz>
+    <https://bitbucket.org/tiedemann/lingua-align>
 
   Installation
     You can either install the perl modules and binaries as usual:
@@ -58,7 +58,7 @@ Lingua::Align - a toolbox for Tree Alignment
     performed with that model and the alignment strategy that is chosen.
 
     The example training data is stored in "europarl/nl-en-weak_125.xml"
-    which has been produced by manual alignment (thanks to Gideon Kotzé)
+    which has been produced by manual alignment (thanks to Gideon KotzÃ©)
     using the Stockholm Tree Aligner
     <http://kitt.cl.uzh.ch/kitt/treealigner>. The format looks like this:
 
@@ -624,30 +624,30 @@ Lingua::Align - a toolbox for Tree Alignment
 
       compare word alignments for: 0157 -- 0157
       -----------------------------------------------|--
-                                       · · · · · ·   | he
-                                       · · · · · ·   | said
-                                       · · · · · ·   | that
+                                       Â· Â· Â· Â· Â· Â·   | he
+                                       Â· Â· Â· Â· Â· Â·   | said
+                                       Â· Â· Â· Â· Â· Â·   | that
        S                                             | if
          S                                           | we
            S                                         | use
-             · S                                     | unemployment
-                 z ·                                 | as
-                 · · · ·                 *           | the
-                 · · · ·               *             | solution
-                 · z · ·                             | to
-                   · · S                             | inflation
+             Â· S                                     | unemployment
+                 z Â·                                 | as
+                 Â· Â· Â· Â·                 *           | the
+                 Â· Â· Â· Â·               *             | solution
+                 Â· z Â· Â·                             | to
+                   Â· Â· S                             | inflation
                          S                           | ,
-                           S · · · ·                 | we
-                           · z · · ·                 | will
-                           · · z · ·                 | get
-                           · · · · P                 | recovery
+                           S Â· Â· Â· Â·                 | we
+                           Â· z Â· Â· Â·                 | will
+                           Â· Â· z Â· Â·                 | get
+                           Â· Â· Â· Â· P                 | recovery
                                                    S | .
       -----------------------------------------------|--
-       s n u l c p c l i , n p r l é , v l p d l g .
+       s n u l c p c l i , n p r l Ã© , v l p d l g .
        i o t e h o o e n   o o e e c   o a o e e o  
-         u i   ô u m   f   u u l   o   i   s     u  
+         u i   Ã´ u m   f   u u l   o   i   s     u  
          s l   m r b   l   s r a   n   l   i     v  
-           i   a   a   a     r n   o   à   t     e  
+           i   a   a   a     r n   o   Ã    t     e  
            s   g   t   t     o c   m       i     r  
            o   e   t   i     n e   i       o     n  
            n       r   o     s r   e       n     e  
@@ -662,7 +662,7 @@ Lingua::Align - a toolbox for Tree Alignment
       !  2 x (*) .... proposed = S, gold = not aligned (wrong!)
          0 x (+) .... proposed = P, gold = not aligned (wrong!)
          0 x (-) .... proposed = not aligned, gold = S (missing!)
-        49 x (·) .... proposed = not aligned, gold = P (missing!)
+        49 x (Â·) .... proposed = not aligned, gold = P (missing!)
       ----------------------------------------------------------------  
       total: 13 correct, 49 missing, 2 wrong
       this sentence: precision = 0.8667, recall = 1.0000, AER = 0.0741
@@ -705,7 +705,7 @@ Lingua::Align - a toolbox for Tree Alignment
         <http://stp.lingfil.uu.se/~joerg/published/lrec2010.pdf>
 
           @InProceedings{Tiedemann:LREC10,
-            author =     {Jörg Tiedemann},
+            author =     {JÃ¶rg Tiedemann},
             title =      {Lingua-Align: An Experimental Toolbox for Automatic
                           Tree-to-Tree Alignment},
             booktitle =  {Proceedings of the 7th International Conference on
@@ -714,26 +714,26 @@ Lingua::Align - a toolbox for Tree Alignment
             address =    {Valetta, Malta},
           }
 
-    Tiedemann, J. and Kotzé, G. (2009)
+    Tiedemann, J. and KotzÃ©, G. (2009)
         Building a Large Machine-Aligned Parallel Treebank. In *Proceedings
         of the 8th International Workshop on Treebanks and Linguistic
         Theories* (TLT'08), pages 197-208, EDUCatt, Milano/Italy, 2009.
         <http://stp.lingfil.uu.se/~joerg/published/tlt09.pdf>
 
          @InProceedings{TiedemannKotze:TLT09,
-           author =      {Jörg Tiedemann and Gideon Kotzé},
+           author =      {JÃ¶rg Tiedemann and Gideon KotzÃ©},
            title =       {Building a Large Machine-Aligned Parallel Treebank},
            booktitle =   {Proceedings of the 8th International Workshop on
                           Treebanks and Linguistic Theories (TLT'08)},
            year =        2009,
            pages =        {197--208},
            isbn =        {978-88-8311-712-1},
-           editor =       {Marco Passarotti and Adam Przepiórkowski and 
+           editor =       {Marco Passarotti and Adam PrzepiÃ³rkowski and 
                           Savina Raynaud and Frank Van Eynde},
            publisher =    {EDUCatt, Milano/Italy}
          }
 
-    Tiedemann, J. and Kotzé, G. (2009)
+    Tiedemann, J. and KotzÃ©, G. (2009)
         A Discriminative Approach to Tree Alignment. In *Proceedings of the
         International Workshop on Natural Language Processing Methods and
         Corpora in Translation, Lexicography and Language Learning* (in
@@ -741,7 +741,7 @@ Lingua::Align - a toolbox for Tree Alignment
         <http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>
 
          @InProceedings{TiedemannKotze:RANLP09,
-           author =      {Jörg Tiedemann and Gideon Kotzé},
+           author =      {JÃ¶rg Tiedemann and Gideon KotzÃ©},
            title =       {A Discriminative Approach to Tree Alignment},
            booktitle =   {Proceedings of the International Workshop on Natural
                           Language Processing Methods and Corpora in
@@ -758,7 +758,7 @@ Lingua::Align - a toolbox for Tree Alignment
     Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
   Copyright and License
-    Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotzé
+    Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon KotzÃ©
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself, either Perl version 5.8.8 or, at

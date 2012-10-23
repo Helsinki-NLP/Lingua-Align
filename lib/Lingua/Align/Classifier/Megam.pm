@@ -307,7 +307,7 @@ Lingua::Align::Classifier::Megam - A Perl module that prepares data instances fo
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

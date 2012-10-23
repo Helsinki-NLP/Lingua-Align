@@ -149,7 +149,7 @@ Lingua::Align::Corpus::Parallel::Dublin - Perl extension for reading tree-aligne
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 
