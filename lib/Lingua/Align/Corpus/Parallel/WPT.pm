@@ -5,10 +5,8 @@ package Lingua::Align::Corpus::Parallel::WPT;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel::Moses);
-
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Parallel::Moses;
@@ -101,15 +99,9 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::Moses - Perl extension to read sentence-aligned parallel corpora in Moses format
+Lingua::Align::Corpus::Parallel::WPT - Read data from the WPT word alignment task
 
 =head1 SYNOPSIS
-
-  use Lingua::Align::Corpus::Parallel;
-
-  my $corpus = new Lingua::Align::Corpus::Parallel(-srcfile => $srcfile,
-                                                   -trgfile => $trgfile,
-                                                   -type => 'moses');
 
 =head1 DESCRIPTION
 

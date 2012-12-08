@@ -78,8 +78,6 @@ europarl/wpt03/test.wa.nonullalign
 europarl/wpt03/test.wa.nullalign
 europarl/wpt03/test.wa.test
 europarl/wpt03/test.wa.train
-lib/Algorithm/Munkres.pm
-lib/Algorithm/README
 lib/Lingua/Align.pm
 lib/Lingua/Align/Classifier.pm
 lib/Lingua/Align/Classifier/Clues.pm

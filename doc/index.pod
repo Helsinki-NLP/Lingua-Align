@@ -27,11 +27,11 @@ For some features you will need word alignment information. To produce these fea
 
 
 
-=head2 Quickstart Tutorial
+=head1 Quickstart Tutorial
 
 The easiest way to use the Tree Aligner is to run the frontend script treealign in the bin directory. There are many options and command-line arguments that can be used to adjust the behaviour of the alignment tools. Have a look at L<Lingua::treealign> for more information.
 
-=head3 Run tests on existing data sets
+=head2 Run tests on existing data sets
 
 For a simple test: go to the directory C<europarl> and run C<make test>.
 
@@ -65,7 +65,7 @@ The example training data is stored in C<europarl/nl-en-weak_125.xml> which has 
 
 The actual treebank data is stored in TigerXML (in this case) and links are pointers to these documents using the unique node IDs. This should be quite straightforward (looking at the example above). Other formats are also supported, for example, Penn Treebank format and AlpinoXML for storing treebanks. There is also support for other alignment formats like the tree alignment format used by the Dublin Subtree Aligner and word alignment formats used by Giza++, Moses and shared tasks on word alignment (WPT2003).
 
-=head3 Run with your own settings
+=head2 Run with your own settings
 
 Basically you can call the tree-aligner frontend with your own data and settings like this:
 
@@ -84,7 +84,7 @@ This will assume that trees from both treebanks are aligned with each other in t
 
 Here are some more details about the things you need for running your own experiments:
 
-=head4 Training data
+=head3 Training data
 
 
 Your own tree-aligned training data. The easiest way is to use the Stockholm Tree Aligner. The format produced by this tool can directly be used by Lingua::Align. You need at least 100 pairs of parse trees in order to obtain reasonable results. More is better of course. The corpus has to be parsed on both sides. You need to use TigerXML for the Stockholm Tree Aligner and this is also most convenient for the tree aligner later on (also for visualizing automatic alignment).
@@ -111,7 +111,7 @@ If you like to use this format for your training data you can call the tree-alig
 
 
 
-=head4 Features & parameters
+=head3 Features & parameters
 
 First of all, you need to decide what kind of features should be used in the classifier model. Quite a lot of features are supported by Lingua::Align and you can easily add new ones. Look at L<Lingua::Align::Features> for more information on classification features. Features are given as a list of features type names separated by ':' using the command-line flag '-f'. Here are some simple exampels assuming that the training corpus is stored in Stockholm Tree Aligner format in a file called C<nl-en_125.xml> (from C<europarl/>):
 
@@ -213,7 +213,7 @@ Compare this to the alignment without the C<-P> flag and you will see the differ
 Note that history features coming from parent links and coming from children cannot be combined (for obvious reasons). And don't expect improvements in all cases. Especially for rich feature sets no big improvements can be expected. Note that alignment will also be (even) slower.
 
 
-=head4 Alignment strategies
+=head3 Alignment strategies
 
 In the default settings a two-step procedure is used: First all node pairs are classified using the local classifier, possibly including history features. The second step comprises the actual alignment step (inference) in which nodes are linked to each other according to the link likelihoods assigned by the local classifier in the first step. The default strategy is a "greedy" alignment procedure, starting with the node pair with the highest link likelihood and running greedily through the set of candidates. A necessary constraint is that all nodes are aligned at most once (on both sides).
 
@@ -251,7 +251,7 @@ One problem with the greedy strategies is that alignment is slow because all nod
 Observe that we can use history features again (but not C<-P>). This should speed-up the alignment process a bit (not that much as you might have expected ...). You can get information about the runtime by including the verbose output flag (see above C<-v>).
 
 
-=head3 Library structure
+=head2 Library structure
 
 There are several options that can be set. For further information have a look at the manpages linked below or just look at the source code. Extending the code is quite straightforward even though the documentation is not perfect and the code is partially awful (well, it's Perl ....). Here is a (hopefully up-to-date) list of modules (many of them are under-developed / experimental / non-functioning possible projects for the future):
 
@@ -277,7 +277,6 @@ There are several options that can be set. For further information have a look a
   Lingua/Align/Classifier.pm
   Lingua/Align/Classifier/Megam.pm
   Lingua/Align/Classifier/Clues.pm
-  Lingua/Align/Classifier/Diagonal.pm
   Lingua/Align/Classifier/LibSVM.pm
 
 =item modules for alignment inference
@@ -324,7 +323,7 @@ There are several options that can be set. For further information have a look a
 
 =back
 
-=head3 How to do word alignment
+=head1 How to do word alignment
 
 Lingua::Align can, of course, also be used for word alignment. It is straightforward if you have parse trees available. Then you can just specify the flag C<-L> (leafs only) to only consider terminal nodes during training and alignment. (Note that you can also align non-terminal nodes only using the flag C<-N> and if you use both flags C<-N -L> only nodes of the same type will be aligned).
 
@@ -457,7 +456,7 @@ This will print link matrices comparing the proposed links with the gold standar
 
 
 
-=head2 Documentation & References
+=head1 Documentation & References
 
 There are several man-pages generated from the "pod" information in the Perl modules and scripts included in Lingua::Align. Look at the following files:
 
@@ -546,11 +545,11 @@ L<http://stp.lingfil.uu.se/~joerg/published/ranlp09_tree.pdf>
 =back
 
 
-=head2 Author
+=head1 Author
 
 Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
 
-=head2 Copyright and License
+=head1 Copyright and License
 
 Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotzé
 

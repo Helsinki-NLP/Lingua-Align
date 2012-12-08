@@ -4,11 +4,10 @@ use 5.005;
 use strict;
 use utf8;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 use vars qw(%__LCSR_CACHE $__LCSR_CACHE_SIZE $__LCSR_CACHE_COUNT);
 
 @ISA = qw(Lingua::Align::Features::Tree);
-$VERSION = '0.01';
 
 $__LCSR_CACHE_COUNT=0;
 $__LCSR_CACHE_SIZE=1000000;
@@ -305,26 +304,3 @@ sub lcs {
 
 
 1;
-__END__
-
-=head1 NAME
-
-=head1 SYNOPSIS
-
-=head1 DESCRIPTION
-
-=head1 SEE ALSO
-
-=head1 AUTHOR
-
-Joerg Tiedemann, E<lt>j.tiedemann@rug.nlE<gt>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (C) 2009 by Joerg Tiedemann
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
-
-=cut

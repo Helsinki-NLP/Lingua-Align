@@ -6,8 +6,7 @@ use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Corpus::Treebank::TigerXML;
 
 
-use vars qw($VERSION @ISA);
-$VERSION = '0.01';
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Treebank::TigerXML);
 
 use FileHandle;
@@ -412,7 +411,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank::AlpinoXML - Perl extension to read treebanks in Alpino Treebank format L<http://www.let.rug.nl/vannoord/alp/>
+Lingua::Align::Corpus::Treebank::AlpinoXML - Read Alpino XML
 
 =head1 SYNOPSIS
 
@@ -421,6 +420,8 @@ Lingua::Align::Corpus::Treebank::AlpinoXML - Perl extension to read treebanks in
 =head2 EXPORT
 
 =head1 SEE ALSO
+
+Alpino Treebank L<http://www.let.rug.nl/vannoord/alp/>
 
 =head1 AUTHOR
 

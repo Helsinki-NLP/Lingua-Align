@@ -2,12 +2,11 @@ package Lingua::Align::LinkSearch::Intersection;
 
 use 5.005;
 use strict;
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 use Lingua::Align::LinkSearch::Src2Trg;
 use Lingua::Align::LinkSearch::Trg2Src;
 
 @ISA=qw(Lingua::Align::LinkSearch::Src2Trg Lingua::Align::LinkSearch::Trg2Src);
-$VERSION = '0.01';
 
 
 sub search{
@@ -48,7 +47,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Intersection
+Lingua::Align::LinkSearch::Intersection - Intersection between source-to-target and target-to-source alignment
 
 =head1 SYNOPSIS
 
@@ -60,7 +59,7 @@ This modules implements the intersection of Src2Trg and Trg2Src alignments.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

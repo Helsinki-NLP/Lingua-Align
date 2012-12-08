@@ -1,14 +1,13 @@
 
 package Lingua::Align::Classifier::Megam;
 
-use vars qw(@ISA $VERSION);
+use vars qw(@ISA);
 use strict;
 
 use FileHandle;
 use IPC::Open3;
 use FindBin;
 
-$VERSION='0.1';
 @ISA = qw( Lingua::Align::Classifier );
 
 
@@ -297,11 +296,13 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Classifier::Megam - A Perl module that prepares data instances for training a MaxEnt classifier with megam (L<http://www.cs.utah.edu/~hal/megam/>) and that calls megam for classification
+Lingua::Align::Classifier::Megam - A wrapper around megam
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+A Perl module that prepares data instances for training a MaxEnt classifier with megam (L<http://www.cs.utah.edu/~hal/megam/>) and that calls megam for classification.
 
 =head1 SEE ALSO
 

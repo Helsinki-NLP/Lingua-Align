@@ -3,7 +3,8 @@
 
 
 use strict;
-use lib 'perl/Lingua-Align/lib';
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
 
 
 use Lingua::Align::Corpus::Parallel;

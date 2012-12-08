@@ -3,9 +3,9 @@
 #
 #
 
-use lib '/storage3/data/PACO-MT/tools/Lingua-Align-dev/lib';
+use FindBin;
+use lib $FindBin::Bin.'/../lib';
 use Lingua::Align::Corpus::Parallel::OPUS;
-
 
 
 my $AlignFile = shift(@ARGV);
@@ -52,11 +52,11 @@ __END__
 
 =head1 NAME
 
-treebank2moses.pl - a script that converts an aligned parallel treebank to plain text format (Moses/Giza++ format). Sentence alignments have to be stored in OPUS (xces) format.
+treebank2moses - convert treebanks to Moses/GIZA++ format (plain text)
 
 =head1 SYNOPSIS
 
-    treebank2moses.pl alignfile STrees SFormat TTrees TFormat SOut TOut
+    treebank2moses alignfile STrees SFormat TTrees TFormat SOut TOut
 
 =head1 DESCRIPTION
 
@@ -68,7 +68,7 @@ L<Lingua::Align::Corpus>
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

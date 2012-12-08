@@ -3,10 +3,6 @@ package Lingua::Align::Corpus;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
-@ISA = qw();
-$VERSION = '0.01';
-
 use FileHandle;
 use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Corpus::Factored;
@@ -309,7 +305,11 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus - Perl extension for reading a tokenized plain text corpus, 1 sentence per line; can also be used as a virtual module to open other types of corpora (treebanks etc) using the "-type" attribute
+Lingua::Align::Corpus - reading corpus data
+
+=head1 Description
+
+Read corpus data in various formats. Default format = plain text, 1 sentence per line. For other types (parsed corpora etc): Use the C<-type> flag.
 
 =head1 SYNOPSIS
 

@@ -3,11 +3,9 @@ package Lingua::Align::Corpus::Factored;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus);
 
-
-$VERSION = '0.01';
 
 sub read_next_sentence{
     my $self=shift;
@@ -46,9 +44,11 @@ sub print_sentence{
 
 1;
 __END__
+
+
 =head1 NAME
 
-Lingua::Align::Corpus::Factored - Perl extension for reading plain text corpus files with token factors separated by '|' (Moses style); 1 sentence per line
+Lingua::Align::Corpus::Factored - Read factored corpora (Moses format)
 
 =head1 SYNOPSIS
 
@@ -73,7 +73,7 @@ Lingua::Align::Corpus::Factored - Perl extension for reading plain text corpus f
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

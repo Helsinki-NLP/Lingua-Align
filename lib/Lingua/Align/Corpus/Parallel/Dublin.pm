@@ -5,10 +5,8 @@ package Lingua::Align::Corpus::Parallel::Dublin;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel);
-
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Parallel;
@@ -139,7 +137,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::Dublin - Perl extension for reading tree-aligned parallel corpora in Dublin Subtree Aligner format
+Lingua::Align::Corpus::Parallel::Dublin - Read Dublin Subtree Aligner format
 
 =head1 SYNOPSIS
 

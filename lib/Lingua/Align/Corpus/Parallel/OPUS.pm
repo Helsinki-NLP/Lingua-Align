@@ -3,9 +3,8 @@ package Lingua::Align::Corpus::Parallel::OPUS;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel::STA);
-$VERSION = '0.01';
 
 use FileHandle;
 use File::Basename;
@@ -284,15 +283,19 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::OPUS - Perl extension to read sentence-aligned parallel corpora in OPUS format (L<http://www.let.rug.nl/~tiedeman/OPUS/>)
+Lingua::Align::Corpus::Parallel::OPUS - Read parallel corpora in OPUS format
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
+OPUS is a collection of parallel corpora that uses a particular XML format and standoff annotation of sentence alignments.
+
 =head2 EXPORT
 
 =head1 SEE ALSO
+
+L<http://www.let.rug.nl/~tiedeman/OPUS/>
 
 =head1 AUTHOR
 

@@ -22,9 +22,9 @@ my $corpus = new Lingua::Align::Corpus::Parallel::WPT(
 
 my %srctree=();
 my %trgtree=();
-my $links=();
+my %links=();
 
-while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
+while ($corpus->next_alignment(\%srctree,\%trgtree,\%links)){
     foreach my $s (keys %links){
 	foreach my $t (keys %{$links{$s}}){
 	    print "$s:$t ($links{$s}{$t})\n";

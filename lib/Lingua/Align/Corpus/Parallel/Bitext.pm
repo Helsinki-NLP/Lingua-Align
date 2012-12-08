@@ -4,10 +4,9 @@ package Lingua::Align::Corpus::Parallel::Bitext;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel);
 
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Parallel;
@@ -35,7 +34,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::Bitext - Perl extension for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other
+Lingua::Align::Corpus::Parallel::Bitext - Read sentence aligned bitexts
 
 =head1 SYNOPSIS
 
@@ -55,6 +54,8 @@ Lingua::Align::Corpus::Parallel::Bitext - Perl extension for reading a simple pa
   }
 
 =head1 DESCRIPTION
+
+Perl module for reading a simple parallel corpus (two corpus files, one for the source language, one for the target language); text on corresponding lines are aligned with each other.
 
 =head1 SEE ALSO
 

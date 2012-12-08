@@ -1,14 +1,13 @@
 
 package Lingua::Align::Classifier::Clues;
 
-use vars qw(@ISA $VERSION);
+use vars qw(@ISA);
 use strict;
 use Lingua::Align::Classifier;
 
 use FileHandle;
 use IPC::Open3;
 
-$VERSION='0.1';
 @ISA = qw( Lingua::Align::Classifier );
 
 

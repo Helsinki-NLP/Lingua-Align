@@ -8,8 +8,7 @@ use Lingua::Align::Corpus::Treebank;
 
 
 
-use vars qw($VERSION @ISA);
-$VERSION = '0.01';
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Treebank);
 
 use FileHandle;
@@ -379,7 +378,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank::TigerXML - Perl extension to read treebanks in TigerXML format
+Lingua::Align::Corpus::Treebank::TigerXML - Read the TigerXML format
 
 =head1 SYNOPSIS
 
@@ -391,7 +390,7 @@ Lingua::Align::Corpus::Treebank::TigerXML - Perl extension to read treebanks in 
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

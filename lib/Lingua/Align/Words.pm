@@ -24,9 +24,8 @@ package Lingua::Align::Words;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Trees);
-$VERSION = '0.01';
 
 
 sub print_link_matrix{
@@ -204,15 +203,19 @@ __END__
 
 =head1 NAME
 
+Lingua::Align::Words - Module for word alignment
+
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+This module essentially inherits everything from tree alignment but adds some tools which are specific to word alignment.
 
 =head1 SEE ALSO
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

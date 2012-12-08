@@ -3,9 +3,8 @@ package Lingua::Align::LinkSearch::AssignmentWellFormed;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch::Assignment);
-$VERSION = '0.01';
 
 
 sub search{
@@ -54,19 +53,19 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::AssignmentWellformed
+Lingua::Align::LinkSearch::AssignmentWellformed - Alignment as an assignment problem with additional constraints
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
-This module does the same as L<Lingua::Align::LinkSearch::Assignment> but removes links which violate wellformedness constraints afterwards
+This module does the same as L<Lingua::Align::LinkSearch::Assignment> but removes links which violate wellformedness constraints in a post-processing step.
 
 =head1 SEE ALSO
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

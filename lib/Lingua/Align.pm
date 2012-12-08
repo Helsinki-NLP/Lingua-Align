@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION @ISA);
 @ISA = qw();
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 sub new{
     my $class=shift;

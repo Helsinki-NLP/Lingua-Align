@@ -3,9 +3,8 @@ package Lingua::Align::Corpus::Parallel::STA;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel);
-$VERSION = '0.01';
 
 use FileHandle;
 use File::Basename;
@@ -407,7 +406,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::STA - Perl extension to read tree-aligned parallel corpora in STockholm Tree Aligner Format
+Lingua::Align::Corpus::Parallel::STA - Read the STockholm Tree Aligner Format
 
 =head1 SYNOPSIS
 
@@ -419,7 +418,7 @@ Lingua::Align::Corpus::Parallel::STA - Perl extension to read tree-aligned paral
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -3,9 +3,8 @@ package Lingua::Align::LinkSearch::Assignment;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch::GreedyWellFormed);
-$VERSION = '0.01';
 
 use Algorithm::Munkres;
 
@@ -89,17 +88,22 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Assignment - A Perl extension that calls Algorithm::Munkres to assign links between tree nodes (Kuhn-Munkres algorithm L<http://en.wikipedia.org/wiki/Hungarian_algorithm>)
+Lingua::Align::LinkSearch::Assignment - Alignment as an assignment problem in bipartite graphs
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
+This module uses the Kuhn-Munkres algorithm using Algorithm::Munkres to assign links between tree nodes. In this way, alignment is treated as an assignment problem in a bipartite graph. As a consequence, only one-to-one alignments will be found. Well-formedness constraints for tree alignment cannot be enforced.
+
+
 =head1 SEE ALSO
+
+L<http://en.wikipedia.org/wiki/Hungarian_algorithm>
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -3,10 +3,6 @@ package Lingua::Align::Features;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
-@ISA = qw();
-$VERSION = '0.01';
-
 use FileHandle;
 use Lingua::Align::Corpus::Treebank;
 use Lingua::Align::Corpus::Parallel::Giza;
@@ -669,7 +665,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Trees::Features - Perl modules for feature extraction for the Lingua::Align::Trees tree aligner
+Lingua::Align::Trees::Features - Feature extraction for tree alignment
 
 =head1 SYNOPSIS
 
@@ -1042,7 +1038,7 @@ For information on the tree aligner look at L<Lingua::Align::Trees>
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

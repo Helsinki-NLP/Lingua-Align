@@ -1,5 +1,18 @@
 use ExtUtils::MakeMaker;
 
+use File::Copy;
+if ($^O eq 'darwin'){
+  unlink('bin/megam');
+  copy('bin/megam.osx','bin/megam');
+  chmod 0755,'bin/megam';
+}
+else{
+  unlink('bin/megam');
+  copy('bin/megam_i686.opt','bin/megam');
+  chmod 0755,'bin/megam';
+}
+
+
 WriteMakefile(
     NAME              => 'Lingua::Align',
     VERSION_FROM      => 'lib/Lingua/Align.pm',
@@ -19,9 +32,10 @@ WriteMakefile(
 	'bin/alpino2tiger',
 	'bin/convert_treebank'
     ],
-    AUTHOR            => 'Joerg Tiedemann <j.tiedemann@rug.nl>',
+    AUTHOR            => 'Joerg Tiedemann',
     PREREQ_PM         => {
         'XML::Parser' => 0,
-	'IPC::Open3' => 0
+	'IPC::Open3' => 0,
+	'Algorithm::Munkres' => 0,
     },
 );

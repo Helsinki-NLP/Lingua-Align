@@ -3,9 +3,8 @@ package Lingua::Align::Corpus::Treebank;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus);
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Treebank::Penn;
@@ -556,7 +555,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank - Virtual Perl extension to read treebanks; default format = Penn Treebank format
+Lingua::Align::Corpus::Treebank - Factory class for reading treebanks
 
 =head1 SYNOPSIS
 
@@ -571,14 +570,23 @@ Lingua::Align::Corpus::Treebank - Virtual Perl extension to read treebanks; defa
 
 =head1 DESCRIPTION
 
+Factory class of modules for reading treebanks in different formats. The default format is the Penn Treebank format. Other supported formats are the format produced by the Berkeley parser, the Stanford parser (including typed dependencies), TigerXML and Alpino XML.
 
 =head2 EXPORT
 
 =head1 SEE ALSO
 
+L<Lingua::Align::Corpus>
+L<Lingua::Align::Corpus::Treebank::Penn>
+L<Lingua::Align::Corpus::Treebank::Berkeley>
+L<Lingua::Align::Corpus::Treebank::Stanford>
+L<Lingua::Align::Corpus::Treebank::TigerXML>
+L<Lingua::Align::Corpus::Treebank::AlpinoXML>
+
+
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

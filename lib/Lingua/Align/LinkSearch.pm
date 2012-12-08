@@ -1,11 +1,20 @@
 package Lingua::Align::LinkSearch;
 
+=head1 NAME
+
+Lingua::Align::LinkSearch - Search algorithms for tree alignment
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+Class factroy for searching the best tree alignment based on local link scores
+Various strategies have been implemented. More information will be added soon ....
+
+=cut
+
 use 5.005;
 use strict;
-
-use vars qw($VERSION @ISA);
-@ISA = qw();
-$VERSION = '0.01';
 
 use FileHandle;
 use Lingua::Align::LinkSearch::Threshold;
@@ -148,15 +157,6 @@ sub remove_already_linked{
 1;
 __END__
 
-=head1 NAME
-
-Lingua::Align::LinkSearch - Virtual Perl extension for tree alignment (alignment inference using local classification scores as alignment costs)
-
-=head1 SYNOPSIS
-
-=head1 DESCRIPTION
-
-Various strategies have been implemented. More information will be added soon ....
 
 =head1 SEE ALSO
 

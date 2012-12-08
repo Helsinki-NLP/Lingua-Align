@@ -6,9 +6,8 @@ use strict;
 use Lingua::Align::Corpus::Treebank;
 use File::Basename;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Treebank);
-$VERSION = '0.01';
 
 sub new{
     my $class=shift;
@@ -276,7 +275,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank::Penn - Perl extension to read treebanks in Penn Treebank format
+Lingua::Align::Corpus::Treebank::Penn - Read the Penn Treebank format
 
 =head1 SYNOPSIS
 
@@ -288,7 +287,7 @@ Lingua::Align::Corpus::Treebank::Penn - Perl extension to read treebanks in Penn
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

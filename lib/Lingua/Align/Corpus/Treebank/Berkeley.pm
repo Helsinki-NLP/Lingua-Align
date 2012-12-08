@@ -6,9 +6,8 @@ use strict;
 use Lingua::Align::Corpus::Treebank::Penn;
 use File::Basename;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Treebank::Penn);
-$VERSION = '0.01';
 
 
 sub read_next_sentence{
@@ -43,7 +42,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank::Penn - Perl extension to read treebanks in Penn Treebank format
+Lingua::Align::Corpus::Treebank::Penn - Read the output of the Berkeley parser
 
 =head1 SYNOPSIS
 

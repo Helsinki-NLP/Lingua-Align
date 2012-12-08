@@ -5,10 +5,8 @@ package Lingua::Align::Corpus::Parallel;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus);
-
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 
@@ -389,8 +387,7 @@ __END__
 
 =head1 NAME
 
-
-Lingua::Align::Corpus::Parallel - Virtual Perl extension for reading parallel sentence-aligned corpora; default format is plain text (see Lingua::Align::Corpus::Parallel::Bitext)
+Lingua::Align::Corpus::Parallel - Class factory for reading parallel corpora
 
 =head1 SYNOPSIS
 
@@ -410,6 +407,12 @@ Lingua::Align::Corpus::Parallel - Virtual Perl extension for reading parallel se
   }
 
 =head1 DESCRIPTION
+
+
+A collection of modules for reading parallel sentence-aligned corpora.
+Default format is plain text (see
+L<Lingua::Align::Corpus::Parallel::Bitext>)
+
 
 =head1 SEE ALSO
 

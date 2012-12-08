@@ -5,9 +5,8 @@ use strict;
 use Lingua::Align::LinkSearch::Greedy;
 use Lingua::Align::Corpus::Treebank;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch::Greedy);
-$VERSION = '0.01';
 
 
 sub new{
@@ -142,7 +141,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::GreedyWellFormed
+Lingua::Align::LinkSearch::GreedyWellFormed - Greedy search with wellformedness constraints
 
 =head1 SYNOPSIS
 

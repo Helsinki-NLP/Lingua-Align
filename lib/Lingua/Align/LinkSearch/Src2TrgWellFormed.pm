@@ -5,9 +5,8 @@ use strict;
 use Lingua::Align::LinkSearch::GreedyWellFormed;
 use Lingua::Align::Corpus::Treebank;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch::GreedyWellFormed);
-$VERSION = '0.01';
 
 
 
@@ -91,7 +90,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Src2TrgWellFormed
+Lingua::Align::LinkSearch::Src2TrgWellFormed - Source-to-target alignment with constraints
 
 =head1 SYNOPSIS
 
@@ -103,7 +102,7 @@ This module implements an alignment strategy that greedily aligns the best scori
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

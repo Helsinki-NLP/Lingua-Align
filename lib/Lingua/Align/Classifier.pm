@@ -5,20 +5,14 @@
 
 package Lingua::Align::Classifier;
 
-use vars qw(@ISA $VERSION);
 use strict;
 
 
 use Lingua::Align::Classifier::Megam;
-# use Lingua::Align::Classifier::LibSVM;
 use Lingua::Align::Classifier::Clues;
 
-#use Lingua::Align::Classifier::LibSVM;
-#use Lingua::Align::Classifier::Diagonal;
+# use Lingua::Align::Classifier::LibSVM;
 
-
-$VERSION='0.1';
-@ISA = qw();
 
 sub new{
     my $class=shift;
@@ -33,16 +27,12 @@ sub new{
 	    return $self=new Lingua::Align::Classifier::Clues(%attr);
 	}
 	elsif ($classifier=~/svm/i){
-	    eval 'use Lingua::Align::Classifier::LibSVM';
+	    eval 'require Lingua::Align::Classifier::LibSVM';
 	    if ($@){
 		die "cannot load libSVM ($@)\n";
 	    }
 	    return $self=new Lingua::Align::Classifier::LibSVM(%attr);
 	}
-	elsif ($classifier=~/diag/i){
-	    return $self=new Lingua::Align::Classifier::Diagonal(%attr);
-	}
-	    
     }
     ## default = MEGAM classifier!
     return $self = new Lingua::Align::Classifier::Megam(%attr);
@@ -66,15 +56,13 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Classifier - A virtual Perl module that links to the local classifier that will be used for the alignment
+Lingua::Align::Classifier - Class factory for link classification
 
 =head1 SYNOPSIS
 
-=head1 DESCRIPTION
-
-Right now only the MaxEnt classifier implemented in megam (L<http://www.cs.utah.edu/~hal/megam/>) is supported.
-
 =head1 SEE ALSO
+
+L<Lingua::Align::Classifier::Megam>
 
 =head1 AUTHOR
 

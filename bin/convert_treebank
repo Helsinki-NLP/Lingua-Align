@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #-*-perl-*-
 #
-# USAGE: alpino2tiger infile informat outformat
 
 use strict;
 use FindBin;
@@ -57,6 +56,10 @@ The bracketing format from the Penn Treebank. Sentences should be separated by e
 =item Stanford Parser format (stanford)
 
 This is essentially the same as the PennTreebank format but includes also the depedency relations that can optionally be produced by the Stanford parser. The conversion script tries to attach the relations to the phrase-structure trees. (This is rather experimental and the labeling might be different from what you'd expect -- use with care!).
+
+=item Berkeley Parser format (berkeley)
+
+This is the same as the Penn Treebank format but the Berkeley Parser produces bracketing structures that break the parser.
 
 =item TigerXML (tiger)
 

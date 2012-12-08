@@ -1,6 +1,5 @@
-Lingua-Align version 0.01
-=========================
-
+Lingua-Align - a toolbox for syntactic tree alignment
+=====================================================
 
 
 INSTALLATION
@@ -43,9 +42,7 @@ This module requires these other modules and libraries:
 
      XML::Parser
      IPC::Open3
-
-Another dependency is Algorithm::Munkres but for simplicity I just
-included version 0.08 in this distribution.
+     Algorithm::Munkres
 
 
 COPYRIGHT AND LICENCE

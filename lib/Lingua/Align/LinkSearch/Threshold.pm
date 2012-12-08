@@ -3,9 +3,8 @@ package Lingua::Align::LinkSearch::Threshold;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch);
-$VERSION = '0.01';
 
 sub new{
     my $class=shift;
@@ -45,28 +44,18 @@ __END__
 
 =head1 NAME
 
-YADWA - Perl modules for Yet Another Discriminative Word Aligner
+Lingua::Align::LinkSearch::Threshold - Greedy linking with score thresholds
 
 =head1 SYNOPSIS
-
-  use YADWA;
 
 =head1 DESCRIPTION
 
 =head1 SEE ALSO
 
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

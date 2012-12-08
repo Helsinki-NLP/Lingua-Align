@@ -2,13 +2,10 @@ package Lingua::Align::LinkSearch::Trg2Src;
 
 use 5.005;
 use strict;
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 use Lingua::Align::LinkSearch::Greedy;
 
 @ISA = qw(Lingua::Align::LinkSearch::Greedy);
-$VERSION = '0.01';
-
-
 
 sub search{
     my $self=shift;
@@ -50,7 +47,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Trg2Src
+Lingua::Align::LinkSearch::Trg2Src - Greedy target-to-source alignment
 
 =head1 SYNOPSIS
 

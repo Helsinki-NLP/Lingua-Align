@@ -8,10 +8,9 @@ package Lingua::Align::Corpus::Parallel::OrderedIds;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel::Bitext);
 
-$VERSION = '0.01';
 use Lingua::Align::Corpus::Parallel::Bitext;
 
 
@@ -45,7 +44,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::OrderedIds - Perl extension for reading sentence-aligned parallel corpora aligned by ID
+Lingua::Align::Corpus::Parallel::OrderedIds - read parallel corpora with ordered sentence IDs
 
 =head1 SYNOPSIS
 

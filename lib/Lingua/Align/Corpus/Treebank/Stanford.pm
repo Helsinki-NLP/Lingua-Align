@@ -5,9 +5,8 @@ use strict;
 
 use Lingua::Align::Corpus::Treebank::Penn;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Treebank::Penn);
-$VERSION = '0.01';
 
 
 
@@ -202,13 +201,13 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Treebank::Stanford - Perl extension to read treebanks in Penn Treebank format including dependency relations produced by the Stanford parser
+Lingua::Align::Corpus::Treebank::Stanford - Read output from the Stanford parser
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
 
-Adding dependency relations to the phrase-structure trees is still quite buggy.
+Module to read treebanks in Penn Treebank format including dependency relations produced by the Stanford parser. Note: Adding dependency relations to the phrase-structure trees is still a bit buggy.
 
 =head2 EXPORT
 
@@ -216,7 +215,7 @@ Adding dependency relations to the phrase-structure trees is still quite buggy.
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>tiedeman@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

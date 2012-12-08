@@ -5,10 +5,9 @@ package Lingua::Align::Corpus::Parallel::Giza;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::Corpus::Parallel::Bitext);
 
-$VERSION = '0.01';
 
 use Lingua::Align::Corpus;
 use Lingua::Align::Corpus::Parallel::Bitext;
@@ -63,7 +62,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::Corpus::Parallel::Giza - Perl extension to read Viterbi word alignments produced by GIZA++
+Lingua::Align::Corpus::Parallel::Giza - Read the Viterbi word alignment produced by GIZA++
 
 =head1 DESCRIPTION
 

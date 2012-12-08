@@ -1,7 +1,7 @@
 
 package Lingua::Align::Classifier::LibSVM;
 
-use vars qw(@ISA $VERSION);
+use vars qw(@ISA);
 use strict;
 
 use FileHandle;
@@ -9,7 +9,6 @@ use IPC::Open3;
 use Algorithm::SVM;
 use Algorithm::SVM::DataSet;
 
-$VERSION='0.1';
 @ISA = qw( Lingua::Align::Classifier::Megam );
 
 

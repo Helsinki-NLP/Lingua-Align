@@ -24,9 +24,8 @@ package Lingua::Align::LinkSearch::Cascaded;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch);
-$VERSION = '0.01';
 
 use Lingua::Align::LinkSearch;
 
@@ -82,7 +81,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Cascaded
+Lingua::Align::LinkSearch::Cascaded - cascaded link search strategies
 
 =head1 SYNOPSIS
 
@@ -98,7 +97,7 @@ This module allows to combine several alignment inference strategies into a "cas
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

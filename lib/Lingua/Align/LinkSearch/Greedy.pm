@@ -3,9 +3,8 @@ package Lingua::Align::LinkSearch::Greedy;
 use 5.005;
 use strict;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch);
-$VERSION = '0.01';
 
 sub new{
     my $class=shift;
@@ -52,7 +51,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::Greedy
+Lingua::Align::LinkSearch::Greedy - Simple greedy search for links
 
 =head1 SYNOPSIS
 
@@ -64,7 +63,7 @@ This module implements a greedy best-first alignment strategy that allows one-to
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>j.tiedemanh@rug.nl@E<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 
