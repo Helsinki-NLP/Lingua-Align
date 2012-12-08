@@ -1,7 +1,6 @@
 NAME
-    sta2moses - a script that converts an aligned parallel treebank to plain
-    text format (Moses/Giza++ format). Alignment has to be in sta (Stockholm
-    Tree Aligner) format.
+    sta2moses - convert from Stockholm Tree Aligner format to Moses/GIZA++
+    (plain text)
 
 SYNOPSIS
         sta2moses alignments.xml
@@ -16,7 +15,7 @@ SEE ALSO
     Lingua::Align::Corpus
 
 AUTHOR
-    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
+    Joerg Tiedemann
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann

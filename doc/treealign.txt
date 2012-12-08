@@ -1,6 +1,6 @@
 NAME
-    treealign - a simple frontend for training and applying a tree aligner
-    model using Lingua::Align::Trees and a standard binary classifier
+    treealign - training tree alignment classifiers and aligning syntactic
+    trees
 
 SYNOPSIS
         treealign [OPTIONS]
@@ -12,6 +12,10 @@ SYNOPSIS
         treealign -m treealign.model -a parallel-treebank.xml > aligned.xml
 
 DESCRIPTION
+    This script allows you to train a tree alignment model and to apply them
+    to parallel treebanks. Tree alignment is based on local binary
+    classification and rich feature sets.
+
     Currently, training data has to be in Stockholm Tree Aligner format. The
     output format is the same format. Here is a short example of this format
     (taking from the output of the TreeAligner):
@@ -280,7 +284,7 @@ SEE ALSO
     Lingua::Align::Trees, Lingua::Align::Features, Lingua::Align::Corpus
 
 AUTHOR
-    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
+    Joerg Tiedemann
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann

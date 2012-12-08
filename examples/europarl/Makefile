@@ -47,6 +47,8 @@ ALIGNTHR    = 0.15
 EXTRAOPT    = -C -U
 
 
+BINDIR = ../../bin
+
 #-------------------------------------------------------------------------
 # really important: the features used in the model!
 #-------------------------------------------------------------------------
@@ -59,8 +61,12 @@ FEAT = 'nrleafsratio:parent_catpos:catpos.parent_catpos:treelevelsim:treespansim
 # inside4:outside4:inside4*outside4:parent_inside4:
 # insideST4:insideTS4:maxinsideST:maxinsideTS:inside4*parent_inside4:
 # treelevelsim*inside4:maxinside.catpos
-
+#
 # FEAT = 'nrleafsratio:inside2:outside2:inside2*outside2:parent_inside2:parent_catpos:catpos.parent_catpos:insideST2:insideTS2:maxinsideST:maxinsideTS:inside2*parent_inside2:treelevelsim:treelevelsim*inside2:treespansim:treespansim*treelevelsim:giza:parent_giza:giza.catpos:moses:moses.catpos:sister_giza.catpos:sister_moses.catpos:moseslink:treespansim.catpos:treelevelsim.catpos:maxinside.catpos:children_giza.catpos'
+#
+# alternative (faster) feature set with good (?) performance:
+#
+# word:suffix=4:treespansim:treelevelsim:nrleafsratio:catpos:parent_catpos:srcparent_catpos:trgparent_catpos:edge:moses:gizae2f:gizaf2e
 
 
 # run a new experiment (remove old alignment first)
@@ -99,7 +105,7 @@ test: clean
 #   -B ........ negative neighbors only in training
 
 treealign.${CLASSIFIER}:
-	../bin/treealign \
+	${BINDIR}/treealign \
 		-c ${CLASSIFIER} \
 		-a ${TRAINCORPUS}.xml \
 		-m $@ \
@@ -118,38 +124,38 @@ treealign.${CLASSIFIER}:
 		-x ${ALIGNTHR} \
 		-l ${SEARCH} ${EXTRAOPT} \
 			> ${TRAINCORPUS}.${NR_TRAIN}.${NR_DEV}.align
-	../bin/eval_sta ${TRAINCORPUS}.xml \
+	${BINDIR}/treealigneval ${TRAINCORPUS}.xml \
 			${TRAINCORPUS}.${NR_TRAIN}.${NR_DEV}.align
 
 
 
 pos.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x pos -y pos \
 			-f pos.src -e pos.trg -c $@
 
 cat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x cat -y cat \
 			-f cat.src -e cat.trg -c $@
 
 pospcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x pos:parent_cat -y pos:parent_cat \
 			-f pospcat.src -e pospcat.trg -c $@
 
 word.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x word -y word \
 			-f word.src -e word.trg -c $@
 
 wordpcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x word:parent_cat -y word:parent_cat \
 			-f wordpcat.src -e wordpcat.trg -c $@
 
 suffixpcat.cooc:
-	../bin/coocfreq -a ${TRAINCORPUS}.xml -A sta \
+	${BINDIR}/coocfreq -a ${TRAINCORPUS}.xml -A sta \
 			-x suffix=3:parent_cat -y suffix=3:parent_cat \
 			-f suffixpcat.src -e suffixpcat.trg -c $@
 

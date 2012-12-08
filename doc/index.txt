@@ -38,13 +38,13 @@ Lingua::Align - a toolbox for Tree Alignment
     <http://code.google.com/p/giza-pp/> and Moses
     <http://statmt.org/moses/>.
 
-  Quickstart Tutorial
+Quickstart Tutorial
     The easiest way to use the Tree Aligner is to run the frontend script
     treealign in the bin directory. There are many options and command-line
     arguments that can be used to adjust the behaviour of the alignment
     tools. Have a look at Lingua::treealign for more information.
 
-   Run tests on existing data sets
+  Run tests on existing data sets
     For a simple test: go to the directory "europarl" and run "make test".
 
       cd europarl
@@ -92,7 +92,7 @@ Lingua::Align - a toolbox for Tree Alignment
     word alignment formats used by Giza++, Moses and shared tasks on word
     alignment (WPT2003).
 
-   Run with your own settings
+  Run with your own settings
     Basically you can call the tree-aligner frontend with your own data and
     settings like this:
 
@@ -422,7 +422,7 @@ Lingua::Align - a toolbox for Tree Alignment
     have expected ...). You can get information about the runtime by
     including the verbose output flag (see above "-v").
 
-   Library structure
+  Library structure
     There are several options that can be set. For further information have
     a look at the manpages linked below or just look at the source code.
     Extending the code is quite straightforward even though the
@@ -448,7 +448,6 @@ Lingua::Align - a toolbox for Tree Alignment
           Lingua/Align/Classifier.pm
           Lingua/Align/Classifier/Megam.pm
           Lingua/Align/Classifier/Clues.pm
-          Lingua/Align/Classifier/Diagonal.pm
           Lingua/Align/Classifier/LibSVM.pm
 
     modules for alignment inference
@@ -490,7 +489,7 @@ Lingua::Align - a toolbox for Tree Alignment
           Lingua/Align/Corpus/Parallel/WPT.pm
           Lingua/Align/Corpus/Factored.pm
 
-   How to do word alignment
+How to do word alignment
     Lingua::Align can, of course, also be used for word alignment. It is
     straightforward if you have parse trees available. Then you can just
     specify the flag "-L" (leafs only) to only consider terminal nodes
@@ -669,7 +668,7 @@ Lingua::Align - a toolbox for Tree Alignment
             average: precision = 0.8338, recall = 0.9613, AER = 0.1150
               total: precision = 0.8526, recall = 0.9695, AER = 0.0941
 
-  Documentation & References
+Documentation & References
     There are several man-pages generated from the "pod" information in the
     Perl modules and scripts included in Lingua::Align. Look at the
     following files:
@@ -754,10 +753,10 @@ Lingua::Align - a toolbox for Tree Alignment
            isbn =        {978-954-452-010-6}
          }
 
-  Author
+Author
     Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
 
-  Copyright and License
+Copyright and License
     Copyright (C) 2009, 2010 by Joerg Tiedemann, Gideon Kotzé
 
     This library is free software; you can redistribute it and/or modify it

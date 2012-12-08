@@ -1,8 +1,10 @@
 NAME
-    Lingua::Align::Corpus - Perl extension for reading a tokenized plain
-    text corpus, 1 sentence per line; can also be used as a virtual module
-    to open other types of corpora (treebanks etc) using the "-type"
-    attribute
+    Lingua::Align::Corpus - reading corpus data
+
+Description
+    Read corpus data in various formats. Default format = plain text, 1
+    sentence per line. For other types (parsed corpora etc): Use the "-type"
+    flag.
 
 SYNOPSIS
       use Lingua::Align::Corpus;

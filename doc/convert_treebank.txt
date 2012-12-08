@@ -26,6 +26,10 @@ DESCRIPTION
         labeling might be different from what you'd expect -- use with
         care!).
 
+    Berkeley Parser format (berkeley)
+        This is the same as the Penn Treebank format but the Berkeley Parser
+        produces bracketing structures that break the parser.
+
     TigerXML (tiger)
         This is the TigerXML format which is used as a standard in the
         TreeAligner (mainly because it is also used in the Stockholm Tree

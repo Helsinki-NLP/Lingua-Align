@@ -42,6 +42,7 @@ SYNOPSIS
         -verbose => 1,                    # verbose output
       );
 
+
       # corpus to be used for training (and testing)
       # default input format is the 
       # Stockholm Tree Aligner format (STA)

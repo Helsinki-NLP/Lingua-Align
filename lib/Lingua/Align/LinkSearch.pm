@@ -1,3 +1,5 @@
+#-*-perl-*-
+
 package Lingua::Align::LinkSearch;
 
 =head1 NAME
@@ -6,10 +8,31 @@ Lingua::Align::LinkSearch - Search algorithms for tree alignment
 
 =head1 SYNOPSIS
 
+    my $aligner = new Lingua::Align::LinkSearch(-link_search => $type);
+    $aligner->search(\%links,\@scores,$min_score,\@src,\@trg)
+
 =head1 DESCRIPTION
 
-Class factroy for searching the best tree alignment based on local link scores
-Various strategies have been implemented. More information will be added soon ....
+Class factory for searching the best tree alignment based on local
+link scores Various strategies have been implemented. Use the argument
+C<-link_search> in the constructor to choose from the following
+search strategies:
+
+ threshold .............. greedy search with score thresholds
+ assignment ............. bipartite graph matching (assignment problem)
+ greedy ................. greedy search
+ greedyWellformed ....... greedy search with well-formedness constraints
+ greedyFinal ............ add step to link unlinked nodes (if wellformed)
+ greedyFinalAnd ......... add step to link still unlinked nodes
+ src2trg ................ source-to-target alignment (one link / source)
+ trg2src ................ target-to-source alignment (one link / target)
+ src2trgWellFormed ...... src2trg with wellformedness constraints
+ intersection ........... intersection between src2trg and trg2src
+ NTfirst ................ align non-terminals nodes first
+ NTonly ................. align only non-terminals
+ Tonly .................. align only termnal nodes
+ PaCoMT ................. used in PaCoMT project
+ cascaded ............... conbine search strategies (sequentially)
 
 =cut
 

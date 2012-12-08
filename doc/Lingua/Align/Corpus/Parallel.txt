@@ -1,7 +1,6 @@
 NAME
-    Lingua::Align::Corpus::Parallel - Virtual Perl extension for reading
-    parallel sentence-aligned corpora; default format is plain text (see
-    Lingua::Align::Corpus::Parallel::Bitext)
+    Lingua::Align::Corpus::Parallel - Class factory for reading parallel
+    corpora
 
 SYNOPSIS
       use Lingua::Align::Corpus::Parallel;
@@ -20,6 +19,10 @@ SYNOPSIS
       }
 
 DESCRIPTION
+    A collection of modules for reading parallel sentence-aligned corpora.
+    Default format is plain text (see
+    Lingua::Align::Corpus::Parallel::Bitext)
+
 SEE ALSO
     Lingua::Align::Corpus::Parallel::Bitext,
     Lingua::Align::Corpus::Parallel::Giza,

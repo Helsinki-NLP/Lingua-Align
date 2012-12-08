@@ -45,15 +45,10 @@
 # path to the tree aligner scripts
 #--------------------------------------------------------------------------
 
-TREEALIGNERHOME = ..
+TREEALIGNERHOME = ../..
 TREEALIGN       = ${TREEALIGNERHOME}/bin/treealign
 STA2MOSES       = ${TREEALIGNERHOME}/bin/sta2moses
 ALIGNEVAL       = ${TREEALIGNERHOME}/bin/treealigneval
-
-# uncomment the following line if you want to run the TreeAligner on Mac OSX:
-# TREEALIGN     = ${TREEALIGNERHOME}/bin/treealign -c megam.osx
-
-
 
 #--------------------------------------------------------------------------
 # location of the SMULTRON treebank

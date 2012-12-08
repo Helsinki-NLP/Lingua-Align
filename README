@@ -15,11 +15,13 @@ To install this module type the following:
 DOCUMENTATION
 
 Look at the files in doc/
-To run on some small sample data: look at europarl/
+To run on some small sample data: look at examples/europarl/
 and run "make test" (look into the Makefile for more information)
 
-Other tests can be run on Smultron data (in smultron/)
+Other tests can be run on Smultron data (in examples/smultron/)
 Download the treebank from http://kitt.cl.uzh.ch/kitt/smultron/
+
+Using Lingua::Align for word alignment is demonstrated in examples/wpt03
 
 
 ATTENTION:

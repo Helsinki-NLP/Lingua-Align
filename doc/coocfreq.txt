@@ -1,6 +1,6 @@
 NAME
     coocfreq - count co-occurrence frequencies for arbitrary features of
-    nodes in a parallel treebank (corpus).
+    nodes in a parallel treebank
 
 SYNOPSIS
       coocfreq [OPTIONS]

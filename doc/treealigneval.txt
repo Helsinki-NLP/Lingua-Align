@@ -1,6 +1,6 @@
 NAME
-    treealigneval - a simple script for computing precision and recall
-    scores for a tree aligmnent task
+    treealigneval - a script for computing precision and recall scores for
+    tree aligmnent
 
 SYNOPSIS
         treealigneval [OPTIONS] gold-standard-file tree-alignment-file
@@ -74,7 +74,10 @@ DESCRIPTION
     "NT" refers to non-terminal nodes and "T" refers to terminal nodes
     (treealigneval uses type attributes in the alignment file to determine
     if a node is a terminal node or a non-terminal node; if this attribute
-    is not included it assumes that all nodes with an I1
+    is not included it assumes that all nodes with an I500 is a terminal
+    node). Precision and recall values for specific link types may be lower
+    than the overall numbers because the proposed link type has to match
+    whereas in the total numbers all proposed links are considered.
 
   OPTIONS
     -b firstSentId
@@ -102,7 +105,7 @@ SEE ALSO
     Lingua::treealign, Lingua::Align::Trees
 
 AUTHOR
-    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
+    Joerg Tiedemann
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann
@@ -110,4 +113,13 @@ COPYRIGHT AND LICENSE
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself, either Perl version 5.8.8 or, at
     your option, any later version of Perl 5 you may have available.
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 368:
+        Unterminated D<...> sequence
+
+        Deleting unknown formatting code D<>
 
