@@ -1,11 +1,11 @@
 NAME
-    Lingua::Align::Trees::Features - Feature extraction for tree alignment
+    Lingua::Align::Features - Feature extraction for tree alignment
 
 SYNOPSIS
-      use Lingua::Align::Trees::Features;
+      use Lingua::Align::Features;
 
       my $FeatString = 'catpos:treespansim:parent_catpos';
-      my $extractor = new Lingua::Align::Trees::Features(
+      my $extractor = new Lingua::Align::Features(
                               -features => $FeatString);
 
       my %features = $extractor->features(\%srctree,\%trgtree,
@@ -14,7 +14,7 @@ SYNOPSIS
 
 
       my $FeatString2 = 'giza:gizae2f:gizaf2e:moses';
-      my $extractor2 = new Lingua::Align::Trees::Features(
+      my $extractor2 = new Lingua::Align::Features(
                           -features => $FeatString2,
                           -lexe2f => 'moses/model/lex.0-0.e2f',
                           -lexf2e => 'moses/model/lex.0-0.f2e',

@@ -76,13 +76,9 @@ examples/europarl/moses/model/aligned.ids
 examples/europarl/moses/model/aligned.intersect
 examples/europarl/moses/model/lex.0-0.e2f
 examples/europarl/moses/model/lex.0-0.f2e
-examples/europarl/nl-en-weak_125.10.0.align
-examples/europarl/nl-en-weak_125.90.10.align
 examples/europarl/nl-en-weak_125.xml
 examples/europarl/nl-en_125.dublin
 examples/europarl/nl-en_125.xml
-examples/europarl/treealign.megam
-examples/europarl/treealign.megam.feat
 examples/README
 examples/smultron/align.pl
 examples/smultron/moses-eco/corpus/src-trg-int-train.snt
@@ -138,21 +134,12 @@ examples/wpt03/moses/giza.e-f/A3.final.447.gz
 examples/wpt03/moses/giza.f-e/A3.final.447.gz
 examples/wpt03/moses/model/aligned.grow-diag-final.447
 examples/wpt03/moses/model/aligned.intersect.447
-examples/wpt03/test.align
 examples/wpt03/test.e
 examples/wpt03/test.f
 examples/wpt03/test.wa.nonullalign
 examples/wpt03/test.wa.nullalign
 examples/wpt03/test.wa.test
 examples/wpt03/test.wa.train
-examples/wpt03/testsuffix.cooc
-examples/wpt03/testsuffix.src
-examples/wpt03/testsuffix.trg
-examples/wpt03/testword.cooc
-examples/wpt03/testword.src
-examples/wpt03/testword.trg
-examples/wpt03/wordalign.megam
-examples/wpt03/wordalign.megam.feat
 lib/Lingua/Align.pm
 lib/Lingua/Align/Classifier.pm
 lib/Lingua/Align/Classifier/Clues.pm
@@ -206,6 +193,3 @@ Makefile.PL
 MANIFEST			This list of files
 README
 t/10_Lingua-Align.t
-t/20_ReadAlign.t
-t/data/output/tree-align.dublin
-t/data/tree-align.dublin
