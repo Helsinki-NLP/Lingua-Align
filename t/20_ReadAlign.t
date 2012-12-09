@@ -13,7 +13,9 @@ use File::Temp qw(tempfile tempdir);
 use Lingua::Align::Corpus::Parallel::Dublin;
 use Lingua::Align::Corpus::Treebank;
 
-my $corpus = new Lingua::Align::Corpus::Parallel::Dublin(-alignfile => 'data/tree-align.dublin');
+my $algfile = $FindBin::Bin.'/data/tree-align.dublin';
+
+my $corpus = new Lingua::Align::Corpus::Parallel::Dublin( -alignfile => $algfile );
 my $trees = new Lingua::Align::Corpus::Treebank;
 
 my %srctree=();
@@ -37,7 +39,8 @@ while ($corpus->next_alignment(\%srctree,\%trgtree,\$links)){
 }
 
 close $fh;
-is ( compare( $filename, 'data/output/tree-align.dublin' ), 0, "Subtree Aligner Format" );
+is ( compare( $filename, $FindBin::Bin.'/data/output/tree-align.dublin' ), 0, 
+     "Subtree Aligner Format" );
 
 done_testing;
 

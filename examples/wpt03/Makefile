@@ -59,7 +59,7 @@ test.align: testword.cooc testsuffix.cooc
 # print link matrices for comparing alignments with gold standard
 
 compare: test.align
-	../../bin/compare_wordalign.pl -A corpus \
+	../../bin/compare_wordalign -A corpus \
 		-b wpt -B corpus -S test.e -T test.f \
 		test.align test.wa.nullalign
 
