@@ -183,9 +183,9 @@ Good question. Do whatever you like to do with it. You can use these treebanks t
 
 =head1 SEE ALSO
 
-L<Lingua::treealign> (tree aligner front-end),
-L<Lingua::treealigneval> (tree alignment evaluation script),
-L<Lingua::sta2phrases> (conversion from tree alignments to phrase pairs),
+L<treealign> (tree aligner front-end),
+L<treealigneval> (tree alignment evaluation script),
+L<sta2phrases> (conversion from tree alignments to phrase pairs),
 L<Lingua::Align::Trees> (tree aligner module),
 L<Lingua::Align::Features> (feature extraction module),
 L<Lingua::Align::Corpus> (top-level module for corpus data I/O)

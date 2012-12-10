@@ -5,10 +5,8 @@ use strict;
 use Lingua::Align::LinkSearch::GreedyWellFormed;
 use Lingua::Align::Corpus::Treebank;
 
-use vars qw($VERSION @ISA);
+use vars qw(@ISA);
 @ISA = qw(Lingua::Align::LinkSearch::GreedyWellFormed);
-$VERSION = '0.01';
-
 
 
 sub search{

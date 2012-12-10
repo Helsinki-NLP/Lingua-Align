@@ -53,7 +53,7 @@ __END__
 
 =head1 NAME
 
-Lingua::Align::LinkSearch::AssignmentWellformed - Alignment as an assignment problem with additional constraints
+Lingua::Align::LinkSearch::AssignmentWellFormed - Alignment as an assignment problem with additional constraints
 
 =head1 SYNOPSIS
 
