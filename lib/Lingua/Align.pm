@@ -5,7 +5,7 @@ use strict;
 
 use vars qw($VERSION @ISA);
 @ISA = qw();
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 sub new{
     my $class=shift;
@@ -192,7 +192,7 @@ L<Lingua::Align::Corpus> (top-level module for corpus data I/O)
 
 =head1 AUTHOR
 
-Joerg Tiedemann, E<lt>jorg.tiedemann@lingfil.uu.seE<gt>
+Joerg Tiedemann
 
 =head1 COPYRIGHT AND LICENSE
 

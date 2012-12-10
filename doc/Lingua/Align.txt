@@ -176,14 +176,14 @@ DESCRIPTION
     treebanks.
 
 SEE ALSO
-    Lingua::treealign (tree aligner front-end), Lingua::treealigneval (tree
-    alignment evaluation script), Lingua::sta2phrases (conversion from tree
-    alignments to phrase pairs), Lingua::Align::Trees (tree aligner module),
+    treealign (tree aligner front-end), treealigneval (tree alignment
+    evaluation script), sta2phrases (conversion from tree alignments to
+    phrase pairs), Lingua::Align::Trees (tree aligner module),
     Lingua::Align::Features (feature extraction module),
     Lingua::Align::Corpus (top-level module for corpus data I/O)
 
 AUTHOR
-    Joerg Tiedemann, <jorg.tiedemann@lingfil.uu.se>
+    Joerg Tiedemann
 
 COPYRIGHT AND LICENSE
     Copyright (C) 2009 by Joerg Tiedemann
