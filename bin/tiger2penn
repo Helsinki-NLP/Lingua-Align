@@ -18,6 +18,7 @@ my $penn=new Lingua::Align::Corpus::Treebank::Penn;
 
 my %tree=();
 
+binmode(STDOUT, ":utf8");
 while ($tiger->next_sentence(\%tree)){
     print $penn->print_tree(\%tree);
     print "\n";

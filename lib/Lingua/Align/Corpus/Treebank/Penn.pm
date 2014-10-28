@@ -153,6 +153,23 @@ sub __parse{
 	    push(@{$tree->{TERMINALS}},$node);
 
 	    my $parent = $self->{CURRENTNODE};
+        # sometimes, we get trees like this one:
+        # (ROOT E.)
+        # This tree consists of a single terminal node,
+        # so there is no NT node: we never have a parent node
+        # The resulting TigerXML trees are broken, as the TigerXML
+        # serialization code inserts an NT
+        # so here we fake an NT ID
+        # I am reasonably certain this code does not introduce unwanted
+        # side-effects as it should only fire if we see a T without
+        # having seen and NT
+        if ($parent eq "" or ! defined($parent)) {
+            $parent = 500+$self->{NODECOUNT};
+            $parent = $tree->{ID} . '_' . $parent;
+            if ($self->{NODECOUNT} == 1){
+                $tree->{ROOTNODE} = $parent;
+            }
+        }
 	    push(@{$tree->{NODES}->{$node}->{PARENTS}},$parent);
 	    push(@{$tree->{NODES}->{$parent}->{CHILDREN}},$node);
 #	    push(@{$tree->{NODES}->{$node}->{RELATION}},'--');
@@ -256,7 +273,10 @@ sub print_tree{
     }
 
     elsif (defined $tree->{NODES}->{$node}->{word}){
-	$string.=$tree->{NODES}->{$node}->{word};
+    my $word = $tree->{NODES}->{$node}->{word};
+    if ($word eq ')'){$word='-RRB-';}        # brackets
+    elsif ($word eq '('){$word='-LRB';}
+	$string.=$word;
     }
     elsif (defined $tree->{NODES}->{$node}->{index}){
 #	my $child = $tree->{NODES}->{$node}->{CHILDREN2}->[0];
